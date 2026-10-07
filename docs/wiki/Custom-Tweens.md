@@ -40,6 +40,9 @@ When a lambda uses nothing but its parameters, the C# compiler creates it **once
 | `Custom(target, Vector2 from, Vector2 to, duration, setter)` | `(T target, Vector2 value)` |
 | `Custom(target, Vector3 from, Vector3 to, duration, setter)` | `(T target, Vector3 value)` |
 | `Custom(target, Color from, Color to, duration, setter)` | `(T target, Color value)` |
+| `Custom(target, Vector4 from, Vector4 to, duration, setter)` | `(T target, Vector4 value)` |
+| `Custom(target, Quaternion from, Quaternion to, duration, setter)` | `(T target, Quaternion value)` — spherical interpolation |
+| `Custom(target, Rect from, Rect to, duration, setter)` | `(T target, Rect value)` |
 
 `T` can be any class. Custom tweens accept every option and callback a normal tween does.
 
@@ -60,7 +63,7 @@ Raven.Sequence()
     .Chain(Raven.CustomTo(volume, v => v.weight, 0f, 0.3f, (v, w) => v.weight = w));
 ```
 
-`CustomTo` exists for `float` values. With non-capturing lambdas, it allocates nothing either.
+`CustomTo` exists for `float`, `Vector2`, `Vector3`, `Quaternion` and `Color`. With non-capturing lambdas, it allocates nothing either.
 
 ---
 

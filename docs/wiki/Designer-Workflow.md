@@ -12,11 +12,11 @@ A template is a reusable animation recipe saved as an asset. Create one with **C
 
 | Field | Meaning |
 | :--- | :--- |
-| **Property** | What to animate: position, scale, alpha, color, field of view, a material property… |
-| **Material Property** | The shader property name, used only by the material properties. |
+| **Property** | What to animate: position, scale, a single axis (`PositionY`, `ScaleX`…), alpha, color, field of view, a material property, a per-renderer property block… |
+| **Material Property** | The shader property name, used by the material and property-block properties. `_Color` and `_BaseColor` work for either render pipeline. |
 | **End Value** | Where to go. Uses `x` for single numbers, `xyz` for vectors and euler rotations, `xyzw` as RGBA for colors. |
 | **Use Explicit From** / **From Value** | Start from a fixed value instead of the object's current one. |
-| **Settings** | Duration, start delay, ease (or a custom curve), cycles or **Loop Forever**, cycle mode, unscaled time. |
+| **Settings** | Duration, start delay, ease (or a custom curve), cycles or **Loop Forever**, cycle mode (Restart, Yoyo, Incremental, PingPong), unscaled time. |
 
 The inspector is built to iterate quickly:
 

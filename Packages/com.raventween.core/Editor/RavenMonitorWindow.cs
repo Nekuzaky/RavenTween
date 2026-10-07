@@ -114,6 +114,7 @@ namespace RavenTween.Editor {
             EditorGUILayout.BeginVertical(GUILayout.Width(230f));
             int tweens = 0, sequences = 0, paused = 0;
             for (int i = 0; i < _snapshot.Count; i++) {
+                if (_snapshot[i].IsCallback) { continue; }
                 if (_snapshot[i].IsSequence) { sequences++; } else { tweens++; }
                 if (_snapshot[i].Paused) { paused++; }
             }
@@ -197,7 +198,7 @@ namespace RavenTween.Editor {
         // Progress through the current cycle, start delay excluded. Sequence children have no
         // clock of their own (their sequence drives them), so they report no progress.
         static float Progress(in TweenEngine.DebugInfo info) {
-            if (info.OwnedBySequence) { return 0f; }
+            if (info.OwnedBySequence || info.IsCallback) { return 0f; }
             float length = Mathf.Max(info.CycleLength - info.StartDelay, 0.0001f);
             return Mathf.Clamp01((info.Elapsed - info.StartDelay) / length);
         }
@@ -205,14 +206,25 @@ namespace RavenTween.Editor {
         // Where the playhead sits on a sequence's own timeline (yoyo cycles play it backwards).
         static float TimelinePosition(in TweenEngine.DebugInfo info) {
             float p = Progress(info);
-            return info.Mode == CycleMode.Yoyo && (info.CyclesDone & 1) == 1 ? 1f - p : p;
+            return info.Mode == CycleMode.Yoyo && (info.CyclesDone & 1) == 1 ? 1f - p : p; // Sequences only use Restart and Yoyo.
         }
 
         static string ProgressLabel(in TweenEngine.DebugInfo info) {
+            if (info.IsCallback) { return "—  callback"; }
             if (info.OwnedBySequence) { return "—  driven by its sequence"; }
             if (info.Paused) { return "paused"; }
-            if (info.Elapsed < info.StartDelay) { return "delay " + (info.StartDelay - info.Elapsed).ToString("0.0") + " s"; }
-            return (Progress(info) * 100f).ToString("0") + "%";
+            string extra = Annotations(info);
+            if (info.Elapsed < info.StartDelay) { return "delay " + (info.StartDelay - info.Elapsed).ToString("0.0") + " s" + extra; }
+            return (Progress(info) * 100f).ToString("0") + "%" + extra;
+        }
+
+        // Only shown when they differ from the defaults, so ordinary rows stay short.
+        static string Annotations(in TweenEngine.DebugInfo info) {
+            string text = "";
+            if (!Mathf.Approximately(info.TimeScale, 1f)) { text += "  ×" + info.TimeScale.ToString("0.##"); }
+            if (info.Phase == UpdatePhase.FixedUpdate) { text += "  fixed"; }
+            else if (info.Phase == UpdatePhase.LateUpdate) { text += "  late"; }
+            return text;
         }
 
         void ForgetDeadExpansions() {
@@ -281,7 +293,9 @@ namespace RavenTween.Editor {
                 TweenEngine.DebugSequenceItem item = _items[i];
                 Rect row = GUILayoutUtility.GetRect(10f, 14f, GUILayout.ExpandWidth(true));
                 Rect lane = new Rect(row.x + 200f, row.y + 2f, row.width - 204f, row.height - 4f);
-                string label = (item.Target != null ? item.Target.name : "(value)") + " · " + (item.IsSequence ? "Sequence" : item.Property.ToString());
+                string label = item.IsCallback
+                    ? "callback"
+                    : (item.Target != null ? item.Target.name : "(value)") + " · " + (item.IsSequence ? "Sequence" : item.Property.ToString());
                 GUI.Label(new Rect(row.x + 18f, row.y - 1f, 180f, row.height), label, EditorStyles.miniLabel);
                 if (Event.current.type != EventType.Repaint) { continue; }
                 EditorGUI.DrawRect(lane, new Color(0f, 0f, 0f, 0.2f));

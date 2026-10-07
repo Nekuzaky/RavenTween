@@ -18,7 +18,7 @@ namespace RavenTween.Editor {
     /// </remarks>
     [InitializeOnLoad]
     static class EditorTweenPreview {
-        enum Channel : byte { Property, LocalPosition, AnchoredPosition3D }
+        enum Channel : byte { Property, LocalPosition, AnchoredPosition3D, PropertyBlock }
 
         struct Snapshot {
             public Object Target;
@@ -26,6 +26,7 @@ namespace RavenTween.Editor {
             public PropertyKind Property;
             public int PropertyId;
             public TweenValue Value;
+            public bool HadBlock;
         }
 
         static readonly List<Snapshot> Snapshots = new List<Snapshot>(16);
@@ -64,6 +65,7 @@ namespace RavenTween.Editor {
         public static void Record(Object target, PropertyKind property, int propertyId) {
             if (target == null || property == PropertyKind.None) { return; }
             if (target is Material material && !material.HasProperty(propertyId)) { return; }
+            if (!PropertyAccessor.TargetType(property).IsInstanceOfType(target)) { return; }
             Snapshot snapshot = MakeSnapshot(target, property, propertyId);
             for (int i = 0; i < Snapshots.Count; i++) {
                 Snapshot s = Snapshots[i];
@@ -79,12 +81,31 @@ namespace RavenTween.Editor {
                 case PropertyKind.Position:
                 case PropertyKind.LocalPosition:
                 case PropertyKind.AnchoredPosition:
+                case PropertyKind.PositionX:
+                case PropertyKind.PositionY:
+                case PropertyKind.PositionZ:
+                case PropertyKind.LocalPositionX:
+                case PropertyKind.LocalPositionY:
+                case PropertyKind.LocalPositionZ:
+                case PropertyKind.AnchoredPositionX:
+                case PropertyKind.AnchoredPositionY:
                     snapshot.Channel = target is RectTransform ? Channel.AnchoredPosition3D : Channel.LocalPosition;
+                    snapshot.Property = PropertyKind.LocalPosition;
                     break;
                 case PropertyKind.Rotation:
                 case PropertyKind.EulerAngles:
                 case PropertyKind.LocalEulerAngles:
                     snapshot.Property = PropertyKind.LocalRotation;
+                    break;
+                case PropertyKind.LocalScaleX:
+                case PropertyKind.LocalScaleY:
+                case PropertyKind.LocalScaleZ:
+                    snapshot.Property = PropertyKind.LocalScale;
+                    break;
+                case PropertyKind.PropertyBlockFloat:
+                case PropertyKind.PropertyBlockColor:
+                    snapshot.Channel = Channel.PropertyBlock;
+                    snapshot.HadBlock = ((Renderer)target).HasPropertyBlock();
                     break;
             }
             snapshot.Value = ReadSnapshot(snapshot);
@@ -103,6 +124,11 @@ namespace RavenTween.Editor {
             switch (s.Channel) {
                 case Channel.LocalPosition: ((Transform)s.Target).localPosition = s.Value.Vector3; break;
                 case Channel.AnchoredPosition3D: ((RectTransform)s.Target).anchoredPosition3D = s.Value.Vector3; break;
+                case Channel.PropertyBlock:
+                    // A renderer that had no block before the preview gets none back.
+                    if (s.HadBlock) { PropertyAccessor.Write(s.Property, s.Target, s.PropertyId, s.Value); }
+                    else { ((Renderer)s.Target).SetPropertyBlock(null); }
+                    break;
                 default: PropertyAccessor.Write(s.Property, s.Target, s.PropertyId, s.Value); break;
             }
         }

@@ -1,6 +1,6 @@
 {
   "name": "com.raventween.core",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "displayName": "RavenTween",
   "description": "High-performance, allocation-free tweening engine for Unity. Fluent code-first API, sequences, async/await, coroutines, and optional inspector-driven templates.",
   "unity": "2021.3",
@@ -23,7 +23,9 @@
     "textmeshpro",
     "zero-allocation",
     "procedural",
-    "animation-rigging"
+    "animation-rigging",
+    "physics",
+    "dotween"
   ],
   "author": {
     "name": "Nekuzaky",
@@ -69,6 +71,11 @@
       "displayName": "08 - Procedural",
       "description": "Head look-at and antenna spring chain blended with weight tweens.",
       "path": "Samples~/08_Procedural"
+    },
+    {
+      "displayName": "09 - Time and Physics",
+      "description": "Rigidbody tweens in FixedUpdate, Incremental and PingPong cycles, timeline callbacks, property blocks and a hit stop.",
+      "path": "Samples~/09_TimeAndPhysics"
     }
   ]
 }

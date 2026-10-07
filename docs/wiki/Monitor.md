@@ -39,7 +39,7 @@ The top of the window summarizes what's running:
 | **Kind** | `Tween` or `Sequence`. Children of a sequence are marked with `└`. |
 | **Target** | The object being animated. **Click it** to select it in the Hierarchy. |
 | **Property** | What is being animated, or `(value)` for value and custom tweens. |
-| **Progress** | Progress through the current cycle, or `paused`. |
+| **Progress** | Progress through the current cycle (start delay excluded), the remaining delay, or `paused`. A tween with its own time scale shows it (`×0.5`), and one running in `FixedUpdate` or `LateUpdate` says so. Sequence children and timeline callbacks show `—`: their sequence drives them. |
 | **Cycles** | Cycles completed out of the total; `∞` for infinite loops. |
 
 Click the arrow on a **sequence** to unfold its **mini-timeline**: one bar per child, placed where it plays, with a white playhead.

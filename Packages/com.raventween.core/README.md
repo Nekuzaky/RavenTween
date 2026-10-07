@@ -6,7 +6,7 @@
 
 <p align="center">
   High-performance, allocation-free tweening for Unity.<br>
-  Fluent code-first API · sequences · async/await · shake &amp; punch · TextMeshPro · designer templates · live monitor
+  Fluent code-first API · sequences with callbacks · full time control · physics · async/await · shake &amp; punch · TextMeshPro · designer templates · visual timeline · live monitor · DOTween adapter
 </p>
 
 <p align="center">
@@ -33,13 +33,13 @@
 **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0"
 ```
 
 Requires Unity 2021.3 or newer. Unity 6 is fully supported.
@@ -75,7 +75,20 @@ Raven.Sequence()
     .OnComplete(() => Debug.Log("sequence done"));
 ```
 
-Sequences own their children and support nesting (`Chain(otherSequence)`), cycles, yoyo and infinite loops.
+Sequences own their children and support nesting (`Chain(otherSequence)`), cycles, yoyo and infinite loops, and run code on the timeline with `ChainCallback` / `InsertCallback`.
+
+### Time control
+
+```csharp
+tween.TimeScale = 0.5f;                       // this tween only
+tween.ElapsedTimeTotal = 1.2f;                // jump there, forwards or backwards
+intro.ProgressTotal = slider.value;           // scrub a whole sequence
+loop.SetRemainingCycles(stopAtEndValue: true); // end an infinite loop cleanly
+Raven.TweenTimeScale(spin, 0f, 2f);           // wind a tween down
+Raven.GlobalTimeScale(0.05f, 0.05f);          // hit stop
+Raven.StopAll(enemy);                         // everything animating one object
+Raven.Value(0f, 1f, 2f).WithCancellation(token).UpdateIn(UpdatePhase.FixedUpdate);
+```
 
 ### Shake & punch
 
@@ -96,7 +109,14 @@ Raven.Custom(light, 0f, 8f, 1f, (l, v) => l.range = v);
 Raven.Custom(this, Vector3.zero, Vector3.one, 1f, (self, v) => self.offset = v);
 ```
 
-If the target is a `UnityEngine.Object`, the tween dies with it.
+If the target is a `UnityEngine.Object`, the tween dies with it. `Raven.CustomTo(target, getter, to, duration, setter)` reads the start value when the tween starts, and `OnComplete(target, t => …)` / `OnUpdate(target, (t, tween) => …)` give allocation-free callbacks.
+
+### Physics
+
+```csharp
+platform.TweenMovePosition(endPoint, 2f).Ease(Ease.InOutSine).Infinite();   // Rigidbody, in FixedUpdate
+crate.TweenMoveRotation(90f, 0.5f);                                          // Rigidbody2D
+```
 
 ### TextMeshPro
 
@@ -144,7 +164,8 @@ Awaiting resumes when the tween completes **or** is killed.
 ### Cycles, callbacks, time
 
 ```csharp
-tween.Cycles(4, CycleMode.Yoyo);          // ping-pong 4 times
+tween.Cycles(4, CycleMode.Yoyo);          // back and forth 4 times
+tween.Cycles(-1, CycleMode.Incremental);  // keeps going: 1 m, 2 m, 3 m…
 tween.Infinite(CycleMode.Restart);        // forever
 
 tween.OnStart(...).OnUpdate(...).OnComplete(...).OnKill(...).OnTargetDestroyed(...);
@@ -160,8 +181,18 @@ Raven.UpdatePhase = UpdatePhase.LateUpdate;
 
 ```csharp
 tween.Ease(Ease.OutElastic);
+tween.Ease(Easing.Overshoot(2f));           // tunable: Overshoot, Bounce, BounceExact, Elastic
 tween.Ease(myCurve);
 tween.Ease(t => t * t * (3f - 2f * t));
+```
+
+### Coming from DOTween
+
+```csharp
+using RavenTween;
+using RavenTween.DOTweenAdapter;   // instead of: using DG.Tweening;
+
+transform.DOMoveY(2f, 0.4f).SetEase(Ease.OutQuad).SetLoops(2, LoopType.Yoyo);   // runs on RavenTween
 ```
 
 ## Designer workflow (no code)
@@ -192,17 +223,19 @@ void Show() => show.ApplyTo(Raven.AnchoredPosition(panel, Vector2.zero, show.dur
 
 | Area | Methods |
 | --- | --- |
-| Transform | `Position`, `LocalPosition`, `Rotation`, `LocalRotation`, `EulerAngles`, `LocalEulerAngles`, `Scale` |
-| Effects | `ShakePosition`, `ShakeRotation`, `ShakeScale`, `PunchPosition`, `PunchRotation`, `PunchScale` |
-| UI | `AnchoredPosition`, `SizeDelta`, `Alpha(CanvasGroup)`, `Color(Graphic)`, `Alpha(Graphic)` |
+| Transform | `Position`, `LocalPosition`, `Rotation`, `LocalRotation`, `EulerAngles`, `LocalEulerAngles`, `Scale`; single axis `PositionX/Y/Z`, `LocalPositionX/Y/Z`, `ScaleX/Y/Z`; at a speed `PositionAtSpeed`, `RotationAtSpeed`… |
+| Effects | `ShakePosition`, `ShakeRotation`, `ShakeScale`, `PunchPosition`, `PunchRotation`, `PunchScale`, `ShakeCamera` |
+| UI | `AnchoredPosition`, `AnchoredPositionX/Y`, `SizeDelta`, `Alpha(CanvasGroup)`, `Color(Graphic)`, `Alpha(Graphic)` |
 | Camera | `FieldOfView`, `OrthographicSize`, `BackgroundColor` |
 | Audio | `Volume`, `Pitch` |
-| Material | `MaterialFloat`, `MaterialColor` (by property ID or name) |
-| Rendering | `Color(SpriteRenderer)`, `Intensity(Light)`, `Color(Light)` |
+| Material | `MaterialFloat`, `MaterialColor` (by property ID or name); per renderer `PropertyBlockFloat`, `PropertyBlockColor` |
+| Rendering | `Color(SpriteRenderer)`, `Alpha(SpriteRenderer)`, `Intensity(Light)`, `Color(Light)` |
+| Physics | `TweenMovePosition`, `TweenMoveRotation` on `Rigidbody` and `Rigidbody2D` |
+| Time | `GlobalTimeScale`, `TweenTimeScale` |
 | TextMeshPro | `TweenTypewriter`, `TweenMaxVisibleCharacters`, `TweenNumber`, `TweenFontSize`, `TweenCharacterSpacing` |
 | Procedural | `RavenLookAt`, `RavenSpringChain` components; `TweenWeight`, `LookAtTarget` |
 | Animation Rigging | `TweenWeight` (any constraint, `Rig`), `TweenReach`, `TweenRelease` |
-| Anything | `Value(...)`, `Custom(target, from, to, duration, setter)`, `Delay` |
+| Anything | `Value(...)`, `Custom(target, from, to, duration, setter)`, `CustomTo(...)`, `Delay` |
 
 Every method also exists in extension form: `transform.TweenPosition(...)`, `material.TweenColor(...)`, `text.TweenTypewriter(...)`.
 
@@ -257,6 +290,7 @@ Import from **Package Manager → RavenTween → Samples**. Each sample builds i
 | 06 - Benchmark | Thousands of tweens with frame-time and GC readout |
 | 07 - TextMeshPro | Typewriter, number counter, punch feedback |
 | 08 - Procedural | Head look-at and antenna spring, blended with weight tweens |
+| 09 - Time and Physics | Rigidbody platform, Incremental clock, timeline callbacks, property-block flash, hit stop |
 
 Samples work with both the legacy Input Manager and the Input System package.
 

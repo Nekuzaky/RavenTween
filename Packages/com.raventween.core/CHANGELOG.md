@@ -3,6 +3,38 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-10-08
+
+### Added
+- **Update phases**: `UpdatePhase.FixedUpdate`, and `.UpdateIn(phase)` on any tween or sequence. Fixed tweens run right after scripts' `FixedUpdate`, before the physics step.
+- **Physics** (optional assemblies, compiled with the Physics / Physics 2D modules): `TweenMovePosition`, `TweenMoveRotation` and `TweenMovePositionAtSpeed` on `Rigidbody` and `Rigidbody2D`, through `MovePosition` / `MoveRotation`, in `FixedUpdate`.
+- **Time control** on `Tween` and `Sequence`: `Duration`, `DurationTotal`, `CyclesDone`, `CyclesTotal`, `InterpolationFactor`, and settable `ElapsedTime`, `ElapsedTimeTotal`, `Progress`, `ProgressTotal` (silent jumps forwards or backwards; sequences replay their children in timeline order) and `TimeScale` (per tween). They also work on sequence children (read-only there). `SetRemainingCycles(int)` and `SetRemainingCycles(bool stopAtEndValue)`. `Raven.TweenTimeScale(tween, to, duration)` and `Raven.GlobalTimeScale(to, duration)`.
+- **Sequence callbacks**: `ChainCallback` and `InsertCallback`, with allocation-free target forms. They fire once per cycle, mirrored on Yoyo's way back.
+- **Cycle modes** `Incremental` (each cycle continues from the last end) and `PingPong` (back with the same ease).
+- **Parametric eases**: `Easing.Overshoot`, `Easing.Bounce`, `Easing.BounceExact`, `Easing.Elastic`, usable through `tween.Ease(Easing)`.
+- **More tweens**: single-axis `PositionX/Y/Z`, `LocalPositionX/Y/Z`, `ScaleX/Y/Z`, `AnchoredPositionX/Y`; speed-based `PositionAtSpeed`, `LocalPositionAtSpeed`, `RotationAtSpeed`, `LocalRotationAtSpeed`, `AnchoredPositionAtSpeed`; per-renderer `PropertyBlockFloat` / `PropertyBlockColor` through a MaterialPropertyBlock; `Alpha(SpriteRenderer)`; `Raven.ShakeCamera` / `camera.Shake()`.
+- **Custom tweens** for `Vector4`, `Quaternion` and `Rect`; `CustomTo` for `Vector2`, `Vector3`, `Quaternion` and `Color`.
+- **Allocation-free callbacks**: `OnComplete(target, t => …)` and `OnUpdate(target, (t, tween) => …)`.
+- **Control by target**: `Raven.StopAll(target)`, `CompleteAll(target)`, `PauseAll(target)`, `ResumeAll(target)`, `CountTweens(target)` — a GameObject covers all its components.
+- **Cancellation**: `.WithCancellation(CancellationToken)`, polled without allocation.
+- `Raven.SetCapacity(n)` to pre-create pooled slots.
+- `TweenSettings<T>`: a whole tween (values and timing) in one serialized field, with overloads for the common properties.
+- **DOTween adapter** (`RavenTween.DOTweenAdapter`): DOTween's shortcuts, settings, sequences, `DOTween.To`, `DOVirtual` and global calls on top of RavenTween, for migrating code one file at a time.
+- Templates support the new properties (single axes, property blocks, sprite alpha) and cycle modes; editor previews restore them, removing a property block the renderer didn't have.
+- The Monitor shows per-tween time scale, the update phase and sequence callbacks.
+- Sample *09 - Time and Physics*: a Rigidbody platform carrying a crate, an Incremental clock, timeline callbacks with a property-block flash, and a hit stop.
+
+### Changed
+- Sequence children are ordered by when they actually start writing (their own delay included), so a delayed child takes over a shared property at the right moment.
+- An exception in a custom setter now stops the tween (or its sequence) instead of being logged every frame.
+
+- Editor scrubbing (template and Sequence Editor previews) no longer runs `OnStart` / `OnComplete` callbacks.
+
+### Fixed
+- A `StopAll` / `CompleteAll` called from a callback during an update could let a tween created later in that callback update in the same frame.
+- Stopping a tween from its `OnUpdate` and creating a new one there could run the new tween's callbacks with the old tween's value.
+- `Complete()` / `CompleteAll()` no longer abort half-way when a custom setter or ease throws: that tween is stopped and the others complete.
+
 ## [1.5.0] - 2026-10-07
 
 A robustness release: every fix below comes with a regression test.

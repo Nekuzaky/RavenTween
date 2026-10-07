@@ -44,6 +44,29 @@ namespace RavenTween {
             return new TweenValue(raw, from.Kind);
         }
 
+        /// <summary>
+        /// Adds <paramref name="cycles"/> times the change from <paramref name="from"/> to
+        /// <paramref name="to"/> to <paramref name="value"/> (Incremental cycles). Quaternions
+        /// apply the rotation that many more times.
+        /// </summary>
+        public static TweenValue AddCycles(in TweenValue value, in TweenValue from, in TweenValue to, int cycles) {
+            Debug.Assert(from.Kind == to.Kind && value.Kind == from.Kind, "Incremental values must share one kind.");
+            if (cycles == 0) { return value; }
+            if (value.Kind == ValueKind.Quaternion) {
+                Quaternion step = to.Quaternion * Quaternion.Inverse(from.Quaternion);
+                step.ToAngleAxis(out float angle, out Vector3 axis);
+                Quaternion total = Quaternion.AngleAxis(angle * cycles, axis);
+                return new TweenValue(total * value.Quaternion);
+            }
+            return new TweenValue(value.Raw + (to.Raw - from.Raw) * cycles, value.Kind);
+        }
+
+        /// <summary>Size of the change between two values: a length, or degrees for quaternions.</summary>
+        public static float Distance(in TweenValue from, in TweenValue to) {
+            if (from.Kind == ValueKind.Quaternion) { return Quaternion.Angle(from.Quaternion, to.Quaternion); }
+            return (to.Raw - from.Raw).magnitude;
+        }
+
         TweenValue(Vector4 raw, ValueKind kind) { Raw = raw; Kind = kind; }
     }
 }

@@ -11,11 +11,11 @@ RavenTween is a standard Unity package installed from its Git repository. There 
 3. Paste the URL below and click **Add**.
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0
 ```
 
 > [!TIP]
-> The `#v1.5.0` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
+> The `#v1.6.0` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
 
 ---
 
@@ -24,7 +24,7 @@ https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1
 Add this line to the `dependencies` block of your project's `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0"
 ```
 
 Unity resolves the package the next time it gains focus.
@@ -63,6 +63,7 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | **06 - Benchmark** | Thousands of tweens with a live frame-time and GC readout |
 | **07 - TextMeshPro** | Typewriter reveal, score counter, punch feedback (needs TextMeshPro) |
 | **08 - Procedural** | A head tracking an orbiting target, a swinging antenna, a look-away driven by weight tweens |
+| **09 - Time and Physics** | A platform carrying a crate through the physics engine, a ticking clock, timeline callbacks, a hit stop on Space (needs the Physics module) |
 
 > [!NOTE]
 > The samples work with both the legacy Input Manager and the Input System package.
@@ -77,6 +78,7 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | **Dependencies** | `com.unity.ugui` and the built-in Audio, JSON Serialize and Unity Web Request modules — all installed automatically |
 | **TextMeshPro** | Optional. The TMP module compiles only when TextMeshPro is present |
 | **Animation Rigging** | Optional. The rigging module compiles only when `com.unity.animation.rigging` is present |
+| **Physics / Physics 2D** | Optional. The Rigidbody tweens compile only when the built-in Physics or Physics 2D module is enabled (it is by default) |
 | **Platforms** | Every platform Unity targets: Windows, macOS, Linux, Android, iOS, WebGL, consoles |
 | **Scripting backends** | Mono and IL2CPP |
 

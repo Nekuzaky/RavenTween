@@ -26,7 +26,22 @@ namespace RavenTween {
         MaterialColor,
         SpriteColor,
         LightIntensity,
-        LightColor
+        LightColor,
+        // Values are serialized in templates: new kinds are only ever appended.
+        PositionX,
+        PositionY,
+        PositionZ,
+        LocalPositionX,
+        LocalPositionY,
+        LocalPositionZ,
+        LocalScaleX,
+        LocalScaleY,
+        LocalScaleZ,
+        AnchoredPositionX,
+        AnchoredPositionY,
+        PropertyBlockFloat,
+        PropertyBlockColor,
+        SpriteAlpha
     }
 
     /// <summary>Reads and writes built-in properties on their targets. No reflection, no allocation.</summary>
@@ -35,7 +50,11 @@ namespace RavenTween {
         public static System.Type TargetType(PropertyKind kind) {
             switch (kind) {
                 case PropertyKind.AnchoredPosition:
+                case PropertyKind.AnchoredPositionX:
+                case PropertyKind.AnchoredPositionY:
                 case PropertyKind.SizeDelta: return typeof(RectTransform);
+                case PropertyKind.PropertyBlockFloat:
+                case PropertyKind.PropertyBlockColor: return typeof(Renderer);
                 case PropertyKind.CanvasGroupAlpha: return typeof(CanvasGroup);
                 case PropertyKind.GraphicColor:
                 case PropertyKind.GraphicAlpha: return typeof(Graphic);
@@ -46,7 +65,8 @@ namespace RavenTween {
                 case PropertyKind.AudioPitch: return typeof(AudioSource);
                 case PropertyKind.MaterialFloat:
                 case PropertyKind.MaterialColor: return typeof(Material);
-                case PropertyKind.SpriteColor: return typeof(SpriteRenderer);
+                case PropertyKind.SpriteColor:
+                case PropertyKind.SpriteAlpha: return typeof(SpriteRenderer);
                 case PropertyKind.LightIntensity:
                 case PropertyKind.LightColor: return typeof(Light);
                 default: return typeof(Transform);
@@ -91,6 +111,7 @@ namespace RavenTween {
                 case PropertyKind.MaterialColor:
                 case PropertyKind.SpriteColor:
                 case PropertyKind.LightColor:
+                case PropertyKind.PropertyBlockColor:
                     return ValueKind.Color;
                 default:
                     return ValueKind.Float;
@@ -124,6 +145,26 @@ namespace RavenTween {
                 case PropertyKind.SpriteColor: return new TweenValue(((SpriteRenderer)target).color);
                 case PropertyKind.LightIntensity: return new TweenValue(((Light)target).intensity);
                 case PropertyKind.LightColor: return new TweenValue(((Light)target).color);
+                default: return ReadExtended(kind, target, propertyId);
+            }
+        }
+
+        static TweenValue ReadExtended(PropertyKind kind, Object target, int propertyId) {
+            switch (kind) {
+                case PropertyKind.PositionX: return new TweenValue(((Transform)target).position.x);
+                case PropertyKind.PositionY: return new TweenValue(((Transform)target).position.y);
+                case PropertyKind.PositionZ: return new TweenValue(((Transform)target).position.z);
+                case PropertyKind.LocalPositionX: return new TweenValue(((Transform)target).localPosition.x);
+                case PropertyKind.LocalPositionY: return new TweenValue(((Transform)target).localPosition.y);
+                case PropertyKind.LocalPositionZ: return new TweenValue(((Transform)target).localPosition.z);
+                case PropertyKind.LocalScaleX: return new TweenValue(((Transform)target).localScale.x);
+                case PropertyKind.LocalScaleY: return new TweenValue(((Transform)target).localScale.y);
+                case PropertyKind.LocalScaleZ: return new TweenValue(((Transform)target).localScale.z);
+                case PropertyKind.AnchoredPositionX: return new TweenValue(((RectTransform)target).anchoredPosition.x);
+                case PropertyKind.AnchoredPositionY: return new TweenValue(((RectTransform)target).anchoredPosition.y);
+                case PropertyKind.PropertyBlockFloat: return new TweenValue(PropertyBlocks.ReadFloat((Renderer)target, propertyId));
+                case PropertyKind.PropertyBlockColor: return new TweenValue(PropertyBlocks.ReadColor((Renderer)target, propertyId));
+                case PropertyKind.SpriteAlpha: return new TweenValue(((SpriteRenderer)target).color.a);
                 default: return new TweenValue(0f);
             }
         }
@@ -155,14 +196,102 @@ namespace RavenTween {
                 case PropertyKind.SpriteColor: ((SpriteRenderer)target).color = value.Color; break;
                 case PropertyKind.LightIntensity: ((Light)target).intensity = value.Float; break;
                 case PropertyKind.LightColor: ((Light)target).color = value.Color; break;
+                default: WriteExtended(kind, target, propertyId, value); break;
+            }
+        }
+
+        static void WriteExtended(PropertyKind kind, Object target, int propertyId, in TweenValue value) {
+            switch (kind) {
+                case PropertyKind.PositionX:
+                case PropertyKind.PositionY:
+                case PropertyKind.PositionZ: WritePositionAxis((Transform)target, kind - PropertyKind.PositionX, value.Float); break;
+                case PropertyKind.LocalPositionX:
+                case PropertyKind.LocalPositionY:
+                case PropertyKind.LocalPositionZ: WriteLocalPositionAxis((Transform)target, kind - PropertyKind.LocalPositionX, value.Float); break;
+                case PropertyKind.LocalScaleX:
+                case PropertyKind.LocalScaleY:
+                case PropertyKind.LocalScaleZ: WriteLocalScaleAxis((Transform)target, kind - PropertyKind.LocalScaleX, value.Float); break;
+                case PropertyKind.AnchoredPositionX:
+                case PropertyKind.AnchoredPositionY: WriteAnchoredAxis((RectTransform)target, kind - PropertyKind.AnchoredPositionX, value.Float); break;
+                case PropertyKind.PropertyBlockFloat: PropertyBlocks.WriteFloat((Renderer)target, propertyId, value.Float); break;
+                case PropertyKind.PropertyBlockColor: PropertyBlocks.WriteColor((Renderer)target, propertyId, value.Color); break;
+                case PropertyKind.SpriteAlpha: WriteSpriteAlpha((SpriteRenderer)target, value.Float); break;
                 default: break;
             }
+        }
+
+        static void WritePositionAxis(Transform target, int axis, float value) {
+            Vector3 v = target.position;
+            v[axis] = value;
+            target.position = v;
+        }
+
+        static void WriteLocalPositionAxis(Transform target, int axis, float value) {
+            Vector3 v = target.localPosition;
+            v[axis] = value;
+            target.localPosition = v;
+        }
+
+        static void WriteLocalScaleAxis(Transform target, int axis, float value) {
+            Vector3 v = target.localScale;
+            v[axis] = value;
+            target.localScale = v;
         }
 
         static void WriteGraphicAlpha(Graphic graphic, float alpha) {
             Color color = graphic.color;
             color.a = alpha;
             graphic.color = color;
+        }
+
+        static void WriteSpriteAlpha(SpriteRenderer target, float alpha) {
+            Color color = target.color;
+            color.a = alpha;
+            target.color = color;
+        }
+
+        static void WriteAnchoredAxis(RectTransform target, int axis, float value) {
+            Vector2 v = target.anchoredPosition;
+            v[axis] = value;
+            target.anchoredPosition = v;
+        }
+    }
+
+    /// <summary>
+    /// Per-renderer shader values through one shared MaterialPropertyBlock: no material copy, no
+    /// allocation. Values the block doesn't hold yet are read from the shared material.
+    /// </summary>
+    static class PropertyBlocks {
+        static MaterialPropertyBlock _block;
+
+        static MaterialPropertyBlock Block {
+            get { return _block ?? (_block = new MaterialPropertyBlock()); }
+        }
+
+        public static float ReadFloat(Renderer renderer, int id) {
+            renderer.GetPropertyBlock(Block);
+            if (Block.HasFloat(id)) { return Block.GetFloat(id); }
+            Material material = renderer.sharedMaterial;
+            return material != null && material.HasProperty(id) ? material.GetFloat(id) : 0f;
+        }
+
+        public static Color ReadColor(Renderer renderer, int id) {
+            renderer.GetPropertyBlock(Block);
+            if (Block.HasColor(id)) { return Block.GetColor(id); }
+            Material material = renderer.sharedMaterial;
+            return material != null && material.HasProperty(id) ? material.GetColor(id) : Color.white;
+        }
+
+        public static void WriteFloat(Renderer renderer, int id, float value) {
+            renderer.GetPropertyBlock(Block);
+            Block.SetFloat(id, value);
+            renderer.SetPropertyBlock(Block);
+        }
+
+        public static void WriteColor(Renderer renderer, int id, Color value) {
+            renderer.GetPropertyBlock(Block);
+            Block.SetColor(id, value);
+            renderer.SetPropertyBlock(Block);
         }
     }
 }

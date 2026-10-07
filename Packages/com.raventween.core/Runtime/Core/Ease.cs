@@ -17,9 +17,119 @@ namespace RavenTween {
         Custom = 100
     }
 
+    /// <summary>What an <see cref="Easing"/> evaluates.</summary>
+    public enum EasingKind : byte {
+        Standard = 0,
+        Curve = 1,
+        Overshoot = 2,
+        Bounce = 3,
+        BounceExact = 4,
+        Elastic = 5
+    }
+
+    /// <summary>
+    /// An ease with parameters: a standard <see cref="Ease"/>, an AnimationCurve, or a tunable
+    /// Overshoot / Bounce / Elastic. Pass it to <c>tween.Ease(...)</c>. A plain struct: no allocation.
+    /// </summary>
+    public readonly struct Easing {
+        public readonly EasingKind Kind;
+        public readonly Ease Standard;
+        public readonly AnimationCurve Curve;
+        public readonly float A;
+        public readonly float B;
+
+        Easing(EasingKind kind, Ease standard, AnimationCurve curve, float a, float b) {
+            Kind = kind;
+            Standard = standard;
+            Curve = curve;
+            A = a;
+            B = b;
+        }
+
+        /// <summary>A standard ease.</summary>
+        public static Easing Of(Ease ease) { return new Easing(EasingKind.Standard, ease, null, 0f, 0f); }
+
+        /// <summary>An AnimationCurve evaluated over [0, 1].</summary>
+        public static Easing FromCurve(AnimationCurve curve) { return new Easing(EasingKind.Curve, Ease.Custom, curve, 0f, 0f); }
+
+        /// <summary>Goes past the end and settles back (OutBack). 1 = the classic overshoot, 0 = none, 2 = twice as far.</summary>
+        public static Easing Overshoot(float strength = 1f) {
+            return new Easing(EasingKind.Overshoot, Ease.Custom, null, Mathf.Max(strength, 0f), 0f);
+        }
+
+        /// <summary>Bounces on the end value (OutBounce). 1 = the classic bounce, 0.5 = bounces half as high.</summary>
+        public static Easing Bounce(float strength = 1f) {
+            return new Easing(EasingKind.Bounce, Ease.Custom, null, Mathf.Max(strength, 0f), 0f);
+        }
+
+        /// <summary>
+        /// Bounces exactly <paramref name="amplitude"/> back from the end value, in the tween's own
+        /// units (meters, degrees…), whatever the distance travelled.
+        /// </summary>
+        public static Easing BounceExact(float amplitude) {
+            return new Easing(EasingKind.BounceExact, Ease.Custom, null, Mathf.Max(amplitude, 0f), 0f);
+        }
+
+        /// <summary>
+        /// Springs around the end value (OutElastic). Higher <paramref name="strength"/> keeps
+        /// oscillating longer; <paramref name="period"/> is the length of one oscillation, as a
+        /// fraction of the duration.
+        /// </summary>
+        public static Easing Elastic(float strength = 1f, float period = 0.3f) {
+            return new Easing(EasingKind.Elastic, Ease.Custom, null, Mathf.Max(strength, 0.05f), Mathf.Max(period, 0.02f));
+        }
+
+        public static implicit operator Easing(Ease ease) { return Of(ease); }
+
+        /// <summary>Evaluates the ease at <paramref name="t"/>. BounceExact uses a distance of 1.</summary>
+        public float Evaluate(float t) {
+            switch (Kind) {
+                case EasingKind.Standard: return EaseUtility.Evaluate(Standard, t);
+                case EasingKind.Curve: return Curve != null ? Curve.Evaluate(Mathf.Clamp01(t)) : t;
+                default: return EaseUtility.EvaluateParametric(Kind, t, A, B, 1f);
+            }
+        }
+    }
+
     /// <summary>Evaluates easing functions. All methods are pure and allocation-free.</summary>
     public static class EaseUtility {
         const float BackOvershoot = 1.70158f;
+        const float BounceFirstRebound = 0.25f; // Height of OutBounce's first rebound, as a fraction of the distance.
+
+        /// <summary>
+        /// Evaluates a parametric ease. <paramref name="distance"/> is the size of the change being
+        /// eased, used by BounceExact to turn its amplitude into a strength.
+        /// </summary>
+        public static float EvaluateParametric(EasingKind kind, float t, float a, float b, float distance) {
+            Debug.Assert(!float.IsNaN(t), "Ease time must be a number.");
+            t = Mathf.Clamp01(t);
+            switch (kind) {
+                case EasingKind.Overshoot: return OutBackWith(t, BackOvershoot * a);
+                case EasingKind.Bounce: return OutBounceScaled(t, a);
+                case EasingKind.BounceExact:
+                    return OutBounceScaled(t, distance > 1e-6f ? a / (BounceFirstRebound * distance) : 0f);
+                case EasingKind.Elastic: return OutElasticWith(t, a, b);
+                default: return t;
+            }
+        }
+
+        static float OutBackWith(float t, float s) {
+            return 1f + (s + 1f) * Pow3(t - 1f) + s * Pow2(t - 1f);
+        }
+
+        // Rebounds after the first impact are scaled; the fall itself is unchanged.
+        static float OutBounceScaled(float t, float strength) {
+            if (t < 1f / 2.75f) { return OutBounce(t); }
+            return 1f - (1f - OutBounce(t)) * strength;
+        }
+
+        // 1 - e(t)·cos(2πt / period), where the envelope e decays from 1 at t = 0 to exactly 0 at t = 1.
+        static float OutElasticWith(float t, float strength, float period) {
+            if (t <= 0f) { return 0f; }
+            if (t >= 1f) { return 1f; }
+            float envelope = Mathf.Pow(2f, -10f * t / strength) - Mathf.Pow(2f, -10f / strength) * t;
+            return 1f - envelope * Mathf.Cos(2f * Mathf.PI * t / period);
+        }
 
         /// <summary>Evaluates <paramref name="ease"/> at normalized time <paramref name="t"/> in [0, 1].</summary>
         public static float Evaluate(Ease ease, float t) {

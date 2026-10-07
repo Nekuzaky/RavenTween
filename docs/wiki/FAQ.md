@@ -36,7 +36,15 @@ Nothing bad. The tween notices on its next update, fires `OnTargetDestroyed` if 
 
 ### Two tweens on the same object fight each other.
 
-Two tweens writing the same property both run, and the last one to update each frame wins. Stop the old tween before starting a new one — keep its handle and call `Stop()` — or tween different properties.
+Two tweens writing the same property both run, and the last one to update each frame wins. Stop the old tween before starting a new one — keep its handle and call `Stop()`, or call `Raven.StopAll(target)` — or tween different properties. Single-axis tweens (`PositionX`, `ScaleY`…) let two tweens share a transform without fighting.
+
+### How do I move a physics object?
+
+Use `rigidbody.TweenMovePosition(...)` / `TweenMoveRotation(...)` (also on `Rigidbody2D`). They go through the physics engine and run in `FixedUpdate`, so collisions keep working. See **[Tweens and Easing](Tweens-and-Easing)**.
+
+### Can I keep my DOTween code?
+
+Mostly, yes: swap `using DG.Tweening;` for `using RavenTween; using RavenTween.DOTweenAdapter;` and the common DOTween calls compile and run on RavenTween. See **[Migrating](Migrating)**.
 
 ### Can I put an infinite tween in a sequence?
 
@@ -48,7 +56,7 @@ Yes. RavenTween resumes awaiting code from its own update on the main thread; no
 
 ### Does `OnUpdate(v => …)` allocate?
 
-Only if the lambda captures something, and then only once when the tween is created — that's how C# closures work. For zero allocations, use **[Custom Tweens](Custom-Tweens)**. See **[Performance](Performance)**.
+Only if the lambda captures something, and then only once when the tween is created — that's how C# closures work. For zero allocations, pass a target: `OnUpdate(target, (t, tween) => …)`, `OnComplete(target, t => …)`, or use **[Custom Tweens](Custom-Tweens)**. See **[Performance](Performance)**.
 
 ### Does it work with domain reload disabled?
 

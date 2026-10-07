@@ -32,7 +32,17 @@ namespace RavenTween {
         /// out-and-back for Yoyo (so it ends where it started), one pass for Restart.
         /// </summary>
         public int CyclesInsideSequence {
-            get { return settings.cycleMode == CycleMode.Yoyo ? 2 : 1; }
+            get { return settings.cycleMode == CycleMode.Yoyo || settings.cycleMode == CycleMode.PingPong ? 2 : 1; }
+        }
+
+        /// <summary>True when the property is a shader property and needs <see cref="materialProperty"/>.</summary>
+        public bool UsesShaderProperty {
+            get { return IsShaderProperty(property); }
+        }
+
+        internal static bool IsShaderProperty(PropertyKind kind) {
+            return kind == PropertyKind.MaterialFloat || kind == PropertyKind.MaterialColor ||
+                   kind == PropertyKind.PropertyBlockFloat || kind == PropertyKind.PropertyBlockColor;
         }
 
         /// <summary>Creates and plays a tween of this template on <paramref name="target"/>.</summary>
@@ -75,9 +85,12 @@ namespace RavenTween {
         // works for either pipeline.
         bool TryResolvePropertyId(Object resolved, bool logErrors, out int id) {
             id = 0;
-            bool material = property == PropertyKind.MaterialFloat || property == PropertyKind.MaterialColor;
-            if (!material) { return true; }
-            var mat = (Material)resolved;
+            if (!UsesShaderProperty) { return true; }
+            Material mat = resolved as Material ?? ((Renderer)resolved).sharedMaterial;
+            if (mat == null) {
+                if (logErrors) { Debug.LogError("RavenTween: '" + resolved.name + "' has no material (template '" + name + "').", this); }
+                return false;
+            }
             if (string.IsNullOrEmpty(materialProperty)) {
                 if (logErrors) { Debug.LogError("RavenTween: template '" + name + "' has no shader property name.", this); }
                 return false;

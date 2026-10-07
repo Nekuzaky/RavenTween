@@ -36,7 +36,18 @@ Raven.Position(enemy, target, 0.8f)
 The tween is already released when `OnComplete`, `OnKill` or `OnTargetDestroyed` runs: its handle is dead (`IsAlive` is `false`), so starting a new tween from these callbacks — even on the same target — is safe. Calling `Complete()` or `Stop()` on a tween from its own `OnUpdate` is safe too.
 
 > [!NOTE]
-> An exception thrown inside a callback is logged and contained — it never stops other tweens from updating. An exception thrown by a custom ease or a custom setter is logged and stops only the tween that threw it.
+> An exception thrown inside a callback is logged and contained — it never stops other tweens from updating. An exception thrown by a custom ease or a custom setter is logged and stops the tween that threw it (or the sequence it belongs to).
+
+### Callbacks without allocation
+
+A lambda that uses a field or a local of your script allocates a small closure when the tween is created. For tweens created very often, pass the object the callback needs as a **target** and use a lambda that only uses its parameters:
+
+```csharp
+Raven.Scale(icon, 1.2f, 0.2f).OnComplete(this, self => self.OnPopped());
+Raven.Value(0f, 1f, 2f).OnUpdate(healthBar, (bar, tween) => bar.fillAmount = tween.Progress);
+```
+
+Both allocate nothing. A tween takes one target-based `OnComplete` and one target-based `OnUpdate`, on top of any number of regular callbacks. The callback is skipped if the target is a Unity object that has been destroyed.
 
 ---
 
@@ -50,14 +61,48 @@ The tween is already released when `OnComplete`, `OnKill` or `OnTargetDestroyed`
 | `Start()` | Tweens already play on creation; `Start()` documents intent and resumes a paused tween. |
 | `IsAlive` | `true` while running or paused. |
 | `IsPaused` | `true` while paused. |
+| `SetRemainingCycles(n)` | Change how many cycles remain, the current one included: `1` ends a loop cleanly at the end of this cycle. |
+| `SetRemainingCycles(true)` | For Yoyo and PingPong loops: complete the next time the tween reaches its end value (`false`: its start value). |
+| `.WithCancellation(token)` | Stop the tween (firing `OnKill`) as soon as a `CancellationToken` is cancelled. No allocation. |
 
-Globally:
+### Where a tween is in time
+
+Every handle exposes its timing. The setters jump the tween there immediately, forwards or backwards; jumping past the end completes it. A jump is **silent**: `OnStart`, `OnComplete` and timeline callbacks of what it passes over don't fire (`OnUpdate` does, since values change). Everything after the new time fires normally as the tween plays on. To finish a tween *with* its callbacks, use `Complete()`.
+
+| Property | Meaning |
+| :--- | :--- |
+| `Duration` | One cycle, in seconds, without the delay. |
+| `DurationTotal` | Delay + all cycles. Infinity when looping forever. |
+| `ElapsedTime` *(settable)* | Seconds into the current cycle. |
+| `ElapsedTimeTotal` *(settable)* | Seconds since the tween was created, delay included. |
+| `Progress` *(settable)* | 0–1 through the current cycle. |
+| `ProgressTotal` *(settable)* | 0–1 through the whole tween (0 when infinite). |
+| `CyclesDone`, `CyclesTotal` | Cycles completed so far; total (`-1` = infinite). |
+| `InterpolationFactor` | The eased factor shown right now: 0 on the start value, 1 on the end value. |
+| `TimeScale` *(settable)* | Speed of this tween only: `0.5` = half speed, `0` = frozen. |
 
 ```csharp
-Raven.StopAll();       // stop everything
-Raven.CompleteAll();   // finish everything instantly — handy when skipping a cutscene
-int live = Raven.AliveCount;
+Tween spin = Raven.LocalEulerAngles(wheel, new Vector3(0f, 0f, 360f), 1f).Infinite(CycleMode.Restart);
+spin.TimeScale = 3f;                         // spin faster
+Raven.TweenTimeScale(spin, 0f, 2f);          // ...then wind down smoothly over 2 s
 ```
+
+`Sequence` has the same properties. On a tween inside a sequence, the sequence drives the timing: set it on the sequence.
+
+### Global control
+
+```csharp
+Raven.StopAll();                 // stop everything
+Raven.CompleteAll();             // finish everything instantly — handy when skipping a cutscene
+Raven.PauseAll(); Raven.ResumeAll();
+int live = Raven.AliveCount;
+
+Raven.StopAll(enemy);            // only the tweens animating this object
+Raven.CompleteAll(door.transform);
+int moving = Raven.CountTweens(player.transform);
+```
+
+The target can be any component or material a tween animates, the target of a custom tween, or a **GameObject** — which covers the tweens of all its components. Each call returns how many tweens it affected.
 
 ### Dead handles are safe
 
@@ -88,13 +133,24 @@ Once a tween is added to a sequence, the sequence drives it:
 | `Time.timeScale` | Scales every tween, like the rest of your game. At `0`, tweens freeze. |
 | `.UnscaledTime()` | This tween ignores `Time.timeScale` — use it for pause menus. |
 | `Raven.TimeScale` | An extra multiplier applied to all tweens only, independent of `Time.timeScale`. Negative values clamp to 0; `NaN` and infinity are ignored. |
-| `Raven.UpdatePhase` | `UpdatePhase.Update` (default) or `UpdatePhase.LateUpdate`, to run after your own `Update` scripts. |
+| `tween.TimeScale` | A multiplier for one tween or sequence (see above). |
+| `Raven.GlobalTimeScale(to, duration)` | Tweens `Time.timeScale` itself — slow motion, hit stop — in unscaled time. |
+| `Raven.UpdatePhase` | When tweens run by default: `UpdatePhase.Update` (default), `LateUpdate` (after your own `Update` scripts) or `FixedUpdate` (at the physics rate). |
+| `.UpdateIn(phase)` | When this tween or sequence runs, whatever the default. |
 
 ```csharp
 // Pause the game, keep the pause menu animating.
 Time.timeScale = 0f;
 Raven.AnchoredPosition(pauseMenu, Vector2.zero, 0.3f).UnscaledTime();
+
+// A hit stop: drop to 5% speed, then come back.
+Raven.GlobalTimeScale(0.05f, 0.05f).OnComplete(() => Raven.GlobalTimeScale(1f, 0.25f));
+
+// Move a physics object at the physics rate (Rigidbody tweens do this by default).
+Raven.LocalPositionY(lift, 3f, 2f).UpdateIn(UpdatePhase.FixedUpdate);
 ```
+
+`FixedUpdate` tweens run right after your scripts' `FixedUpdate`, before the physics step, with `Time.fixedDeltaTime`.
 
 ---
 

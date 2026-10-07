@@ -1,0 +1,24 @@
+{
+    "name": "RavenTween.Physics",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_PHYSICS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "RAVEN_PHYSICS"
+        }
+    ],
+    "noEngineReferences": false
+}

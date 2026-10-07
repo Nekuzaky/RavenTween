@@ -88,6 +88,65 @@ namespace RavenTween {
         /// <summary>Completes every live tween and sequence, jumping them to their end values.</summary>
         public static void CompleteAll() { TweenEngine.KillAll(true); }
 
+        /// <summary>
+        /// Stops the tweens animating <paramref name="target"/>: a component, a material, a custom
+        /// tween's target, or a GameObject (all its components). Null means everything. Returns how many stopped.
+        /// </summary>
+        public static int StopAll(object target) { return TweenEngine.ForEachOnTarget(target, TweenEngine.TargetAction.Stop); }
+
+        /// <summary>Completes the tweens animating <paramref name="target"/> (see <see cref="StopAll(object)"/>).</summary>
+        public static int CompleteAll(object target) { return TweenEngine.ForEachOnTarget(target, TweenEngine.TargetAction.Complete); }
+
+        /// <summary>Pauses the tweens animating <paramref name="target"/>, or every tween and sequence when null.</summary>
+        public static int PauseAll(object target = null) { return TweenEngine.ForEachOnTarget(target, TweenEngine.TargetAction.Pause); }
+
+        /// <summary>Resumes the tweens animating <paramref name="target"/>, or every tween and sequence when null.</summary>
+        public static int ResumeAll(object target = null) { return TweenEngine.ForEachOnTarget(target, TweenEngine.TargetAction.Resume); }
+
+        /// <summary>Number of live tweens animating <paramref name="target"/> (sequence children not counted).</summary>
+        public static int CountTweens(object target) { return TweenEngine.ForEachOnTarget(target, TweenEngine.TargetAction.Count); }
+
+        /// <summary>
+        /// Creates <paramref name="capacity"/> pooled slots up front (e.g. at loading time) so the
+        /// first tweens of a busy scene never allocate. The pool still grows on demand beyond it.
+        /// </summary>
+        public static void SetCapacity(int capacity) { TweenEngine.EnsureCapacity(Mathf.Max(capacity, 0)); }
+
+        // ----- Time scale tweens -----
+
+        static readonly object TimeScaleTarget = new object();
+
+        /// <summary>Tweens <c>Time.timeScale</c> (slow motion, hit stop). Runs in unscaled time.</summary>
+        public static Tween GlobalTimeScale(float to, float duration) {
+            Debug.Assert(to >= 0f, "Time.timeScale cannot be negative.");
+            return CustomTo(TimeScaleTarget, _ => Time.timeScale, Mathf.Max(to, 0f), duration,
+                            (_, value) => Time.timeScale = Mathf.Max(value, 0f)).UnscaledTime();
+        }
+
+        /// <summary>Tweens the <see cref="RavenTween.Tween.TimeScale"/> of <paramref name="tween"/>, e.g. to slow one animation down smoothly.</summary>
+        public static Tween TweenTimeScale(Tween tween, float to, float duration) {
+            return CreateTimeScaleTween(tween.Index, tween.Version, to, duration);
+        }
+
+        /// <summary>Tweens the <see cref="RavenTween.Sequence.TimeScale"/> of <paramref name="sequence"/>.</summary>
+        public static Tween TweenTimeScale(Sequence sequence, float to, float duration) {
+            return CreateTimeScaleTween(sequence.Index, sequence.Version, to, duration);
+        }
+
+        static Tween CreateTimeScaleTween(int index, uint version, float to, float duration) {
+            if (!TweenEngine.TryGetSlot(index, version, out TweenSlot target) || target.OwnedBySequence) {
+                Debug.LogError("RavenTween: TweenTimeScale needs a live tween or sequence that is not inside a sequence.");
+                return default;
+            }
+            Tween tween = CreateValueTween(new TweenValue(target.TimeScale), new TweenValue(Mathf.Max(to, 0f)), duration);
+            if (TweenEngine.TryGetSlot(tween.Index, tween.Version, out TweenSlot slot)) {
+                slot.HasExplicitFrom = false;
+                slot.LinkIndex = index;
+                slot.LinkVersion = version;
+            }
+            return tween;
+        }
+
         // ----- Internal factories (used by extension classes) -----
 
         internal static Tween CreateValueTween(in TweenValue from, in TweenValue to, float duration) {

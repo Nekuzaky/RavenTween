@@ -1,0 +1,26 @@
+{
+    "name": "RavenTween.Samples.TimeAndPhysics",
+    "rootNamespace": "RavenTweenSamples",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.Physics",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "RAVEN_PHYSICS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.physics",
+            "expression": "1.0.0",
+            "define": "RAVEN_PHYSICS"
+        }
+    ],
+    "noEngineReferences": false
+}

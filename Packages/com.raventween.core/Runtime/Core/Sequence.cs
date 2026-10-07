@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using UnityEngine;
 
 namespace RavenTween {
@@ -89,6 +90,69 @@ namespace RavenTween {
             return this;
         }
 
+        /// <summary>Runs <paramref name="callback"/> when the timeline reaches the current chain end.</summary>
+        public Sequence ChainCallback(Action callback) {
+            Debug.Assert(callback != null, "Chain callback cannot be null.");
+            if (callback != null && TryGetBuildable(out TweenSlot slot)) {
+                AddCallback(slot, slot.ChainCursor, callback, null, null, null);
+            }
+            return this;
+        }
+
+        /// <summary>Runs <paramref name="callback"/> when the timeline reaches <paramref name="time"/> seconds.</summary>
+        public Sequence InsertCallback(float time, Action callback) {
+            Debug.Assert(callback != null, "Insert callback cannot be null.");
+            Debug.Assert(time >= 0f, "Insert time cannot be negative.");
+            if (callback != null && TryGetBuildable(out TweenSlot slot)) {
+                AddCallback(slot, Mathf.Max(time, 0f), callback, null, null, null);
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Allocation-free <see cref="ChainCallback(Action)"/>: <paramref name="target"/> is passed
+        /// back to a non-capturing lambda, e.g. <c>ChainCallback(this, self =&gt; self.Spawn())</c>.
+        /// Skipped if the target is a destroyed Unity object.
+        /// </summary>
+        public Sequence ChainCallback<T>(T target, Action<T> callback) where T : class {
+            Debug.Assert(target != null && callback != null, "Chain callback needs a target and a callback.");
+            if (target != null && callback != null && TryGetBuildable(out TweenSlot slot)) {
+                AddCallback(slot, slot.ChainCursor, null, target, callback, TargetCallbacks<T>.Complete);
+            }
+            return this;
+        }
+
+        /// <summary>Allocation-free <see cref="InsertCallback(float, Action)"/>; see <see cref="ChainCallback{T}"/>.</summary>
+        public Sequence InsertCallback<T>(float time, T target, Action<T> callback) where T : class {
+            Debug.Assert(target != null && callback != null, "Insert callback needs a target and a callback.");
+            if (target != null && callback != null && TryGetBuildable(out TweenSlot slot)) {
+                AddCallback(slot, Mathf.Max(time, 0f), null, target, callback, TargetCallbacks<T>.Complete);
+            }
+            return this;
+        }
+
+        static void AddCallback(TweenSlot sequenceSlot, float time, Action callback, object target,
+                                Delegate targetCallback, Action<object, Delegate> invoker) {
+            if (sequenceSlot.OwnedBySequence) {
+                Debug.LogError("RavenTween: this sequence is already nested in another one; build it completely before adding it.");
+                return;
+            }
+            int index = TweenEngine.Rent(out TweenSlot holder);
+            holder.IsCallback = true;
+            holder.OwnedBySequence = true;
+            holder.OnComplete = callback;
+            holder.CompleteTarget = target;
+            holder.CompleteDelegate = targetCallback;
+            holder.CompleteInvoker = invoker;
+            if (sequenceSlot.Items == null) { sequenceSlot.Items = new List<SequenceItem>(4); }
+            InsertSorted(sequenceSlot.Items, new SequenceItem {
+                StartTime = time, ActiveStart = time, Duration = 0f, ChildIndex = index, ChildVersion = holder.Version
+            });
+            sequenceSlot.HasCallbacks = true;
+            sequenceSlot.LastInsertTime = time;
+            if (time > sequenceSlot.SequenceDuration) { sequenceSlot.SequenceDuration = time; }
+        }
+
         static void AddItem(TweenSlot sequenceSlot, float startTime, int childIndex, uint childVersion) {
             Debug.Assert(sequenceSlot.IsSequence, "AddItem requires a sequence slot.");
             if (!TweenEngine.TryGetSlot(childIndex, childVersion, out TweenSlot child)) {
@@ -116,6 +180,7 @@ namespace RavenTween {
             if (sequenceSlot.Items == null) { sequenceSlot.Items = new List<SequenceItem>(4); }
             InsertSorted(sequenceSlot.Items, new SequenceItem {
                 StartTime = startTime,
+                ActiveStart = startTime + child.StartDelay,
                 Duration = childLength,
                 ChildIndex = childIndex,
                 ChildVersion = childVersion
@@ -130,11 +195,12 @@ namespace RavenTween {
             }
         }
 
-        // The engine evaluates items in start-time order (rewinds in reverse), so the list is kept
-        // sorted. Equal start times keep insertion order: the later-added item wins the property.
+        // The engine evaluates items in the order they start writing (rewinds in reverse), so the
+        // list is kept sorted by ActiveStart — a child's own delay counts. Equal times keep
+        // insertion order: the later-added item wins the property.
         static void InsertSorted(List<SequenceItem> items, SequenceItem item) {
             int at = items.Count;
-            while (at > 0 && items[at - 1].StartTime > item.StartTime) { at--; }
+            while (at > 0 && items[at - 1].ActiveStart > item.ActiveStart) { at--; }
             items.Insert(at, item);
         }
 
@@ -146,14 +212,26 @@ namespace RavenTween {
 
         // ----- Configuration -----
 
-        /// <summary>Repeats the whole sequence. Use -1 for an infinite loop.</summary>
+        /// <summary>
+        /// Repeats the whole sequence. Use -1 for an infinite loop. Sequences support Restart and
+        /// Yoyo; PingPong plays as Yoyo and Incremental as Restart.
+        /// </summary>
         public Sequence Cycles(int count, CycleMode mode = CycleMode.Restart) {
             Debug.Assert(count == -1 || count >= 1, "Cycle count must be -1 (infinite) or at least 1.");
             if (TryGetBuildable(out TweenSlot slot)) {
                 slot.Cycles = count < 0 ? -1 : Mathf.Max(count, 1);
-                slot.Mode = mode;
+                slot.Mode = SequenceMode(mode);
             }
             return this;
+        }
+
+        static CycleMode SequenceMode(CycleMode mode) {
+            if (mode == CycleMode.PingPong) { return CycleMode.Yoyo; }
+            if (mode == CycleMode.Incremental) {
+                Debug.LogWarning("RavenTween: sequences cannot cycle in Incremental mode; Restart is used.");
+                return CycleMode.Restart;
+            }
+            return mode;
         }
 
         /// <summary>Loops the sequence forever.</summary>
@@ -172,6 +250,74 @@ namespace RavenTween {
             return this;
         }
 
+        /// <summary>Runs the sequence in another player loop phase (FixedUpdate for physics). Children follow it.</summary>
+        public Sequence UpdateIn(UpdatePhase phase) {
+            HandleState.SetPhase(Index, Version, phase);
+            return this;
+        }
+
+        /// <summary>Stops the sequence (firing OnKill) as soon as <paramref name="token"/> is cancelled.</summary>
+        public Sequence WithCancellation(CancellationToken token) {
+            HandleState.SetCancellation(Index, Version, token);
+            return this;
+        }
+
+        // ----- State -----
+
+        /// <summary>True when the sequence is alive and paused.</summary>
+        public bool IsPaused { get { return HandleState.IsPaused(Index, Version); } }
+
+        /// <summary>Delay + every cycle, in seconds. Infinity when the sequence loops forever.</summary>
+        public float DurationTotal { get { return HandleState.DurationTotal(Index, Version); } }
+
+        /// <summary>Cycles completed so far.</summary>
+        public int CyclesDone { get { return HandleState.CyclesDone(Index, Version); } }
+
+        /// <summary>Number of cycles; -1 when infinite.</summary>
+        public int CyclesTotal { get { return HandleState.CyclesTotal(Index, Version); } }
+
+        /// <summary>Seconds into the current cycle. Setting it jumps the whole timeline there.</summary>
+        public float ElapsedTime {
+            get { return HandleState.ElapsedTime(Index, Version); }
+            set { HandleState.SetElapsedTime(Index, Version, value); }
+        }
+
+        /// <summary>Seconds since the sequence was created, delay included. Setting it jumps there (past the end completes it).</summary>
+        public float ElapsedTimeTotal {
+            get { return TweenEngine.ElapsedTotal(Index, Version); }
+            set { TweenEngine.SetElapsedTotal(Index, Version, value); }
+        }
+
+        /// <summary>0–1 through the current cycle. Settable.</summary>
+        public float Progress {
+            get { return HandleState.Progress(Index, Version); }
+            set { HandleState.SetProgress(Index, Version, value); }
+        }
+
+        /// <summary>0–1 through the whole sequence (0 when infinite). Settable.</summary>
+        public float ProgressTotal {
+            get { return HandleState.ProgressTotal(Index, Version); }
+            set { HandleState.SetProgressTotal(Index, Version, value); }
+        }
+
+        /// <summary>Speed multiplier for this sequence only (1 = normal, 0 = frozen). Tween it with Raven.TweenTimeScale.</summary>
+        public float TimeScale {
+            get { return HandleState.TimeScale(Index, Version); }
+            set { HandleState.SetTimeScale(Index, Version, value); }
+        }
+
+        /// <summary>Changes how many cycles remain, the current one included (1 = this is the last, -1 = forever).</summary>
+        public Sequence SetRemainingCycles(int cycles) {
+            TweenEngine.SetRemainingCycles(Index, Version, cycles);
+            return this;
+        }
+
+        /// <summary>For Yoyo loops: completes the next time the timeline reaches its end (true) or its start (false).</summary>
+        public Sequence SetRemainingCycles(bool stopAtEnd) {
+            TweenEngine.SetRemainingCycles(Index, Version, stopAtEnd);
+            return this;
+        }
+
         public Sequence OnStart(Action callback) {
             Debug.Assert(callback != null, "OnStart callback cannot be null.");
             if (callback != null && TryGetBuildable(out TweenSlot slot)) { slot.OnStart += callback; }
@@ -187,6 +333,15 @@ namespace RavenTween {
         public Sequence OnKill(Action callback) {
             Debug.Assert(callback != null, "OnKill callback cannot be null.");
             if (callback != null && TryGetBuildable(out TweenSlot slot)) { slot.OnKill += callback; }
+            return this;
+        }
+
+        /// <summary>
+        /// Allocation-free OnComplete: <paramref name="target"/> is passed back to a non-capturing
+        /// lambda. Skipped if the target is a destroyed Unity object. One per sequence.
+        /// </summary>
+        public Sequence OnComplete<T>(T target, Action<T> callback) where T : class {
+            HandleState.SetOnComplete(Index, Version, target, callback);
             return this;
         }
 

@@ -37,6 +37,22 @@ namespace RavenTween {
             Debug.Assert(duration >= 0f, "Duration cannot be negative.");
             return CreatePropertyTween(target, PropertyKind.GraphicAlpha, 0, new TweenValue(to), duration);
         }
+
+        /// <summary>Tweens the anchored X position only.</summary>
+        public static Tween AnchoredPositionX(RectTransform target, float to, float duration) {
+            return Axis(target, PropertyKind.AnchoredPositionX, to, duration);
+        }
+
+        /// <summary>Tweens the anchored Y position only.</summary>
+        public static Tween AnchoredPositionY(RectTransform target, float to, float duration) {
+            return Axis(target, PropertyKind.AnchoredPositionY, to, duration);
+        }
+
+        /// <summary>Moves to <paramref name="to"/> at <paramref name="speed"/> UI units per second.</summary>
+        public static Tween AnchoredPositionAtSpeed(RectTransform target, Vector2 to, float speed) {
+            float distance = target != null ? Vector2.Distance(target.anchoredPosition, to) : 0f;
+            return AnchoredPosition(target, to, DurationFor(distance, speed));
+        }
     }
 
     /// <summary>Extension-method style access to UI tweens.</summary>
@@ -59,6 +75,18 @@ namespace RavenTween {
 
         public static Tween TweenAlpha(this Graphic target, float to, float duration) {
             return Raven.Alpha(target, to, duration);
+        }
+
+        public static Tween TweenAnchoredPositionX(this RectTransform target, float to, float duration) {
+            return Raven.AnchoredPositionX(target, to, duration);
+        }
+
+        public static Tween TweenAnchoredPositionY(this RectTransform target, float to, float duration) {
+            return Raven.AnchoredPositionY(target, to, duration);
+        }
+
+        public static Tween TweenAnchoredPositionAtSpeed(this RectTransform target, Vector2 to, float speed) {
+            return Raven.AnchoredPositionAtSpeed(target, to, speed);
         }
     }
 }

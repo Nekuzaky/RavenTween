@@ -35,6 +35,25 @@ namespace RavenTween {
             return CreateEffect(target, PropertyKind.LocalScale, EffectKind.Punch, punch, duration, frequency);
         }
 
+        /// <summary>
+        /// A ready-made camera shake: a small position jitter plus a tilt, scaled by
+        /// <paramref name="strength"/> (1 = a solid hit, 0.3 = a light rumble). Repeated hits
+        /// restart the shake around the same rest pose. Returns the position shake; the tilt has
+        /// the same length. Stop both with <c>Raven.StopAll(camera.transform)</c>. If a script moves
+        /// the camera every frame, shake a parent of the camera instead.
+        /// </summary>
+        public static Tween ShakeCamera(Camera camera, float strength = 1f, float duration = 0.5f, float frequency = 15f) {
+            Debug.Assert(camera != null, "ShakeCamera needs a live Camera.");
+            if (camera == null) {
+                Debug.LogError("RavenTween: cannot shake a null or destroyed camera.");
+                return default;
+            }
+            Transform t = camera.transform;
+            float s = Mathf.Max(strength, 0f);
+            ShakeRotation(t, new Vector3(1.2f, 1.2f, 2.5f) * s, duration, frequency);
+            return ShakePosition(t, new Vector3(0.12f, 0.12f, 0f) * s, duration, frequency);
+        }
+
         static Tween CreateEffect(Transform target, PropertyKind property, EffectKind effect,
                                   Vector3 strength, float duration, float frequency) {
             Debug.Assert(duration > 0f, "Effects need a positive duration.");
@@ -79,6 +98,10 @@ namespace RavenTween {
 
         public static Tween PunchScale(this Transform target, Vector3 punch, float duration, float frequency = 5f) {
             return Raven.PunchScale(target, punch, duration, frequency);
+        }
+
+        public static Tween Shake(this Camera camera, float strength = 1f, float duration = 0.5f, float frequency = 15f) {
+            return Raven.ShakeCamera(camera, strength, duration, frequency);
         }
     }
 }

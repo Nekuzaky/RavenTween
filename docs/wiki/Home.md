@@ -33,6 +33,18 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 
 ---
 
+## What's new in 1.6.0
+
+The widest API yet, still allocation-free:
+
+- **Physics**: `Rigidbody` and `Rigidbody2D` tweens through `MovePosition` / `MoveRotation`, and a `FixedUpdate` phase for any tween.
+- **Full time control**: read and set `ElapsedTime`, `Progress` and `TimeScale` on any tween or sequence, end loops cleanly with `SetRemainingCycles`, tween `Time.timeScale` or another tween's speed.
+- **Sequence callbacks**: `ChainCallback` and `InsertCallback`, fired once per cycle, both ways on Yoyo.
+- **New cycle modes** `Incremental` and `PingPong`, and **parametric eases**: `Overshoot`, `Bounce`, `BounceExact`, `Elastic`.
+- **More targets**: single-axis tweens, speed-based tweens, per-renderer `MaterialPropertyBlock` tweens, sprite alpha, `Rect` / `Quaternion` custom tweens, `ShakeCamera`.
+- **Control by target**: `Raven.StopAll(gameObject)`, `PauseAll`, `CountTweens`; cancellation tokens; allocation-free target callbacks; `TweenSettings<T>` for the Inspector; `Raven.SetCapacity`.
+- **DOTween adapter**: switch one `using` and most DOTween code runs on RavenTween. See **[Migrating](Migrating)**.
+
 ## What's new in 1.5.0
 
 A robustness release, with a regression test for every fix:

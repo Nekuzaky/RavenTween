@@ -23,8 +23,24 @@ Sequence intro = Raven.Sequence()
 | `Group(tween)` | At the same time as the previously added item. |
 | `Insert(time, tween)` | At an absolute time, in seconds from the sequence start. |
 | `ChainDelay(seconds)` | Adds an empty gap; the next `Chain` starts after it. |
+| `ChainCallback(action)` | Runs code when the timeline reaches the current end. |
+| `InsertCallback(time, action)` | Runs code when the timeline reaches `time` seconds. |
 
 The sequence's `Duration` is the end of its last item. A tween's own `Delay` and `Cycles` count toward its length on the timeline.
+
+### Callbacks on the timeline
+
+```csharp
+Raven.Sequence()
+    .Chain(Raven.AnchoredPosition(chest, Vector2.zero, 0.4f).Ease(Ease.OutBack))
+    .ChainCallback(() => sparkles.Play())          // as soon as the chest lands
+    .Chain(Raven.Scale(lid, new Vector3(1f, 0.2f, 1f), 0.3f))
+    .InsertCallback(0.2f, () => audio.PlayOneShot(whoosh));
+```
+
+A callback runs **once per cycle**, when the time played passes its spot. On a Yoyo sequence's way back, it runs again when the timeline crosses its spot going backwards. A sequence made only of callbacks is a simple way to schedule several actions in time.
+
+For hot paths, `ChainCallback(target, t => t.Method())` and `InsertCallback(time, target, t => …)` pass a target back to a non-capturing lambda, so nothing is allocated, and are skipped if the target is a destroyed Unity object.
 
 > [!TIP]
 > Build a sequence in one expression, as above. A tween handed to a sequence belongs to it from then on: the sequence drives it, so don't pause or stop it individually.
@@ -44,9 +60,20 @@ Raven.Sequence()
     .UnscaledTime();
 ```
 
-With **Yoyo**, the whole timeline plays backwards on odd cycles. `Sequence.Infinite()` defaults to `CycleMode.Restart`.
+With **Yoyo**, the whole timeline plays backwards on odd cycles. `Sequence.Infinite()` defaults to `CycleMode.Restart`. Sequences support `Restart` and `Yoyo`; `PingPong` plays as `Yoyo` and `Incremental` as `Restart`.
 
 Child tweens fire their `OnComplete` once per cycle of the sequence; the sequence's own `OnComplete` fires once, at the very end.
+
+### Jumping in time
+
+Set `ElapsedTime`, `ElapsedTimeTotal`, `Progress` or `ProgressTotal` to jump the whole timeline there, forwards or backwards — for a scrubber, a replay, or to skip part of an intro:
+
+```csharp
+intro.Pause();
+intro.ProgressTotal = slider.value;   // scrub with a UI slider
+```
+
+Every child is rewound and replayed in timeline order, so the result is exactly what playing up to that time would show. Jumps are silent — callbacks and children's `OnStart` / `OnComplete` that are passed over don't fire — so a scrubber never re-triggers sounds or spawns. Jumping past the end completes the sequence, with its callbacks.
 
 ---
 

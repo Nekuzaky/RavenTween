@@ -70,6 +70,32 @@ namespace RavenTween.Tests {
             }, Is.Not.AllocatingGCMemory(), "Sequence stepping, including cycle wraps, must not allocate.");
         }
 
+        // Every 1.6 addition on the hot path: axes, property blocks, cycle modes, parametric eases,
+        // per-tween time scale, target callbacks and sequence callbacks.
+        void SpawnExtendedTweens(Renderer renderer, Box box) {
+            int color = Shader.PropertyToID("_Color");
+            for (int i = 0; i < 100; i++) {
+                Transform t = _objects[i % _objects.Length].transform;
+                Tween axis = Raven.PositionX(t, i, 0.4f).Cycles(-1, CycleMode.PingPong);
+                axis.TimeScale = 0.9f;
+                Raven.ScaleY(t, 2f, 0.4f).Ease(Easing.Elastic(1.2f, 0.3f)).Infinite(CycleMode.Incremental);
+                Raven.PropertyBlockColor(renderer, color, Color.red, 0.4f).Infinite();
+                Raven.Value(0f, 1f, 0.4f).Infinite().OnUpdate(box, (b, tween) => b.Value = tween.Progress);
+                Raven.Sequence().Chain(Raven.Value(0f, 1f, 0.2f)).ChainCallback(box, b => b.Value++).Infinite();
+            }
+        }
+
+        [Test]
+        public void ExtendedFeatures_SteadyState_AllocateZeroBytes() {
+            var renderer = _objects[0].AddComponent<MeshRenderer>();
+            var box = new Box();
+            SpawnExtendedTweens(renderer, box);
+            for (int frame = 0; frame < 40; frame++) { TweenEngine.Process(0.016f, 0.016f); }
+            Assert.That(() => {
+                for (int frame = 0; frame < 60; frame++) { TweenEngine.Process(0.016f, 0.016f); }
+            }, Is.Not.AllocatingGCMemory(), "1.6 features must keep the zero-garbage guarantee.");
+        }
+
         [Test]
         public void TweenCreation_FromWarmPool_AllocatesZeroBytes() {
             Transform t = _objects[0].transform;

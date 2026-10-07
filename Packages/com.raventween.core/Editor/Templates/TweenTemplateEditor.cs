@@ -84,7 +84,7 @@ namespace RavenTween.Editor {
 
         void DrawPropertySection() {
             EditorGUILayout.PropertyField(_property, new GUIContent("Property"));
-            if (Kind == PropertyKind.MaterialFloat || Kind == PropertyKind.MaterialColor) {
+            if (TweenTemplate.IsShaderProperty(Kind)) {
                 EditorGUILayout.PropertyField(_materialProperty, new GUIContent("Shader Property", "Name of the shader property, e.g. _BaseColor."));
             }
             EditorGUILayout.HelpBox("Animates the " + TemplateTargets.TargetType(Kind).Name + " you play it on.", MessageType.None);
@@ -101,14 +101,18 @@ namespace RavenTween.Editor {
                 case ValueKind.Float: v.x = DrawFloat(label, v.x); break;
                 case ValueKind.Vector2: v = EditorGUILayout.Vector2Field(label, v); break;
                 case ValueKind.Quaternion: v = EditorGUILayout.Vector3Field(label + " (euler)", v); break;
-                case ValueKind.Color: v = EditorGUILayout.ColorField(new GUIContent(label), v, true, true, Kind == PropertyKind.MaterialColor); break;
+                case ValueKind.Color:
+                    bool hdr = Kind == PropertyKind.MaterialColor || Kind == PropertyKind.PropertyBlockColor;
+                    v = EditorGUILayout.ColorField(new GUIContent(label), v, true, true, hdr);
+                    break;
                 default: v = EditorGUILayout.Vector3Field(label, v); break;
             }
             if (EditorGUI.EndChangeCheck()) { raw.vector4Value = v; }
         }
 
         float DrawFloat(string label, float value) {
-            bool unit = Kind == PropertyKind.CanvasGroupAlpha || Kind == PropertyKind.GraphicAlpha || Kind == PropertyKind.AudioVolume;
+            bool unit = Kind == PropertyKind.CanvasGroupAlpha || Kind == PropertyKind.GraphicAlpha ||
+                        Kind == PropertyKind.SpriteAlpha || Kind == PropertyKind.AudioVolume;
             return unit ? EditorGUILayout.Slider(label, value, 0f, 1f) : EditorGUILayout.FloatField(label, value);
         }
 
@@ -139,14 +143,16 @@ namespace RavenTween.Editor {
                 if (!newLoop && edited != shown) { _cycles.intValue = Mathf.Max(edited, 1); }
             }
             EditorGUILayout.EndHorizontal();
-            EditorGUILayout.PropertyField(_mode, new GUIContent("Cycle Mode", "Restart jumps back each cycle; Yoyo plays back and forth."));
+            EditorGUILayout.PropertyField(_mode, new GUIContent("Cycle Mode",
+                "Restart jumps back each cycle. Yoyo plays back in reverse time. Incremental keeps adding the change. " +
+                "PingPong goes back with the same ease."));
         }
 
         string Summary() {
             float duration = _duration.floatValue;
             float delay = _delay.floatValue;
             int cycles = _cycles.intValue;
-            string mode = (CycleMode)_mode.intValue == CycleMode.Yoyo ? "yoyo" : "restart";
+            string mode = ((CycleMode)_mode.intValue).ToString().ToLowerInvariant();
             if (cycles < 0) { return string.Format("{0:0.##} s per cycle, loops forever ({1})", duration, mode); }
             int count = Mathf.Max(cycles, 1);
             float total = delay + duration * count;

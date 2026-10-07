@@ -12,6 +12,7 @@ These figures come from the package's own test suite (`Tests/PerformanceTests.cs
 | :--- | :--- |
 | 5,000 mixed tweens (position, scale, rotation, shake, custom), steady state | **0 B** allocated per frame |
 | 200 infinite sequences, including the moment they loop | **0 B** allocated per frame |
+| Axis, property-block, Incremental / PingPong, parametric-ease, time-scaled tweens, target callbacks and sequence callbacks | **0 B** allocated per frame |
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
 | 5,000 mixed tweens, engine cost | **0.6–0.8 ms per frame** |
 
@@ -30,13 +31,25 @@ The timing was measured in the Unity Editor (Mono) on a desktop CPU, which is sl
 
 ---
 
+## Preallocating the pool
+
+The pool grows on demand: the first time a scene needs 3,000 live tweens, the extra slots are created then. To move that cost to a loading screen, reserve them up front:
+
+```csharp
+Raven.SetCapacity(3000);   // e.g. in a bootstrap scene
+```
+
+Past that capacity the pool still grows by itself — it is a hint, never a limit.
+
+---
+
 ## What does allocate
 
 Some things allocate by design. All of them happen when you *create* something, never per frame.
 
 | Code | Allocates |
 | :--- | :--- |
-| A lambda that **captures** a local variable or `this`: `OnUpdate(v => bar.value = v)` | A small closure, once, when the tween is created. Standard C#. |
+| A lambda that **captures** a local variable or `this`: `OnUpdate(v => bar.value = v)` | A small closure, once, when the tween is created. Standard C#. Use the target-based `OnComplete(target, …)`, `OnUpdate(target, …)` and `ChainCallback(target, …)` to avoid it. |
 | `ToYieldInstruction()` | One small object per call. |
 | `await tween` | The `async` method's state machine, once. |
 | The very first time a code path runs | The runtime materializes its constants once. The performance tests warm up before measuring for this reason. |

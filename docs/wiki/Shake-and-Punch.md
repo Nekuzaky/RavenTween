@@ -27,6 +27,19 @@ Raven.ShakeScale(slime, Vector3.one * 0.1f, 0.3f);
 
 ---
 
+### Camera shake in one line
+
+`Raven.ShakeCamera(camera, strength)` combines a small position jitter and a tilt, tuned for a camera. `1` is a solid hit, `0.3` a light rumble; hitting again restarts the shake around the same rest pose.
+
+```csharp
+Raven.ShakeCamera(Camera.main, 0.6f);              // explosion nearby
+Camera.main.Shake(1f, duration: 0.8f);             // extension form
+```
+
+It shakes the camera's own transform. If a script moves the camera every frame (a follow camera), shake a child or a parent of the camera instead, with `ShakePosition` / `ShakeRotation`.
+
+---
+
 ## Punch
 
 Punch is a damped spring: a single directional kick that springs back and forth, losing energy until it rests.
