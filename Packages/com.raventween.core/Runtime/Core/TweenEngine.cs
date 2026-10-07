@@ -432,6 +432,47 @@ namespace RavenTween {
             }
         }
 
+        // ----- Debug introspection (used by editor tooling) -----
+
+        /// <summary>Snapshot of one live slot, for inspection tools. Never cached.</summary>
+        internal struct DebugInfo {
+            public int Index;
+            public uint Version;
+            public bool IsSequence;
+            public bool OwnedBySequence;
+            public bool Paused;
+            public UnityEngine.Object Target;
+            public PropertyKind Property;
+            public float Elapsed;
+            public float CycleLength;
+            public int Cycles;
+            public int CyclesDone;
+        }
+
+        /// <summary>Fills <paramref name="buffer"/> with a snapshot of every live slot.</summary>
+        public static void CollectDebugInfo(List<DebugInfo> buffer) {
+            Debug.Assert(buffer != null, "Debug buffer cannot be null.");
+            if (buffer == null) { return; }
+            buffer.Clear();
+            for (int i = 0; i < Slots.Count; i++) {
+                TweenSlot slot = Slots[i];
+                if (slot.State == SlotState.Free) { continue; }
+                buffer.Add(new DebugInfo {
+                    Index = i,
+                    Version = slot.Version,
+                    IsSequence = slot.IsSequence,
+                    OwnedBySequence = slot.OwnedBySequence,
+                    Paused = slot.State == SlotState.Paused,
+                    Target = slot.UnityTarget,
+                    Property = slot.Property,
+                    Elapsed = slot.Elapsed,
+                    CycleLength = slot.CycleLength,
+                    Cycles = slot.Cycles,
+                    CyclesDone = slot.CyclesDone
+                });
+            }
+        }
+
         static void InvokeSafe(Action callback) {
             if (callback == null) { return; }
             try { callback(); }
