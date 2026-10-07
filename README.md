@@ -15,6 +15,11 @@
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
 </p>
 
+<p align="center">
+  <a href="https://github.com/sponsors/nekuzaky"><img src="https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=githubsponsors&logoColor=white" alt="Sponsor on GitHub"></a>
+  <a href="https://buymeacoffee.com/nekuzaky"><img src="https://img.shields.io/badge/Buy%20me%20a%20coffee-nekuzaky-ffdd00?logo=buymeacoffee&logoColor=black" alt="Buy me a coffee"></a>
+</p>
+
 ```csharp
 using RavenTween;
 
@@ -50,6 +55,10 @@ https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1
 The full guide lives in the [package README](Packages/com.raventween.core/README.md): API tour, designer workflow, performance numbers, migration from DOTween / PrimeTween, samples and FAQ.
 
 [Changelog](Packages/com.raventween.core/CHANGELOG.md) · [Contributing](Packages/com.raventween.core/CONTRIBUTING.md) · [Security](SECURITY.md) · MIT license
+
+## Support
+
+RavenTween is free and MIT licensed. If it saves you time, you can support its development through [GitHub Sponsors](https://github.com/sponsors/nekuzaky) or [Buy Me a Coffee](https://buymeacoffee.com/nekuzaky).
 
 ---
 

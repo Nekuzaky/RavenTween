@@ -249,6 +249,10 @@ Samples work with both the legacy Input Manager and the Input System package.
 
 **Which platforms?** Everything Unity targets: the runtime is pure managed C# with no platform-specific code. The repository's CI workflow runs the full test suite on Linux against Unity 2021.3, 2022.3 and 6.
 
+## Support
+
+RavenTween is free and MIT licensed. If it saves you time, you can support its development through [GitHub Sponsors](https://github.com/sponsors/nekuzaky) or [Buy Me a Coffee](https://buymeacoffee.com/nekuzaky).
+
 ## License
 
 MIT — see [LICENSE.md](LICENSE.md). Editor glyphs from Bootstrap Icons (MIT), see [Third Party Notices.md](Third%20Party%20Notices.md).
