@@ -59,12 +59,20 @@ namespace RavenTween.Editor {
 
         void DrawToolbar() {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
-            GUILayout.Label("Alive: " + (Application.isPlaying ? Raven.AliveCount : 0), EditorStyles.toolbarButton, GUILayout.Width(80f));
+            int alive = Application.isPlaying ? Raven.AliveCount : 0;
+            GUILayout.Label(RavenEditorIcons.Content(RavenEditorIcons.Activity, "Alive: " + alive, "Live tweens and sequences"),
+                EditorStyles.toolbarButton, GUILayout.Width(95f));
             _showSequenceChildren = GUILayout.Toggle(_showSequenceChildren, "Sequence children", EditorStyles.toolbarButton, GUILayout.Width(130f));
             GUILayout.FlexibleSpace();
             using (new EditorGUI.DisabledScope(!Application.isPlaying)) {
-                if (GUILayout.Button("Complete All", EditorStyles.toolbarButton, GUILayout.Width(90f))) { Raven.CompleteAll(); }
-                if (GUILayout.Button("Stop All", EditorStyles.toolbarButton, GUILayout.Width(70f))) { Raven.StopAll(); }
+                if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.CompleteAll, "Complete All", "Jump everything to its end values"),
+                        EditorStyles.toolbarButton, GUILayout.Width(110f))) {
+                    Raven.CompleteAll();
+                }
+                if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.Stop, "Stop All", "Kill everything where it is"),
+                        EditorStyles.toolbarButton, GUILayout.Width(85f))) {
+                    Raven.StopAll();
+                }
             }
             EditorGUILayout.EndHorizontal();
         }
@@ -76,7 +84,7 @@ namespace RavenTween.Editor {
             GUILayout.Label("Property", EditorStyles.miniBoldLabel, GUILayout.Width(120f));
             GUILayout.Label("Progress", EditorStyles.miniBoldLabel, GUILayout.ExpandWidth(true));
             GUILayout.Label("Cycles", EditorStyles.miniBoldLabel, GUILayout.Width(55f));
-            GUILayout.Space(160f);
+            GUILayout.Space(100f);
             EditorGUILayout.EndHorizontal();
         }
 
@@ -121,17 +129,22 @@ namespace RavenTween.Editor {
 
         static void DrawControls(in TweenEngine.DebugInfo info) {
             using (new EditorGUI.DisabledScope(info.OwnedBySequence)) {
-                string pauseLabel = info.Paused ? "Resume" : "Pause";
-                if (GUILayout.Button(pauseLabel, EditorStyles.miniButtonLeft, GUILayout.Width(55f))) {
+                Texture pauseIcon = info.Paused ? RavenEditorIcons.Play : RavenEditorIcons.Pause;
+                string pauseTip = info.Paused ? "Resume" : "Pause";
+                if (IconButton(pauseIcon, pauseTip, EditorStyles.miniButtonLeft)) {
                     TweenEngine.SetPaused(info.Index, info.Version, !info.Paused);
                 }
-                if (GUILayout.Button("Complete", EditorStyles.miniButtonMid, GUILayout.Width(62f))) {
+                if (IconButton(RavenEditorIcons.Complete, "Complete: jump to the end value", EditorStyles.miniButtonMid)) {
                     TweenEngine.Kill(info.Index, info.Version, true);
                 }
-                if (GUILayout.Button("Kill", EditorStyles.miniButtonRight, GUILayout.Width(38f))) {
+                if (IconButton(RavenEditorIcons.Kill, "Kill: stop where it is", EditorStyles.miniButtonRight)) {
                     TweenEngine.Kill(info.Index, info.Version, false);
                 }
             }
+        }
+
+        static bool IconButton(Texture icon, string tooltip, GUIStyle style) {
+            return GUILayout.Button(new GUIContent(icon, tooltip), style, GUILayout.Width(30f), GUILayout.Height(18f));
         }
     }
 }
