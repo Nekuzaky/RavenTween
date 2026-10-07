@@ -16,6 +16,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  meta-files:
+    name: Every package file has a .meta
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check .meta files
+        shell: bash
+        run: |
+          # Git installs are read-only: Unity ignores any file or folder without a .meta.
+          cd Packages/com.raventween.core
+          missing=0
+          while IFS= read -r -d '' path; do
+            case "$path" in *.meta) continue ;; esac
+            if [ ! -f "$path.meta" ]; then echo "::error file=Packages/com.raventween.core/${path#./}::missing .meta"; missing=1; fi
+          done < <(find . -mindepth 1 \( -name '*~' -o -name '.*' \) -prune -o -print0)
+          exit $missing
+
   test:
     name: Unity ${{ matrix.unityVersion }}
     runs-on: ubuntu-latest
