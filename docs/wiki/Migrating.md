@@ -26,7 +26,8 @@ Coming from DOTween or PrimeTween? Most of your knowledge transfers directly. Th
 | `.AppendInterval(s)` | `.ChainDelay(s)` | `.ChainDelay(s)` |
 | `.SetEase(Ease.OutQuad)` | `ease: Ease.OutQuad` | `.Ease(Ease.OutQuad)` |
 | `.SetLoops(n, LoopType.Yoyo)` | `cycles: n, cycleMode: CycleMode.Yoyo` | `.Cycles(n, CycleMode.Yoyo)` |
-| `.SetLoops(-1)` | `cycles: -1` | `.Infinite()` |
+| `.SetLoops(-1)` | `cycles: -1` | `.Infinite(CycleMode.Restart)` |
+| `.SetLoops(-1, LoopType.Yoyo)` | `cycles: -1, cycleMode: CycleMode.Yoyo` | `.Infinite()` |
 | `.SetDelay(s)` | `startDelay: s` | `.Delay(s)` |
 | `.From(v)` | `startValue: v` | `.From(v)` |
 | `.SetUpdate(true)` | `useUnscaledTime: true` | `.UnscaledTime()` |
@@ -50,13 +51,15 @@ Coming from DOTween or PrimeTween? Most of your knowledge transfers directly. Th
 - **No `Play()` needed** — tweens start on creation.
 - **No setup call** — there is no `DOTween.Init()` and no capacity to configure; the pool grows on demand.
 - **No `SetLink` / `SetTarget`** — every tween on a Unity object already dies with it.
+- **Sequence children are driven by their sequence.** Calling `Stop()`, `Complete()` or `Pause()` on a tween after adding it to a sequence logs a warning and does nothing: control the sequence instead. Set `Delay()` and `Cycles()` before adding the tween.
+- **The handle is already dead inside `OnComplete`**: `IsAlive` is `false` there, so starting a new tween from the callback is safe.
 - **Both libraries can coexist during a migration.** Extension methods don't collide (`TweenPosition` vs. `DOMove`), but both define `Ease`, `Tween` and `Sequence`: in a file that imports both namespaces, qualify them (`RavenTween.Ease.OutQuad`) or add an alias (`using Ease = RavenTween.Ease;`).
 
 ## From PrimeTween
 
 - **Options are chained instead of passed as parameters**: `Raven.Position(t, p, 0.5f).Ease(Ease.OutQuad).Delay(0.1f)` rather than named arguments.
 - **Value tweens use `OnUpdate`**: `Raven.Value(a, b, d).OnUpdate(cb)`. The allocation-free `Raven.Custom(target, …)` matches PrimeTween's `Tween.Custom(target, …)`.
-- **`Tween.Infinite()` defaults to Yoyo**, the most common loop for tweens; pass `CycleMode.Restart` to override.
+- **`Tween.Infinite()` defaults to Yoyo**, the most common loop for tweens; pass `CycleMode.Restart` to override. `Sequence.Infinite()` defaults to Restart.
 - **Inspector tooling** — Tween Templates, the Raven Animator / Sequence Player components and the **[Monitor](Monitor)** are included at no extra cost.
 
 ---

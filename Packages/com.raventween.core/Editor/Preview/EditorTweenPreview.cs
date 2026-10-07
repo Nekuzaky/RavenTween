@@ -1,19 +1,28 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace RavenTween.Editor {
     /// <summary>
     /// Plays or scrubs one tween or sequence outside Play Mode, then puts every touched value
-    /// back. Values are always restored before entering Play Mode and before script reloads,
-    /// so a preview can never leave objects modified in the scene.
+    /// back. Values are restored before entering Play Mode, before script reloads, before any
+    /// scene, prefab or asset is saved and before quitting, so a preview never ends up saved.
     /// </summary>
+    /// <remarks>
+    /// Transform values are recorded in local space (anchored space for UI), so restoring a
+    /// parent and its child in any order gives back the exact original layout. Editing an
+    /// animated object while a preview is shown stops the preview and restores the scene first.
+    /// </remarks>
     [InitializeOnLoad]
     static class EditorTweenPreview {
+        enum Channel : byte { Property, LocalPosition, AnchoredPosition3D }
+
         struct Snapshot {
             public Object Target;
+            public Channel Channel;
             public PropertyKind Property;
             public int PropertyId;
             public TweenValue Value;
@@ -40,20 +49,62 @@ namespace RavenTween.Editor {
                 if (state == PlayModeStateChange.ExitingEditMode) { End(); }
             };
             AssemblyReloadEvents.beforeAssemblyReload += End;
-            EditorSceneManagerHooks.Register(End);
+            EditorApplication.wantsToQuit += () => { End(); return true; };
+            EditorSceneManager.sceneClosing += (scene, removing) => End();
+            EditorSceneManager.sceneSaving += (scene, path) => End();
+            PrefabStage.prefabSaving += root => End();
+            PrefabStage.prefabStageClosing += stage => End();
+            Undo.postprocessModifications += OnUserModifications;
         }
+
+        /// <summary>True while values are recorded and not yet restored.</summary>
+        internal static bool HasSnapshots { get { return Snapshots.Count > 0; } }
 
         /// <summary>Remembers a value so it can be restored. Call before building the preview.</summary>
         public static void Record(Object target, PropertyKind property, int propertyId) {
             if (target == null || property == PropertyKind.None) { return; }
+            if (target is Material material && !material.HasProperty(propertyId)) { return; }
+            Snapshot snapshot = MakeSnapshot(target, property, propertyId);
             for (int i = 0; i < Snapshots.Count; i++) {
                 Snapshot s = Snapshots[i];
-                if (s.Target == target && s.Property == property && s.PropertyId == propertyId) { return; }
+                if (s.Target == target && s.Channel == snapshot.Channel && s.Property == snapshot.Property && s.PropertyId == propertyId) { return; }
             }
-            Snapshots.Add(new Snapshot {
-                Target = target, Property = property, PropertyId = propertyId,
-                Value = PropertyAccessor.Read(property, target, propertyId)
-            });
+            Snapshots.Add(snapshot);
+        }
+
+        // World-space and euler transform properties are stored as their local equivalents.
+        static Snapshot MakeSnapshot(Object target, PropertyKind property, int propertyId) {
+            var snapshot = new Snapshot { Target = target, Channel = Channel.Property, Property = property, PropertyId = propertyId };
+            switch (property) {
+                case PropertyKind.Position:
+                case PropertyKind.LocalPosition:
+                case PropertyKind.AnchoredPosition:
+                    snapshot.Channel = target is RectTransform ? Channel.AnchoredPosition3D : Channel.LocalPosition;
+                    break;
+                case PropertyKind.Rotation:
+                case PropertyKind.EulerAngles:
+                case PropertyKind.LocalEulerAngles:
+                    snapshot.Property = PropertyKind.LocalRotation;
+                    break;
+            }
+            snapshot.Value = ReadSnapshot(snapshot);
+            return snapshot;
+        }
+
+        static TweenValue ReadSnapshot(in Snapshot s) {
+            switch (s.Channel) {
+                case Channel.LocalPosition: return new TweenValue(((Transform)s.Target).localPosition);
+                case Channel.AnchoredPosition3D: return new TweenValue(((RectTransform)s.Target).anchoredPosition3D);
+                default: return PropertyAccessor.Read(s.Property, s.Target, s.PropertyId);
+            }
+        }
+
+        static void WriteSnapshot(in Snapshot s) {
+            switch (s.Channel) {
+                case Channel.LocalPosition: ((Transform)s.Target).localPosition = s.Value.Vector3; break;
+                case Channel.AnchoredPosition3D: ((RectTransform)s.Target).anchoredPosition3D = s.Value.Vector3; break;
+                default: PropertyAccessor.Write(s.Property, s.Target, s.PropertyId, s.Value); break;
+            }
         }
 
         /// <summary>Takes over a freshly built tween or sequence. Ends any previous preview.</summary>
@@ -101,7 +152,9 @@ namespace RavenTween.Editor {
         }
 
         /// <summary>Stops the preview, kills its tweens and restores every recorded value.</summary>
+        /// <remarks>Also safe after a failed build: whatever was recorded is restored and forgotten.</remarks>
         public static void End() {
+            if (!IsActive && Snapshots.Count == 0 && !IsPlaying) { return; }
             StopTicking();
             if (_index >= 0) { TweenEngine.Kill(_index, _version, false); }
             _index = -1;
@@ -113,6 +166,7 @@ namespace RavenTween.Editor {
         }
 
         static void Tick() {
+            if (!IsActive) { StopTicking(); return; }
             double now = EditorApplication.timeSinceStartup;
             float next = Time + (float)(now - _lastTick);
             _lastTick = now;
@@ -132,8 +186,40 @@ namespace RavenTween.Editor {
         static void RestoreValues() {
             for (int i = Snapshots.Count - 1; i >= 0; i--) {
                 Snapshot s = Snapshots[i];
-                if (s.Target != null) { PropertyAccessor.Write(s.Property, s.Target, s.PropertyId, s.Value); }
+                if (s.Target != null) { WriteSnapshot(s); }
             }
+        }
+
+        // An edit to an animated object would be recorded on top of a preview pose and then
+        // reverted by End. Instead the preview ends first and the edit is not recorded.
+        static UndoPropertyModification[] OnUserModifications(UndoPropertyModification[] modifications) {
+            if (Snapshots.Count == 0 || !TouchesRecordedTarget(modifications)) { return modifications; }
+            var kept = new List<UndoPropertyModification>(modifications.Length);
+            for (int i = 0; i < modifications.Length; i++) {
+                if (!IsRecorded(TargetOf(modifications[i]))) { kept.Add(modifications[i]); }
+            }
+            End();
+            return kept.ToArray();
+        }
+
+        static bool TouchesRecordedTarget(UndoPropertyModification[] modifications) {
+            for (int i = 0; i < modifications.Length; i++) {
+                if (IsRecorded(TargetOf(modifications[i]))) { return true; }
+            }
+            return false;
+        }
+
+        static Object TargetOf(UndoPropertyModification modification) {
+            PropertyModification current = modification.currentValue;
+            return current != null ? current.target : null;
+        }
+
+        static bool IsRecorded(Object target) {
+            if (target == null) { return false; }
+            for (int i = 0; i < Snapshots.Count; i++) {
+                if (Snapshots[i].Target == target) { return true; }
+            }
+            return false;
         }
 
         static void NotifyChanged() {
@@ -142,11 +228,11 @@ namespace RavenTween.Editor {
         }
     }
 
-    /// <summary>Ends previews when the open scene changes, without a hard dependency in the type above.</summary>
-    static class EditorSceneManagerHooks {
-        public static void Register(Action onSceneChange) {
-            Debug.Assert(onSceneChange != null, "Scene hook needs a callback.");
-            UnityEditor.SceneManagement.EditorSceneManager.sceneClosing += (scene, removing) => onSceneChange();
+    /// <summary>Restores previewed values before any asset (prefab, material, scene) is written to disk.</summary>
+    sealed class EditorTweenPreviewSaveGuard : UnityEditor.AssetModificationProcessor {
+        static string[] OnWillSaveAssets(string[] paths) {
+            if (EditorTweenPreview.HasSnapshots) { EditorTweenPreview.End(); }
+            return paths;
         }
     }
 }

@@ -64,29 +64,42 @@ namespace RavenTween {
         public Tween From(Color value) { return SetFrom(new TweenValue(value)); }
 
         Tween SetFrom(in TweenValue value) {
-            if (TryGetConfigurable(out TweenSlot slot)) {
-                Debug.Assert(!slot.StartFired, "From() must be set before the tween starts playing.");
-                slot.StartValue = value;
-                slot.HasExplicitFrom = true;
+            if (!TryGetConfigurable(out TweenSlot slot)) { return this; }
+            Debug.Assert(!slot.StartFired, "From() must be set before the tween starts playing.");
+            if (slot.EndValue.Kind != value.Kind) {
+                Debug.LogError("RavenTween: From() got a " + value.Kind + " but this tween animates a " + slot.EndValue.Kind + "; ignored.");
+                return this;
             }
+            slot.StartValue = value;
+            slot.HasExplicitFrom = true;
             return this;
         }
 
         /// <summary>Delays the start of the tween by <paramref name="seconds"/>.</summary>
         public Tween Delay(float seconds) {
             Debug.Assert(seconds >= 0f, "Delay cannot be negative.");
-            if (TryGetConfigurable(out TweenSlot slot)) { slot.StartDelay = Mathf.Max(seconds, 0f); }
+            if (TryGetTimingConfigurable(out TweenSlot slot)) { slot.StartDelay = Mathf.Max(seconds, 0f); }
             return this;
         }
 
         /// <summary>Repeats the tween. Use -1 for an infinite loop.</summary>
         public Tween Cycles(int count, CycleMode mode = CycleMode.Restart) {
             Debug.Assert(count == -1 || count >= 1, "Cycle count must be -1 (infinite) or at least 1.");
-            if (TryGetConfigurable(out TweenSlot slot)) {
+            if (TryGetTimingConfigurable(out TweenSlot slot)) {
                 slot.Cycles = count < 0 ? -1 : Mathf.Max(count, 1);
                 slot.Mode = mode;
             }
             return this;
+        }
+
+        // A sequence measures its children when they are added; changing a child's length
+        // afterwards would desynchronize the timeline.
+        bool TryGetTimingConfigurable(out TweenSlot slot) {
+            if (!TryGetConfigurable(out slot)) { return false; }
+            if (!slot.OwnedBySequence) { return true; }
+            Debug.LogError("RavenTween: set Delay and Cycles before adding a tween to a sequence; ignored.");
+            slot = null;
+            return false;
         }
 
         /// <summary>Loops forever. Equivalent to Cycles(-1, mode).</summary>

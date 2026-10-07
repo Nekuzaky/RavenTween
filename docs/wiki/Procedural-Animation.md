@@ -27,7 +27,10 @@ look.MaxAngle = 70f;
 | **Max Angle** | How far the bone may turn away from its animated pose, in degrees. |
 | **Smooth Time** | Seconds to catch up with the target; `0` snaps instantly. |
 | **Use Unscaled Time** | Keep tracking while `Time.timeScale` is 0. |
-| **Restore Pose Each Frame** | Resets the bone to its rest rotation before animation. Leave it on unless your own script drives this rotation. |
+
+### Working with other animation
+
+The look-at is applied on top of the bone's **base pose**: whatever an Animator, a tween or your own script set this frame. You don't need to reset anything. If the bone still holds the rotation the look-at wrote last frame, nobody else touched it and the previous base pose is reused. Any other rotation becomes the new base pose. A finished `Raven.LocalRotation` tween, an Animator clip or a script rotating the bone all keep working underneath.
 
 ### Blending with RavenTween
 
@@ -57,7 +60,8 @@ The chain follows each bone's **first child**, up to 64 bones.
 | **Gravity** | A constant world-space force, e.g. `(0, -2, 0)` to make the chain droop. |
 | **Tip Length** | Adds a virtual point past the last bone so the last bone swings too. |
 | **Use Unscaled Time** | Simulate while `Time.timeScale` is 0. |
-| **Restore Pose Each Frame** | Leave on unless your own script drives these bones. |
+
+Like the look-at, the chain tracks each bone's base pose, so it layers on an Animator, tweens or scripts without any setup. If a bone of the chain is destroyed, the chain rebuilds itself from the bones that are left.
 
 | Material | Stiffness | Damping | Gravity |
 | :--- | :--- | :--- | :--- |
@@ -66,7 +70,7 @@ The chain follows each bone's **first child**, up to 64 bones.
 | Tail | 0.08 – 0.15 | 0.15 – 0.2 | `(0, 0, 0)` |
 | Heavy cable, chain | 0.01 – 0.03 | 0.05 | `(0, -9.8, 0)` |
 
-The simulation runs at a fixed 60 steps per second, so it behaves the same at 30 or 144 FPS.
+The simulation runs at a fixed 60 steps per second, so it behaves the same at 30 or 144 FPS. Above 60 FPS, the bones are interpolated between steps, so the motion stays smooth.
 
 ```csharp
 var tail = tailRoot.gameObject.AddComponent<RavenSpringChain>();
@@ -77,7 +81,7 @@ tail.ResetPhysics();          // after teleporting the character
 ```
 
 > [!IMPORTANT]
-> Call `ResetPhysics()` after teleporting a character, or the chain will whip across the distance. Call `Build()` if you change the bone hierarchy at runtime.
+> Call `ResetPhysics()` after teleporting a character, or the chain will whip across the distance. Call `Build()` if you add or reorder bones at runtime; it always restores the base pose first, so calling it mid-swing is safe.
 
 > [!WARNING]
 > Bones under a **non-uniformly scaled** parent shear when rotated — that's how Unity transforms work. Keep bones unscaled and put scaled meshes on child objects.

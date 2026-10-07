@@ -33,8 +33,10 @@ Raven.Position(enemy, target, 0.8f)
 | `OnKill` | When you call `Stop()` before it finished. |
 | `OnTargetDestroyed` | When the target object was destroyed while the tween was alive. |
 
+The tween is already released when `OnComplete`, `OnKill` or `OnTargetDestroyed` runs: its handle is dead (`IsAlive` is `false`), so starting a new tween from these callbacks — even on the same target — is safe. Calling `Complete()` or `Stop()` on a tween from its own `OnUpdate` is safe too.
+
 > [!NOTE]
-> An exception thrown inside a callback is logged and contained — it never stops other tweens from updating.
+> An exception thrown inside a callback is logged and contained — it never stops other tweens from updating. An exception thrown by a custom ease or a custom setter is logged and stops only the tween that threw it.
 
 ---
 
@@ -59,13 +61,23 @@ int live = Raven.AliveCount;
 
 ### Dead handles are safe
 
-A `Tween` handle is a 2-number struct: a slot index and a version. When the tween ends, the version moves on, so an old handle can never touch a tween that later reuses the same slot. Every method on a dead handle simply does nothing.
+A `Tween` handle is a 2-number struct: a slot index and a version. When the tween ends, the version moves on, so an old handle can never touch a tween that later reuses the same slot. Every method on a dead handle does nothing.
 
 ```csharp
 Tween fade = Raven.Alpha(group, 0f, 0.3f);
 // ...much later, the tween is long finished:
 fade.Stop();   // safe, does nothing
 ```
+
+Control calls (`Stop`, `Complete`, `Pause`, `Resume`) are silent on a dead handle. Configuring one (`Ease`, `Delay`, `OnComplete`…) also does nothing, but logs an assertion in the Editor and development builds, because it usually means the tween could not be created (for example, its target was null).
+
+### Tweens inside a sequence
+
+Once a tween is added to a sequence, the sequence drives it:
+
+- `Stop()`, `Complete()` and `Pause()` on the child log a warning and are ignored: control the sequence instead.
+- `Delay()` and `Cycles()` must be set **before** adding the tween; set afterwards, they log an error and are ignored, because the sequence measured the child when it was added.
+- Awaiting a child works: the await resumes when the sequence ends.
 
 ---
 
@@ -75,7 +87,7 @@ fade.Stop();   // safe, does nothing
 | :--- | :--- |
 | `Time.timeScale` | Scales every tween, like the rest of your game. At `0`, tweens freeze. |
 | `.UnscaledTime()` | This tween ignores `Time.timeScale` — use it for pause menus. |
-| `Raven.TimeScale` | An extra multiplier applied to all tweens only, independent of `Time.timeScale`. |
+| `Raven.TimeScale` | An extra multiplier applied to all tweens only, independent of `Time.timeScale`. Negative values clamp to 0; `NaN` and infinity are ignored. |
 | `Raven.UpdatePhase` | `UpdatePhase.Update` (default) or `UpdatePhase.LateUpdate`, to run after your own `Update` scripts. |
 
 ```csharp
@@ -107,7 +119,7 @@ async void ShowReward() {
 }
 ```
 
-`ToCompletion()` returns the same awaiter, for readability. The await resumes when the tween **ends for any reason** — completed, stopped or target destroyed. Check `IsAlive` or your own state if the difference matters.
+`ToCompletion()` returns the same awaiter, for readability. The await resumes when the tween **ends for any reason** — completed, stopped or target destroyed. If the difference matters, set a flag in `OnComplete` or `OnKill`.
 
 Awaiting works on every platform, WebGL included: RavenTween resumes your code on the main thread from its own update, with no threads involved.
 
@@ -117,7 +129,7 @@ Awaiting works on every platform, WebGL included: RavenTween resumes your code o
 
 ```csharp
 IEnumerator Intro() {
-    yield return Raven.Scale(logo, 1f, 0.4f).From(0f).ToYieldInstruction();
+    yield return Raven.Scale(logo, 1f, 0.4f).From(Vector3.zero).ToYieldInstruction();
     yield return Raven.Delay(0.5f).ToYieldInstruction();
     yield return BuildMenuSequence().ToYieldInstruction();
 }

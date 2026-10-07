@@ -36,7 +36,8 @@ namespace RavenTween.Editor {
             float cursor = 0f, lastStart = 0f, total = 0f;
             for (int i = 0; i < steps.Count; i++) {
                 RavenSequencePlayer.Step step = steps[i];
-                bool valid = step.template != null && step.target != null;
+                bool valid = step.template != null &&
+                             PropertyAccessor.ResolveTarget(step.target, step.template.property, false) != null;
                 float length = StepLength(step.template, out bool clamped);
                 float start = PlaceStart(step, cursor, lastStart);
                 blocks.Add(new Block { Start = start, Length = length, Valid = valid, LoopClamped = clamped });

@@ -28,6 +28,7 @@ namespace RavenTween.Editor {
         int _dragIndex = -1;
         float _dragOffset;
         bool _scrubbing;
+        int _controlId;
 
         [MenuItem("Tools/RavenTween/Sequence Editor")]
         public static void OpenWindow() { Open(Selection.activeGameObject != null ? Selection.activeGameObject.GetComponent<RavenSequencePlayer>() : null); }
@@ -58,12 +59,12 @@ namespace RavenTween.Editor {
             if (_locked || Selection.activeGameObject == null) { return; }
             var player = Selection.activeGameObject.GetComponent<RavenSequencePlayer>();
             if (player == null || player == _player) { return; }
-            EndMyPreview();
-            _player = player;
+            SwitchPlayer(player);
             Repaint();
         }
 
         void OnUndoRedo() {
+            CancelInteraction();
             EndMyPreview();
             Repaint();
         }
@@ -74,12 +75,28 @@ namespace RavenTween.Editor {
             if (Mine) { EditorTweenPreview.End(); }
         }
 
+        void SwitchPlayer(RavenSequencePlayer player) {
+            CancelInteraction();
+            EndMyPreview();
+            _player = player;
+        }
+
+        // Drops any drag or scrub in progress, e.g. when the steps change under the mouse.
+        void CancelInteraction() {
+            _dragIndex = -1;
+            _scrubbing = false;
+            if (GUIUtility.hotControl == _controlId && _controlId != 0) { GUIUtility.hotControl = 0; }
+        }
+
         void OnGUI() {
+            if (_player == null && Mine) { EditorTweenPreview.End(); } // The player was deleted mid-preview.
             DrawToolbar();
             if (_player == null) {
+                CancelInteraction();
                 EditorGUILayout.HelpBox("Select a GameObject with a Raven Sequence Player, or open this window from its inspector.", MessageType.Info);
                 return;
             }
+            if (_dragIndex >= _player.Steps.Count) { CancelInteraction(); }
             float total = SequenceLayout.Compute(_player.Steps, _blocks);
             Rect area = GUILayoutUtility.GetRect(10f, 10000f, 10f, 10000f);
             float width = Mathf.Max(area.width - 16f, ListWidth + TimeToX(total + 2f));
@@ -90,7 +107,12 @@ namespace RavenTween.Editor {
             DrawPlayhead(new Rect(ListWidth, 0f, width - ListWidth, RulerHeight + RowHeight * _player.Steps.Count));
             GUI.EndScrollView();
             if (ApplyPendingEdit()) { return; }
-            HandleTimelineInput(new Rect(area.x + ListWidth, area.y, area.width - ListWidth - 16f, area.height), total);
+            // Timeline coordinates start right after the step list; when scrolled sideways the list
+            // slides out of view, so the clickable part starts earlier than that origin.
+            Vector2 origin = new Vector2(area.x + ListWidth, area.y);
+            float visibleLeft = area.x + Mathf.Max(ListWidth - _scroll.x, 0f);
+            Rect hit = new Rect(visibleLeft, area.y, area.xMax - 16f - visibleLeft, area.height - 16f);
+            HandleTimelineInput(hit, origin);
         }
 
         // ----- Toolbar -----
@@ -98,7 +120,7 @@ namespace RavenTween.Editor {
         void DrawToolbar() {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             var picked = (RavenSequencePlayer)EditorGUILayout.ObjectField(_player, typeof(RavenSequencePlayer), true, GUILayout.Width(220f));
-            if (picked != _player) { EndMyPreview(); _player = picked; }
+            if (picked != _player) { SwitchPlayer(picked); }
             _locked = GUILayout.Toggle(_locked, new GUIContent("Lock", "Keep this player even when the selection changes"), EditorStyles.toolbarButton, GUILayout.Width(44f));
             GUILayout.Space(8f);
             using (new EditorGUI.DisabledScope(_player == null || EditorApplication.isPlayingOrWillChangePlaymode)) {
@@ -106,6 +128,8 @@ namespace RavenTween.Editor {
                 if (GUILayout.Button(new GUIContent(playing ? RavenEditorIcons.Pause : RavenEditorIcons.Play, playing ? "Pause preview" : "Preview the sequence in the scene"), EditorStyles.toolbarButton, GUILayout.Width(30f))) {
                     TogglePlay(playing);
                 }
+            }
+            using (new EditorGUI.DisabledScope(!Mine)) {
                 if (GUILayout.Button(new GUIContent(RavenEditorIcons.Stop, "Stop and restore the scene"), EditorStyles.toolbarButton, GUILayout.Width(30f))) { EndMyPreview(); }
             }
             _loop = GUILayout.Toggle(_loop, "Loop", EditorStyles.toolbarButton, GUILayout.Width(44f));
@@ -124,16 +148,20 @@ namespace RavenTween.Editor {
 
         bool StartPreview() {
             EditorTweenPreview.End();
-            foreach (RavenSequencePlayer.Step step in _player.Steps) {
-                if (step.template == null || step.target == null) { continue; }
-                PropertyKind kind = step.template.property;
-                int id = kind == PropertyKind.MaterialFloat || kind == PropertyKind.MaterialColor ? Shader.PropertyToID(step.template.materialProperty) : 0;
-                EditorTweenPreview.Record(step.target, kind, id);
+            try {
+                foreach (RavenSequencePlayer.Step step in _player.Steps) {
+                    if (step.template == null || step.target == null) { continue; }
+                    if (!step.template.TryBind(step.target, false, false, out Object resolved, out int id)) { continue; }
+                    EditorTweenPreview.Record(resolved, step.template.property, id);
+                }
+                Sequence sequence = _player.BuildSequence();
+                if (!sequence.IsAlive) { EditorTweenPreview.End(); return false; }
+                EditorTweenPreview.Begin(this, sequence, sequence.Duration, _loop);
+                return true;
+            } catch {
+                EditorTweenPreview.End(); // Never leave recorded values behind a failed start.
+                throw;
             }
-            Sequence sequence = _player.BuildSequence();
-            if (!sequence.IsAlive) { EditorTweenPreview.End(); return false; }
-            EditorTweenPreview.Begin(this, sequence, sequence.Duration, _loop);
-            return true;
         }
 
         // ----- Rows -----
@@ -217,45 +245,55 @@ namespace RavenTween.Editor {
             EditorGUI.DrawRect(new Rect(x - 1f, rect.y, 2f, rect.height), PlayheadColor);
         }
 
-        void HandleTimelineInput(Rect timeline, float total) {
+        // The window keeps the mouse (hot control) during a drag, so releasing the button outside
+        // the window still ends the drag.
+        void HandleTimelineInput(Rect hit, Vector2 origin) {
+            _controlId = GUIUtility.GetControlID(FocusType.Passive);
             Event e = Event.current;
             if (_player == null || EditorApplication.isPlayingOrWillChangePlaymode) { return; }
-            Vector2 local = e.mousePosition - timeline.position + _scroll;
-            if (e.type == EventType.MouseDown && e.button == 0 && timeline.Contains(e.mousePosition)) {
-                OnMouseDown(local, e);
-            } else if (e.type == EventType.MouseDrag && (_dragIndex >= 0 || _scrubbing)) {
-                OnMouseDrag(local, e);
-            } else if (e.type == EventType.MouseUp && (_dragIndex >= 0 || _scrubbing)) {
-                if (_dragIndex >= 0) { Undo.CollapseUndoOperations(_undoGroup); }
-                _dragIndex = -1;
-                _scrubbing = false;
-                e.Use();
+            Vector2 local = e.mousePosition - origin + _scroll;
+            switch (e.GetTypeForControl(_controlId)) {
+                case EventType.MouseDown:
+                    if (e.button == 0 && hit.Contains(e.mousePosition) && OnMouseDown(local, e)) { GUIUtility.hotControl = _controlId; }
+                    break;
+                case EventType.MouseDrag:
+                    if (GUIUtility.hotControl == _controlId && (_dragIndex >= 0 || _scrubbing)) { OnMouseDrag(local, e); }
+                    break;
+                case EventType.MouseUp:
+                    if (GUIUtility.hotControl != _controlId) { break; }
+                    GUIUtility.hotControl = 0;
+                    if (_dragIndex >= 0) { Undo.CollapseUndoOperations(_undoGroup); }
+                    _dragIndex = -1;
+                    _scrubbing = false;
+                    e.Use();
+                    break;
             }
         }
 
-        void OnMouseDown(Vector2 local, Event e) {
+        bool OnMouseDown(Vector2 local, Event e) {
             if (local.y < RulerHeight) {
                 _scrubbing = true;
                 Scrub(XToTime(local.x));
                 e.Use();
-                return;
+                return true;
             }
             int row = Mathf.FloorToInt((local.y - RulerHeight) / RowHeight);
-            if (row < 0 || row >= _blocks.Count) { return; }
+            if (row < 0 || row >= _blocks.Count || row >= _player.Steps.Count) { return false; }
             float start = TimeToX(_blocks[row].Start);
             float end = start + Mathf.Max(_blocks[row].Length * _pixelsPerSecond, 6f);
-            if (local.x < start || local.x > end) { return; }
+            if (local.x < start || local.x > end) { return false; }
             _dragIndex = row;
             _dragOffset = local.x - start;
             Undo.IncrementCurrentGroup();
             _undoGroup = Undo.GetCurrentGroup();
             e.Use();
+            return true;
         }
 
         void OnMouseDrag(Vector2 local, Event e) {
             if (_scrubbing) {
                 Scrub(XToTime(local.x));
-            } else {
+            } else if (_dragIndex < _player.Steps.Count) {
                 float time = Mathf.Max(XToTime(local.x - _dragOffset), 0f);
                 if (!e.alt) { time = Mathf.Round(time / SnapStep) * SnapStep; }
                 RavenSequencePlayer.Step step = _player.Steps[_dragIndex];

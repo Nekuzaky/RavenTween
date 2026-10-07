@@ -1,0 +1,31 @@
+{
+    "name": "RavenTween.Samples.TextMeshPro",
+    "rootNamespace": "RavenTweenSamples",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.TextMeshPro",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "RAVEN_TMP"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.ugui",
+            "expression": "2.0.0",
+            "define": "RAVEN_TMP"
+        },
+        {
+            "name": "com.unity.textmeshpro",
+            "expression": "3.0.0",
+            "define": "RAVEN_TMP"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -3,9 +3,14 @@ using UnityEngine;
 namespace RavenTween {
     /// <summary>
     /// Secondary motion for a chain of bones — ponytails, antennae, tails, cables, ears. Each
-    /// bone lags behind, swings and settles back toward its animated pose. Runs after animation,
-    /// allocates nothing per frame, and blends by <see cref="Weight"/>.
+    /// bone lags behind, swings and settles back toward its base pose (from an Animator, a tween
+    /// or a script). Runs after animation, allocates nothing per frame, blends by <see cref="Weight"/>.
     /// </summary>
+    /// <remarks>
+    /// Like <see cref="RavenLookAt"/>, the base pose is tracked rather than reset: a bone whose
+    /// rotation is still the one written last frame keeps its previous base pose; any other
+    /// rotation was written by someone else and becomes the new base pose.
+    /// </remarks>
     [AddComponentMenu("RavenTween/Raven Spring Chain")]
     [DisallowMultipleComponent]
     public sealed class RavenSpringChain : MonoBehaviour {
@@ -16,9 +21,9 @@ namespace RavenTween {
 
         [Tooltip("First bone of the chain. It stays attached; every child below it swings. Defaults to this transform.")]
         [SerializeField] Transform root;
-        [Tooltip("0 = animation only, 1 = full spring motion. Tween it with TweenWeight.")]
+        [Tooltip("0 = base pose only, 1 = full spring motion. Tween it with TweenWeight.")]
         [SerializeField, Range(0f, 1f)] float weight = 1f;
-        [Tooltip("How strongly each bone is pulled back to its animated pose. Higher = stiffer.")]
+        [Tooltip("How strongly each bone is pulled back to its base pose. Higher = stiffer.")]
         [SerializeField, Range(0f, 1f)] float stiffness = 0.08f;
         [Tooltip("How quickly the swinging dies out. Higher = settles faster.")]
         [SerializeField, Range(0f, 1f)] float damping = 0.12f;
@@ -27,11 +32,10 @@ namespace RavenTween {
         [Tooltip("Adds a virtual point past the last bone so the last bone swings too. 0 = off.")]
         [SerializeField, Min(0f)] float tipLength;
         [SerializeField] bool useUnscaledTime;
-        [Tooltip("Restore rest rotations every frame before animation. Disable if your own script drives these bones.")]
-        [SerializeField] bool restorePoseEachFrame = true;
 
         Transform[] _bones;
-        Quaternion[] _restLocalRotations;
+        Quaternion[] _baseLocal;
+        Quaternion[] _writtenLocal;
         Vector3[] _animated;
         Vector3[] _positions;
         Vector3[] _previous;
@@ -39,8 +43,9 @@ namespace RavenTween {
         int _boneCount;
         int _particleCount;
         float _accumulator;
+        bool _hasWritten;
 
-        /// <summary>Blend between the animated pose (0) and full spring motion (1).</summary>
+        /// <summary>Blend between the base pose (0) and full spring motion (1).</summary>
         public float Weight {
             get { return weight; }
             set { weight = Mathf.Clamp01(value); }
@@ -69,11 +74,8 @@ namespace RavenTween {
         }
 
         void OnDisable() {
-            RestorePose();
-        }
-
-        void Update() {
-            RestorePose();
+            RestoreBasePose();
+            _hasWritten = false;
         }
 
         void LateUpdate() {
@@ -81,10 +83,11 @@ namespace RavenTween {
         }
 
         /// <summary>
-        /// Re-reads the chain from the root and snaps the simulation to the current pose.
-        /// Call it after changing the hierarchy or teleporting the character.
+        /// Re-reads the chain from the root and snaps the simulation to the current base pose.
+        /// Call it after changing the bone hierarchy. After a teleport, <see cref="ResetPhysics"/> is enough.
         /// </summary>
         public void Build() {
+            RestoreBasePose(); // Never capture a swung pose as the new base pose.
             Transform start = root != null ? root : transform;
             _boneCount = CountChain(start);
             _particleCount = _boneCount + (tipLength > 0f ? 1 : 0);
@@ -92,16 +95,17 @@ namespace RavenTween {
             Transform bone = start;
             for (int i = 0; i < _boneCount; i++) {
                 _bones[i] = bone;
-                _restLocalRotations[i] = bone.localRotation;
+                _baseLocal[i] = bone.localRotation;
                 bone = bone.childCount > 0 ? bone.GetChild(0) : null;
             }
+            _hasWritten = false;
             _tipLocalDirection = ComputeTipDirection();
             ResetPhysics();
         }
 
-        /// <summary>Puts every simulated point back on the animated pose, with no velocity.</summary>
+        /// <summary>Puts every simulated point back on the base pose, with no velocity (e.g. after a teleport).</summary>
         public void ResetPhysics() {
-            if (_bones == null) { return; }
+            if (_bones == null || HasMissingBone()) { return; }
             ReadAnimatedPose();
             for (int i = 0; i < _particleCount; i++) {
                 _positions[i] = _animated[i];
@@ -125,7 +129,8 @@ namespace RavenTween {
             Debug.Assert(_boneCount > 0, "Chain must contain at least its root.");
             if (_bones == null || _bones.Length != _boneCount) {
                 _bones = new Transform[_boneCount];
-                _restLocalRotations = new Quaternion[_boneCount];
+                _baseLocal = new Quaternion[_boneCount];
+                _writtenLocal = new Quaternion[_boneCount];
             }
             if (_positions == null || _positions.Length != _particleCount) {
                 _animated = new Vector3[_particleCount];
@@ -144,24 +149,57 @@ namespace RavenTween {
             return Quaternion.Inverse(last.rotation) * worldDirection.normalized;
         }
 
-        internal void RestorePose() {
-            if (!restorePoseEachFrame || _bones == null) { return; }
+        bool HasMissingBone() {
             for (int i = 0; i < _boneCount; i++) {
-                if (_bones[i] != null) { _bones[i].localRotation = _restLocalRotations[i]; }
+                if (_bones[i] == null) { return true; }
+            }
+            return false;
+        }
+
+        // Puts back the base pose on bones that still hold what this component wrote.
+        void RestoreBasePose() {
+            if (_bones == null || !_hasWritten) { return; }
+            for (int i = 0; i < _boneCount; i++) {
+                Transform bone = _bones[i];
+                if (bone != null && SameRotation(bone.localRotation, _writtenLocal[i])) { bone.localRotation = _baseLocal[i]; }
             }
         }
 
-        /// <summary>One frame: read the animated pose, simulate in fixed steps, write rotations.</summary>
+        // Adopts rotations written by others as the new base pose, restores ours otherwise.
+        void TrackBasePose() {
+            for (int i = 0; i < _boneCount; i++) {
+                Transform bone = _bones[i];
+                Quaternion current = bone.localRotation;
+                if (_hasWritten && SameRotation(current, _writtenLocal[i])) { bone.localRotation = _baseLocal[i]; }
+                else { _baseLocal[i] = current; }
+            }
+        }
+
+        // Exact on purpose: the value compared is read back from the transform, so an untouched
+        // bone matches bit for bit, while a dot-product threshold can reject a slightly
+        // denormalized quaternion and wrongly adopt the swung pose as the base pose.
+        static bool SameRotation(Quaternion a, Quaternion b) {
+            return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
+        }
+
+        /// <summary>One frame: track the base pose, simulate in fixed steps, write rotations.</summary>
         internal void Evaluate(float deltaTime) {
             Debug.Assert(deltaTime >= 0f, "Delta time cannot be negative.");
-            if (_bones == null || _particleCount < 2 || _bones[0] == null) { return; }
+            if (_bones == null || _particleCount < 2) { return; }
+            if (HasMissingBone()) {
+                Build(); // A bone was destroyed: re-read whatever chain is left.
+                return;
+            }
+            TrackBasePose();
             ReadAnimatedPose();
             _accumulator = Mathf.Min(_accumulator + Mathf.Max(deltaTime, 0f), StepTime * MaxSubSteps);
             while (_accumulator >= StepTime) {
                 SimulateStep();
                 _accumulator -= StepTime;
             }
-            ApplyRotations();
+            ApplyRotations(_accumulator / StepTime);
+            for (int i = 0; i < _boneCount; i++) { _writtenLocal[i] = _bones[i].localRotation; }
+            _hasWritten = true;
         }
 
         void ReadAnimatedPose() {
@@ -172,7 +210,7 @@ namespace RavenTween {
             }
         }
 
-        // Verlet integration, a pull toward the animated pose, then a length constraint per segment.
+        // Verlet integration, a pull toward the base pose, then a length constraint per segment.
         void SimulateStep() {
             Debug.Assert(_particleCount <= MaxBones + 1, "Particle count exceeds the chain bound.");
             Vector3 gravityStep = gravity * (StepTime * StepTime);
@@ -194,16 +232,18 @@ namespace RavenTween {
             }
         }
 
-        // Each bone rotates so its child lands on the simulated point; parents first.
-        void ApplyRotations() {
+        // Each bone rotates so its child lands on the simulated point; parents first. Points are
+        // interpolated between the last two fixed steps, so motion stays smooth above 60 FPS.
+        void ApplyRotations(float alpha) {
             int segments = _particleCount - 1;
             for (int i = 0; i < segments; i++) {
                 Transform bone = _bones[i];
                 Vector3 childNow = i + 1 < _boneCount
                     ? _bones[i + 1].position
                     : bone.position + bone.rotation * _tipLocalDirection * tipLength;
+                Vector3 simulated = Vector3.Lerp(_previous[i + 1], _positions[i + 1], alpha);
                 Vector3 from = childNow - bone.position;
-                Vector3 to = _positions[i + 1] - bone.position;
+                Vector3 to = simulated - bone.position;
                 if (from.sqrMagnitude < MinLengthSqr || to.sqrMagnitude < MinLengthSqr) { continue; }
                 Quaternion delta = Quaternion.FromToRotation(from, to);
                 bone.rotation = Quaternion.Slerp(Quaternion.identity, delta, weight) * bone.rotation;

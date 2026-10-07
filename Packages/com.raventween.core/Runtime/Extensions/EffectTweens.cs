@@ -39,8 +39,14 @@ namespace RavenTween {
                                   Vector3 strength, float duration, float frequency) {
             Debug.Assert(duration > 0f, "Effects need a positive duration.");
             Debug.Assert(frequency > 0f, "Effect frequency must be positive.");
+            if (target == null) { return CreatePropertyTween(null, property, 0, new TweenValue(Vector3.zero), duration); }
+            bool takeOver = TweenEngine.TryTakeOverEffect(target, property, out TweenValue rest);
             Tween tween = CreatePropertyTween(target, property, 0, new TweenValue(Vector3.zero), duration);
             if (!TweenEngine.TryGetSlot(tween.Index, tween.Version, out TweenSlot slot)) { return tween; }
+            if (takeOver) {
+                slot.StartValue = rest;
+                slot.HasExplicitFrom = true;
+            }
             slot.Effect = effect;
             slot.EffectStrength = strength;
             slot.EffectFrequency = Mathf.Max(frequency, 0.01f) * Mathf.Max(duration, 0.0001f);

@@ -48,10 +48,15 @@ namespace RavenTween {
         public PropertyKind Property = PropertyKind.None;
         public int PropertyId;
 
+        public int BornPass;          // Engine pass that created this slot; that pass skips it.
+
         // Custom setter: target + user delegate + cached typed invoker (no per-frame allocation).
         public object CustomTarget;
         public Delegate CustomSetter;
         public Action<object, Delegate, TweenValue> CustomInvoker;
+        // Optional getter: when set, the start value is read from the target as the tween starts.
+        public Delegate CustomGetterDelegate;
+        public Func<object, Delegate, TweenValue> CustomGetter;
 
         // Procedural effects (shake / punch).
         public EffectKind Effect;
@@ -90,6 +95,7 @@ namespace RavenTween {
         public Action AwaitContinuations;
 
         public bool StartFired;
+        public bool Completing;       // Inside Complete(): a nested Complete() from a callback is ignored.
         public bool CompleteNotified; // Child-in-sequence: OnComplete fired for the current cycle.
         public bool Rewound;          // Child-in-sequence: start value already restored after time went back.
 
@@ -104,6 +110,29 @@ namespace RavenTween {
             get { return StartDelay + (IsSequence ? SequenceDuration : Duration); }
         }
 
+        /// <summary>
+        /// Drops every reference to user objects (targets, callbacks, curves) as the slot is
+        /// released, so a large pool never keeps scenes or closures alive.
+        /// </summary>
+        public void ClearReferences() {
+            UnityTarget = null;
+            CustomTarget = null;
+            CustomSetter = null;
+            CustomInvoker = null;
+            CustomGetterDelegate = null;
+            CustomGetter = null;
+            CustomCurve = null;
+            CustomEase = null;
+            OnStart = null;
+            OnUpdate = null;
+            OnUpdateFloat = null;
+            OnUpdateValue = null;
+            OnComplete = null;
+            OnKill = null;
+            OnTargetDestroyed = null;
+            AwaitContinuations = null;
+        }
+
         /// <summary>Resets every field so the slot can be reused. Keeps allocated collections.</summary>
         public void Reset() {
             Debug.Assert(State == SlotState.Free, "Only free slots may be reset.");
@@ -113,9 +142,12 @@ namespace RavenTween {
             RequiresTarget = false;
             Property = PropertyKind.None;
             PropertyId = 0;
+            BornPass = 0;
             CustomTarget = null;
             CustomSetter = null;
             CustomInvoker = null;
+            CustomGetterDelegate = null;
+            CustomGetter = null;
             Effect = EffectKind.None;
             EffectStrength = Vector3.zero;
             EffectFrequency = 0f;
@@ -143,6 +175,7 @@ namespace RavenTween {
             OnTargetDestroyed = null;
             AwaitContinuations = null;
             StartFired = false;
+            Completing = false;
             CompleteNotified = false;
             Rewound = false;
             SequenceDuration = 0f;

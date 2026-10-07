@@ -99,6 +99,14 @@ namespace RavenTween {
                 Debug.LogError("RavenTween: this tween already belongs to a sequence.");
                 return;
             }
+            if (sequenceSlot.OwnedBySequence) {
+                Debug.LogError("RavenTween: this sequence is already nested in another one; build it completely before adding it.");
+                return;
+            }
+            if (child.IsSequence && TweenEngine.IsInSubtree(child, sequenceSlot)) {
+                Debug.LogError("RavenTween: a sequence cannot contain itself.");
+                return;
+            }
             if (child.Cycles < 0) {
                 Debug.LogError("RavenTween: infinite tweens cannot be nested in a sequence; clamped to 1 cycle.");
                 child.Cycles = 1;
@@ -106,7 +114,7 @@ namespace RavenTween {
             child.OwnedBySequence = true;
             float childLength = ComputeChildLength(child);
             if (sequenceSlot.Items == null) { sequenceSlot.Items = new List<SequenceItem>(4); }
-            sequenceSlot.Items.Add(new SequenceItem {
+            InsertSorted(sequenceSlot.Items, new SequenceItem {
                 StartTime = startTime,
                 Duration = childLength,
                 ChildIndex = childIndex,
@@ -120,6 +128,14 @@ namespace RavenTween {
             if (sequenceSlot.SequenceDuration < sequenceSlot.ChainCursor) {
                 sequenceSlot.SequenceDuration = sequenceSlot.ChainCursor;
             }
+        }
+
+        // The engine evaluates items in start-time order (rewinds in reverse), so the list is kept
+        // sorted. Equal start times keep insertion order: the later-added item wins the property.
+        static void InsertSorted(List<SequenceItem> items, SequenceItem item) {
+            int at = items.Count;
+            while (at > 0 && items[at - 1].StartTime > item.StartTime) { at--; }
+            items.Insert(at, item);
         }
 
         static float ComputeChildLength(TweenSlot child) {

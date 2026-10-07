@@ -31,6 +31,46 @@ namespace RavenTween {
 
     /// <summary>Reads and writes built-in properties on their targets. No reflection, no allocation.</summary>
     static class PropertyAccessor {
+        /// <summary>The object type a property is read from and written to.</summary>
+        public static System.Type TargetType(PropertyKind kind) {
+            switch (kind) {
+                case PropertyKind.AnchoredPosition:
+                case PropertyKind.SizeDelta: return typeof(RectTransform);
+                case PropertyKind.CanvasGroupAlpha: return typeof(CanvasGroup);
+                case PropertyKind.GraphicColor:
+                case PropertyKind.GraphicAlpha: return typeof(Graphic);
+                case PropertyKind.CameraFieldOfView:
+                case PropertyKind.CameraOrthographicSize:
+                case PropertyKind.CameraBackgroundColor: return typeof(Camera);
+                case PropertyKind.AudioVolume:
+                case PropertyKind.AudioPitch: return typeof(AudioSource);
+                case PropertyKind.MaterialFloat:
+                case PropertyKind.MaterialColor: return typeof(Material);
+                case PropertyKind.SpriteColor: return typeof(SpriteRenderer);
+                case PropertyKind.LightIntensity:
+                case PropertyKind.LightColor: return typeof(Light);
+                default: return typeof(Transform);
+            }
+        }
+
+        /// <summary>
+        /// Finds the object a property needs from whatever was assigned: the object itself, or a
+        /// component on the same GameObject (a renderer's material for material properties).
+        /// Returns null when nothing suitable exists.
+        /// </summary>
+        public static Object ResolveTarget(Object assigned, PropertyKind kind, bool instanceMaterial) {
+            if (assigned == null) { return null; }
+            System.Type type = TargetType(kind);
+            if (type.IsInstanceOfType(assigned)) { return assigned; }
+            GameObject go = assigned as GameObject;
+            if (go == null && assigned is Component component) { go = component.gameObject; }
+            if (go == null) { return null; }
+            if (type != typeof(Material)) { return go.GetComponent(type); }
+            var renderer = go.GetComponent<Renderer>();
+            if (renderer == null) { return null; }
+            return instanceMaterial ? renderer.material : renderer.sharedMaterial;
+        }
+
         /// <summary>Value kind produced and consumed by a given property.</summary>
         public static ValueKind KindOf(PropertyKind kind) {
             switch (kind) {

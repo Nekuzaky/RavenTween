@@ -51,27 +51,37 @@ namespace RavenTween {
                 Tween tween = entry.template.Play(entry.target);
                 if (!tween.IsAlive) { continue; }
                 _pending++;
-                tween.OnComplete(HandleEntryComplete);
+                // An entry is done when it completes, is stopped from elsewhere, or loses its target.
+                tween.OnComplete(HandleEntryEnd).OnKill(HandleEntryEnd).OnTargetDestroyed(HandleEntryEnd);
                 _live.Add(tween);
             }
             if (_pending == 0) { onAllComplete.Invoke(); }
         }
 
-        /// <summary>Stops every tween started by this animator.</summary>
+        /// <summary>Stops every tween started by this animator. Does not raise On All Complete.</summary>
         public void Stop() {
-            for (int i = 0; i < _live.Count; i++) { _live[i].Stop(); }
+            _stopping = true;
+            try {
+                for (int i = 0; i < _live.Count; i++) { _live[i].Stop(); }
+            } finally {
+                _stopping = false;
+            }
             _live.Clear();
             _pending = 0;
         }
 
-        /// <summary>Jumps every running tween to its end value.</summary>
+        /// <summary>Jumps every running tween to its end value, then raises On All Complete.</summary>
         public void CompleteNow() {
-            // Completing fires HandleEntryComplete, which clears state when it hits zero.
-            for (int i = _live.Count - 1; i >= 0; i--) { _live[i].Complete(); }
+            if (_live.Count == 0) { return; }
+            // Completing an entry can end the run and clear the list, so iterate over a copy.
+            Tween[] snapshot = _live.ToArray();
+            for (int i = 0; i < snapshot.Length; i++) { snapshot[i].Complete(); }
         }
 
-        void HandleEntryComplete() {
-            Debug.Assert(_pending > 0, "Completion callback fired with no pending entries.");
+        bool _stopping;
+
+        void HandleEntryEnd() {
+            if (_stopping || _pending <= 0) { return; }
             _pending--;
             if (_pending > 0) { return; }
             _live.Clear();

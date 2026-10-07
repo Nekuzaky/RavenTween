@@ -20,22 +20,37 @@ namespace RavenTween.Editor {
 
         /// <summary>Parses "v1.2.0", "1.2.0" or "1.2.0-beta.1" into a comparable version.</summary>
         public static bool TryParseVersion(string text, out Version version) {
+            return TryParseVersion(text, out version, out _);
+        }
+
+        /// <summary>Same, and reports whether the version is a pre-release ("-beta.1"; "+build" is not).</summary>
+        public static bool TryParseVersion(string text, out Version version, out bool prerelease) {
             version = null;
+            prerelease = false;
             if (string.IsNullOrEmpty(text)) { return false; }
             string trimmed = text.Trim();
             if (trimmed.StartsWith("v", StringComparison.OrdinalIgnoreCase)) { trimmed = trimmed.Substring(1); }
-            int suffix = trimmed.IndexOfAny(new[] { '-', '+' });
-            if (suffix >= 0) { trimmed = trimmed.Substring(0, suffix); }
+            int build = trimmed.IndexOf('+');
+            if (build >= 0) { trimmed = trimmed.Substring(0, build); }
+            int dash = trimmed.IndexOf('-');
+            if (dash >= 0) {
+                prerelease = true;
+                trimmed = trimmed.Substring(0, dash);
+            }
             if (!Version.TryParse(trimmed, out Version parsed)) { return false; }
             version = new Version(parsed.Major, parsed.Minor, Math.Max(parsed.Build, 0));
             return true;
         }
 
-        /// <summary>True when <paramref name="latestTag"/> is strictly newer than <paramref name="installed"/>.</summary>
+        /// <summary>
+        /// True when <paramref name="latestTag"/> is strictly newer than <paramref name="installed"/>.
+        /// A release is newer than a pre-release of the same number (1.5.0 &gt; 1.5.0-beta.2).
+        /// </summary>
         public static bool IsNewer(string latestTag, string installed) {
-            if (!TryParseVersion(latestTag, out Version latest)) { return false; }
-            if (!TryParseVersion(installed, out Version current)) { return false; }
-            return latest > current;
+            if (!TryParseVersion(latestTag, out Version latest, out bool latestPre)) { return false; }
+            if (!TryParseVersion(installed, out Version current, out bool currentPre)) { return false; }
+            if (latest != current) { return latest > current; }
+            return currentPre && !latestPre;
         }
 
         /// <summary>True when the last check is older than the interval (or never happened).</summary>

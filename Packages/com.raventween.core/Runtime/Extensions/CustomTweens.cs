@@ -27,12 +27,29 @@ namespace RavenTween {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForColor);
         }
 
+        /// <summary>
+        /// Tweens a float from its value <b>when the tween starts</b> (read with
+        /// <paramref name="getter"/>) to <paramref name="to"/>. Unlike Custom, the start value is
+        /// not frozen at creation, so it stays correct after a Delay or inside a sequence. Use
+        /// non-capturing lambdas for zero allocations.
+        /// </summary>
+        public static Tween CustomTo<T>(T target, Func<T, float> getter, float to, float duration, Action<T, float> setter) where T : class {
+            Debug.Assert(getter != null, "CustomTo needs a getter.");
+            Tween tween = CreateCustom(target, new TweenValue(to), new TweenValue(to), duration, setter, CustomInvokers<T>.ForFloat);
+            if (getter == null || !TweenEngine.TryGetSlot(tween.Index, tween.Version, out TweenSlot slot)) { return tween; }
+            slot.HasExplicitFrom = false;
+            slot.CustomGetterDelegate = getter;
+            slot.CustomGetter = CustomInvokers<T>.GetFloat;
+            return tween;
+        }
+
         static Tween CreateCustom(object target, in TweenValue from, in TweenValue to, float duration,
                                   Delegate setter, Action<object, Delegate, TweenValue> invoker) {
             Debug.Assert(setter != null, "Custom tweens need a setter.");
             Debug.Assert(invoker != null, "Custom tweens need a typed invoker.");
-            if (target == null || setter == null) {
-                Debug.LogError("RavenTween: Custom tween needs a non-null target and setter.");
+            bool destroyed = target is UnityEngine.Object unityTarget && unityTarget == null;
+            if (target == null || destroyed || setter == null) {
+                Debug.LogError("RavenTween: Custom tween needs a live target and a setter.");
                 return default;
             }
             Tween tween = CreateValueTween(from, to, duration);
@@ -58,6 +75,8 @@ namespace RavenTween {
                 (target, setter, value) => ((Action<T, Vector3>)setter)((T)target, value.Vector3);
             public static readonly Action<object, Delegate, TweenValue> ForColor =
                 (target, setter, value) => ((Action<T, Color>)setter)((T)target, value.Color);
+            public static readonly Func<object, Delegate, TweenValue> GetFloat =
+                (target, getter) => new TweenValue(((Func<T, float>)getter)((T)target));
         }
     }
 }

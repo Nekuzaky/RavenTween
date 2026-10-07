@@ -31,6 +31,9 @@ namespace RavenTween.Tests {
         [TestCase("v1.1.0", "1.2.0", false)]
         [TestCase("v1.10.0", "1.9.0", true)]
         [TestCase("garbage", "1.2.0", false)]
+        [TestCase("v1.5.0", "1.5.0-beta.2", true)]
+        [TestCase("v1.5.0-beta.3", "1.5.0", false)]
+        [TestCase("v1.5.0", "1.5.0+build.4", false)]
         public void ComparesVersionsNumerically(string latest, string installed, bool newer) {
             Assert.That(UpdateLogic.IsNewer(latest, installed), Is.EqualTo(newer));
         }

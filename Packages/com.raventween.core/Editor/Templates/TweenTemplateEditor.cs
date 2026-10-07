@@ -167,7 +167,7 @@ namespace RavenTween.Editor {
             _previewTarget = EditorGUILayout.ObjectField("Target", _previewTarget, TemplateTargets.TargetType(Kind), true);
             bool mine = EditorTweenPreview.Owner == (object)this;
             EditorGUILayout.BeginHorizontal();
-            using (new EditorGUI.DisabledScope(!TemplateTargets.Accepts(_previewTarget, Kind))) {
+            using (new EditorGUI.DisabledScope(!CanPreview())) {
                 bool playing = mine && EditorTweenPreview.IsPlaying;
                 if (GUILayout.Button(RavenEditorIcons.Content(playing ? RavenEditorIcons.Pause : RavenEditorIcons.Play, playing ? "Pause" : "Preview", "Play the animation on the target, then restore it"), GUILayout.Height(24f))) {
                     TogglePreview(mine, playing);
@@ -194,18 +194,33 @@ namespace RavenTween.Editor {
             StartPreview();
         }
 
+        bool CanPreview() {
+            return TemplateTargets.Accepts(_previewTarget, Kind) &&
+                   ((TweenTemplate)target).TryBind(_previewTarget, false, false, out _, out _);
+        }
+
         void StartPreview() {
             var template = (TweenTemplate)target;
             EditorTweenPreview.End();
-            int id = Kind == PropertyKind.MaterialFloat || Kind == PropertyKind.MaterialColor
-                ? Shader.PropertyToID(template.materialProperty) : 0;
-            EditorTweenPreview.Record(_previewTarget, Kind, id);
-            Tween tween = template.Play(_previewTarget);
-            if (!tween.IsAlive) { EditorTweenPreview.End(); return; }
-            int cycles = template.LoopsForever ? template.CyclesInsideSequence : Mathf.Max(template.settings.cycles, 1);
-            float length = template.settings.startDelay + template.settings.duration * cycles;
-            EditorTweenPreview.Begin(this, tween, length, _loopPreview);
-            EditorTweenPreview.Play();
+            if (!template.TryBind(_previewTarget, false, true, out Object resolved, out int id)) { return; }
+            try {
+                EditorTweenPreview.Record(resolved, Kind, id);
+                Tween tween = template.Play(_previewTarget);
+                if (!tween.IsAlive) { EditorTweenPreview.End(); return; }
+                EditorTweenPreview.Begin(this, tween, PreviewLength(template), _loopPreview);
+                EditorTweenPreview.Play();
+            } catch {
+                EditorTweenPreview.End(); // Never leave recorded values behind a failed start.
+                throw;
+            }
+        }
+
+        static int PreviewCycles(TweenTemplate template) {
+            return template.LoopsForever ? template.CyclesInsideSequence : Mathf.Max(template.settings.cycles, 1);
+        }
+
+        static float PreviewLength(TweenTemplate template) {
+            return template.settings.startDelay + template.settings.duration * PreviewCycles(template);
         }
 
         void DrawScrubber() {
@@ -221,8 +236,9 @@ namespace RavenTween.Editor {
             if (EditorTweenPreview.Owner != (object)this) { return -1f; }
             float duration = Mathf.Max(_duration.floatValue, 0.0001f);
             float local = EditorTweenPreview.Time - _delay.floatValue;
-            if (local < 0f) { return 0f; }
-            int cycle = (int)(local / duration);
+            if (local <= 0f) { return 0f; }
+            // At the very end, stay on the last cycle instead of wrapping into a cycle that never plays.
+            int cycle = Mathf.Min((int)(local / duration), PreviewCycles((TweenTemplate)target) - 1);
             float progress = Mathf.Clamp01((local - cycle * duration) / duration);
             bool backwards = (CycleMode)_mode.intValue == CycleMode.Yoyo && (cycle & 1) == 1;
             return backwards ? 1f - progress : progress;

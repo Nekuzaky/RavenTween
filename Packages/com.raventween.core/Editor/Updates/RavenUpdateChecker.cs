@@ -85,7 +85,10 @@ namespace RavenTween.Editor {
         // ----- Check -----
 
         static void StartCheck(bool manual) {
-            if (_request != null) { return; }
+            if (_request != null) {
+                _manual |= manual; // A click during a background check still gets its answer.
+                return;
+            }
             _manual = manual;
             _request = UnityWebRequest.Get(UpdateLogic.LatestReleaseApi);
             _request.SetRequestHeader("Accept", "application/vnd.github+json");
@@ -103,6 +106,8 @@ namespace RavenTween.Editor {
             string error = ok ? null : _request.error;
             _request.Dispose();
             _request = null;
+            // Never pop windows or reinstall packages over a running game; retry on a later load.
+            if (!_manual && EditorApplication.isPlayingOrWillChangePlaymode) { return; }
             EditorPrefs.SetString(PrefLastCheck, DateTime.UtcNow.Ticks.ToString());
             if (!ok) {
                 if (_manual) { EditorUtility.DisplayDialog("RavenTween", "Could not reach GitHub:\n" + error, "OK"); }

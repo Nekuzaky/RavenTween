@@ -5,8 +5,8 @@ using UnityEngine;
 namespace RavenTweenSamples {
     /// <summary>
     /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// Builds a nested, awaited sequence: a staged "intro" where three cubes enter,
-    /// regroup, and celebrate - then restarts via async/await.
+    /// Builds a nested sequence: a staged "intro" where three cubes enter, regroup and
+    /// celebrate. A coroutine waits for it to finish, pauses, and plays it again.
     /// </summary>
     public sealed class ComplexSequenceDemo : MonoBehaviour {
         Transform _left;

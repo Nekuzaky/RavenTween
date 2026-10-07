@@ -23,7 +23,7 @@
 | | |
 | --- | --- |
 | **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
-| **Fast** | 5,000 simultaneous tweens step in **~0.77 ms/frame** (Editor, Mono, mixed workload). |
+| **Fast** | 5,000 simultaneous tweens step in **under 1 ms/frame** (Editor, Mono, mixed workload). |
 | **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
 | **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
 | **Portable** | Pure managed C#: no threads, reflection, native plugins or runtime codegen. IL2CPP, WebGL, mobile and consoles are all fine. |
@@ -33,13 +33,13 @@
 **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.4.1
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.4.1"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0"
 ```
 
 Requires Unity 2021.3 or newer. Unity 6 is fully supported.
@@ -208,14 +208,14 @@ Every method also exists in extension form: `transform.TweenPosition(...)`, `mat
 
 ## Performance
 
-Measured by the package's own test suite (`Tests/PerformanceTests.cs`), which fails the build on any regression:
+Measured by the package's own test suite (`Tests/PerformanceTests.cs`). The allocation tests fail on a single byte; the timing test logs the cost and only fails above a full 60 FPS frame (16 ms), since timings vary by machine:
 
 | Scenario | Result |
 | --- | --- |
 | 5,000 mixed tweens (position, scale, rotation, shake, custom), steady state | **0 B** allocated per frame |
 | 200 infinite sequences, including cycle wraps | **0 B** allocated per frame |
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
-| 5,000 mixed tweens, engine step cost | **~0.77 ms/frame** (Editor, Mono) |
+| 5,000 mixed tweens, engine step cost | **0.6–0.8 ms/frame** (Editor, Mono, desktop CPU) |
 
 What does allocate, by design: a lambda that **captures** a local (once, at creation — standard C#), `ToYieldInstruction()` (one small object per call) and `async` state machines. Use them for flow control, not per-frame work.
 
@@ -270,7 +270,7 @@ Samples work with both the legacy Input Manager and the Input System package.
 
 **Does it work with Enter Play Mode Options (no domain reload)?** Yes. Engine state resets on `SubsystemRegistration`.
 
-**Which platforms?** Everything Unity targets: the runtime is pure managed C# with no platform-specific code. The repository's CI workflow runs the full test suite on Linux against Unity 2021.3, 2022.3 and 6.
+**Which platforms?** Everything Unity targets: the runtime is pure managed C# with no platform-specific code. Every release passes the full EditMode and PlayMode suite on Unity 6; the repository's CI workflow is set up to run it on Linux against Unity 2021.3, 2022.3 and 6 once a Unity license secret is configured.
 
 ## Support
 

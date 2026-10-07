@@ -9,14 +9,14 @@ namespace RavenTween {
     /// </summary>
     public static class AnimationRiggingTweens {
         /// <summary>
-        /// Blends any rig constraint (TwoBoneIK, MultiAim, Damped Transform…) from its current weight.
+        /// Blends any rig constraint (TwoBoneIK, MultiAim, Damped Transform…) from the weight it has when the tween starts.
         /// </summary>
         public static Tween TweenWeight<T>(this T constraint, float to, float duration)
             where T : MonoBehaviour, IRigConstraint {
             Debug.Assert(constraint != null, "TweenWeight needs a live rig constraint.");
             Debug.Assert(to >= 0f && to <= 1f, "Weight must be in [0, 1].");
             if (constraint == null) { return default; }
-            return Raven.Custom(constraint, constraint.weight, Mathf.Clamp01(to), duration, (c, w) => c.weight = w);
+            return Raven.CustomTo(constraint, c => c.weight, Mathf.Clamp01(to), duration, (c, w) => c.weight = w);
         }
 
         /// <summary>Blends a whole Rig layer from its current weight.</summary>
@@ -24,7 +24,7 @@ namespace RavenTween {
             Debug.Assert(rig != null, "TweenWeight needs a live Rig.");
             Debug.Assert(to >= 0f && to <= 1f, "Weight must be in [0, 1].");
             if (rig == null) { return default; }
-            return Raven.Custom(rig, rig.weight, Mathf.Clamp01(to), duration, (r, w) => r.weight = w);
+            return Raven.CustomTo(rig, r => r.weight, Mathf.Clamp01(to), duration, (r, w) => r.weight = w);
         }
 
         /// <summary>

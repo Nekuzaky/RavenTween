@@ -26,6 +26,9 @@ Each method has the shape `Raven.Method(target, endValue, duration)` and returns
 
 Every method also exists as an extension: `transform.TweenPosition(...)`, `canvasGroup.TweenAlpha(...)`, `material.TweenColor(...)`, `light.TweenIntensity(...)`.
 
+> [!NOTE]
+> Euler tweens start from the angles Unity reports, which are always between 0 and 360. A bone at −10° reads as 350°, so tweening it to `0` turns 350° the long way round. Use `Rotation` / `LocalRotation` for the shortest path, or set the start explicitly with `.From(new Vector3(0f, 0f, -10f))`. Euler tweens are the right tool for spins of more than 180°, like `new Vector3(0f, 0f, 360f)`.
+
 > [!TIP]
 > For materials, resolve the property ID once and reuse it: `static readonly int Tint = Shader.PropertyToID("_BaseColor");`. The name overloads call `PropertyToID` for you each time a tween is created.
 

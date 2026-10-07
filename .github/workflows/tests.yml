@@ -15,6 +15,10 @@ concurrency:
   group: tests-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  checks: write # The test runner publishes results as a check run.
+
 jobs:
   meta-files:
     name: Every package file has a .meta
@@ -78,7 +82,7 @@ jobs:
           packageMode: true
           projectPath: Packages/com.raventween.core
           unityVersion: ${{ matrix.unityVersion }}
-          testMode: playmode
+          testMode: all
           githubToken: ${{ secrets.GITHUB_TOKEN }}
           checkName: Test results (${{ matrix.unityVersion }})
 

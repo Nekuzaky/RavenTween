@@ -14,6 +14,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `Delay(float seconds)` | `Tween` |
 | `Delay(float seconds, Action onComplete)` | `Tween` |
 | `Custom<T>(T target, float from, float to, float duration, Action<T, float> setter)` — also `Vector2`, `Vector3`, `Color` | `Tween` |
+| `CustomTo<T>(T target, Func<T, float> getter, float to, float duration, Action<T, float> setter)` — reads the start value when the tween starts | `Tween` |
 | `Sequence()` | `Sequence` |
 
 ### Property tweens
@@ -129,7 +130,7 @@ Compiled only when `com.unity.animation.rigging` is installed.
 | `CycleMode` | `Restart`, `Yoyo`. |
 | `UpdatePhase` | `Update`, `LateUpdate`. |
 | `TweenValue` | Read-only value passed to `OnUpdate(Action<TweenValue>)`: `.Float`, `.Vector2`, `.Vector3`, `.Vector4`, `.Quaternion`, `.Color`, `.Kind`. |
-| `TweenParams` | Serializable settings: `duration`, `startDelay`, `ease`, `customCurve`, `cycles`, `cycleMode`, `useUnscaledTime`; `ApplyTo(Tween)`; `TweenParams.Default`. |
+| `TweenParams` | Serializable settings: `duration`, `startDelay`, `ease`, `customCurve`, `cycles`, `cycleMode`, `useUnscaledTime`; `ApplyTo(Tween)` applies everything except `duration`, which you pass to the factory; `TweenParams.Default`. |
 | `PropertyKind` | Properties a `TweenTemplate` can animate. |
 
 ---
@@ -138,7 +139,7 @@ Compiled only when `com.unity.animation.rigging` is installed.
 
 | Type | Members |
 | :--- | :--- |
-| `TweenTemplate` (ScriptableObject) | `property`, `materialProperty`, `endValue`, `useExplicitFrom`, `fromValue`, `settings`; `Play(Object target)` |
+| `TweenTemplate` (ScriptableObject) | `property`, `materialProperty`, `endValue`, `useExplicitFrom`, `fromValue`, `settings`; `Play(Object target)` — the target may be the exact object or any GameObject / component carrying it |
 | `RavenAnimator` | `Entries`, `OnAllComplete`; `Play()`, `Stop()`, `CompleteNow()` |
 | `RavenSequencePlayer` | `Steps`, `OnComplete`, `Current`; `Play()`, `Stop()`, `CompleteNow()` |
 

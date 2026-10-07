@@ -45,9 +45,30 @@ When a lambda uses nothing but its parameters, the C# compiler creates it **once
 
 ---
 
+## Starting from the current value
+
+`Custom` uses the `from` value you pass, fixed when you create the tween. When the tween is delayed or sits later in a sequence, the property may have changed by the time it starts. `CustomTo` reads the start value **when the tween starts**, like the built-in tweens do:
+
+```csharp
+// Fades the volume weight from wherever it is when this step begins.
+Raven.CustomTo(volume, v => v.weight, 0f, 0.6f, (v, w) => v.weight = w);
+
+// In a sequence, each step starts where the previous one ended.
+Raven.Sequence()
+    .Chain(Raven.CustomTo(volume, v => v.weight, 1f, 0.3f, (v, w) => v.weight = w))
+    .ChainDelay(1f)
+    .Chain(Raven.CustomTo(volume, v => v.weight, 0f, 0.3f, (v, w) => v.weight = w));
+```
+
+`CustomTo` exists for `float` values. With non-capturing lambdas, it allocates nothing either.
+
+---
+
 ## Destroyed targets
 
 If the target is a `UnityEngine.Object` (a component, a GameObject, a ScriptableObject…), the tween **dies with it**: once the object is destroyed, the tween stops on its next update and fires `OnTargetDestroyed` instead of calling your setter. No `MissingReferenceException`, ever.
+
+Creating a custom tween on an object that is already destroyed (or null) logs an error and returns a dead handle.
 
 For plain C# objects there is no notion of destruction; stop the tween yourself when you no longer need it.
 

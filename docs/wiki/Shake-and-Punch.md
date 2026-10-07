@@ -57,6 +57,7 @@ Raven.PunchRotation(head, new Vector3(12f, 0f, 0f), 0.5f, frequency: 3f);
 > - They are regular tweens: they accept `Delay`, `OnComplete`, `UnscaledTime`, can go in a **[sequence](Sequences)**, and can be awaited.
 > - `Complete()` on an effect puts the object straight back to its starting value.
 > - Each shake gets its own noise seed, so two shakes started on the same frame don't move in lockstep.
+> - Starting an effect on a property that is already shaking or punching replaces the running effect and reuses its original rest value. Rapid hits or double-clicks never make the object drift away from where it started.
 
 > [!TIP]
 > Avoid running a shake and a normal position tween on the **same** transform at the same time — both write the same property, and the last one to run each frame wins. Shake a parent or child object instead, as is common for cameras.

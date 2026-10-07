@@ -3,7 +3,9 @@ using UnityEngine;
 namespace RavenTween {
     /// <summary>
     /// Weight tweens for the procedural components. Blending a look-at or a spring chain in and
-    /// out over time is what turns them from always-on effects into animation.
+    /// out over time is what turns them from always-on effects into animation. Every tween
+    /// starts from the weight the component has <b>when the tween starts</b>, so they can be
+    /// chained in sequences or delayed.
     /// </summary>
     public static class ProceduralTweens {
         /// <summary>Blends the look-at in (1) or out (0) from its current weight.</summary>
@@ -11,7 +13,7 @@ namespace RavenTween {
             Debug.Assert(lookAt != null, "TweenWeight needs a live RavenLookAt.");
             Debug.Assert(to >= 0f && to <= 1f, "Weight must be in [0, 1].");
             if (lookAt == null) { return default; }
-            return Raven.Custom(lookAt, lookAt.Weight, Mathf.Clamp01(to), duration, (c, w) => c.Weight = w);
+            return Raven.CustomTo(lookAt, c => c.Weight, Mathf.Clamp01(to), duration, (c, w) => c.Weight = w);
         }
 
         /// <summary>Blends the spring motion in (1) or out (0) from its current weight.</summary>
@@ -19,7 +21,7 @@ namespace RavenTween {
             Debug.Assert(chain != null, "TweenWeight needs a live RavenSpringChain.");
             Debug.Assert(to >= 0f && to <= 1f, "Weight must be in [0, 1].");
             if (chain == null) { return default; }
-            return Raven.Custom(chain, chain.Weight, Mathf.Clamp01(to), duration, (c, w) => c.Weight = w);
+            return Raven.CustomTo(chain, c => c.Weight, Mathf.Clamp01(to), duration, (c, w) => c.Weight = w);
         }
 
         /// <summary>

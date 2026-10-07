@@ -33,6 +33,16 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 
 ---
 
+## What's new in 1.5.0
+
+A robustness release, with a regression test for every fix:
+
+- **Safer callbacks**: completing or stopping tweens from any callback, creating tweens inside callbacks, and exceptions in custom eases or setters can no longer break the engine.
+- **`Raven.CustomTo`**: custom tweens that start from the current value, ideal in sequences.
+- **Smarter targets**: templates and components accept a GameObject and find the right component; material templates work in every render pipeline.
+- **Procedural components** layer cleanly on Animators, tweens and scripts; the spring chain is smoother at high frame rates.
+- **Editor previews** can never be saved into a scene, prefab or asset.
+
 ## What's new in 1.4.0
 
 - **Sequence Editor**: a visual timeline to retime, reorder, scrub and preview sequences in the scene, outside Play Mode.
@@ -59,7 +69,7 @@ The full list is in the **[Changelog](Changelog)**.
 ## Why RavenTween?
 
 - **Zero garbage while playing** — property, effect, sequence and custom tweens allocate 0 B per frame, enforced by tests.
-- **Fast** — 5,000 simultaneous tweens step in about 0.77 ms per frame.
+- **Fast** — 5,000 simultaneous tweens step in under 1 ms per frame.
 - **Safe by construction** — handles are small structs; a handle to a finished tween is simply dead, and every call on it does nothing. Destroying a target mid-tween never throws.
 - **No hidden state** — tweens are single-use. Reusable configurations live in Tween Template assets instead.
 - **Runs everywhere** — pure managed C#: no threads, reflection, native plugins or runtime code generation. IL2CPP, WebGL, mobile and consoles are all fine.

@@ -21,6 +21,7 @@ namespace RavenTween.Editor {
         readonly List<TweenEngine.DebugInfo> _visible = new List<TweenEngine.DebugInfo>(64);
         readonly List<TweenEngine.DebugSequenceItem> _items = new List<TweenEngine.DebugSequenceItem>(16);
         readonly HashSet<long> _expanded = new HashSet<long>();
+        readonly HashSet<long> _liveKeys = new HashSet<long>();
         readonly float[] _history = new float[HistoryLength];
         readonly Vector3[] _graphPoints = new Vector3[HistoryLength];
         static readonly Vector3[] QuadBuffer = new Vector3[4];
@@ -78,6 +79,7 @@ namespace RavenTween.Editor {
                 return;
             }
             TweenEngine.CollectDebugInfo(_snapshot);
+            ForgetDeadExpansions();
             DrawStats();
             BuildVisibleList();
             DrawHeader();
@@ -192,8 +194,36 @@ namespace RavenTween.Editor {
             }
         }
 
+        // Progress through the current cycle, start delay excluded. Sequence children have no
+        // clock of their own (their sequence drives them), so they report no progress.
         static float Progress(in TweenEngine.DebugInfo info) {
-            return Mathf.Clamp01(info.Elapsed / Mathf.Max(info.CycleLength, 0.0001f));
+            if (info.OwnedBySequence) { return 0f; }
+            float length = Mathf.Max(info.CycleLength - info.StartDelay, 0.0001f);
+            return Mathf.Clamp01((info.Elapsed - info.StartDelay) / length);
+        }
+
+        // Where the playhead sits on a sequence's own timeline (yoyo cycles play it backwards).
+        static float TimelinePosition(in TweenEngine.DebugInfo info) {
+            float p = Progress(info);
+            return info.Mode == CycleMode.Yoyo && (info.CyclesDone & 1) == 1 ? 1f - p : p;
+        }
+
+        static string ProgressLabel(in TweenEngine.DebugInfo info) {
+            if (info.OwnedBySequence) { return "—  driven by its sequence"; }
+            if (info.Paused) { return "paused"; }
+            if (info.Elapsed < info.StartDelay) { return "delay " + (info.StartDelay - info.Elapsed).ToString("0.0") + " s"; }
+            return (Progress(info) * 100f).ToString("0") + "%";
+        }
+
+        void ForgetDeadExpansions() {
+            if (_expanded.Count == 0) { return; }
+            _liveKeys.Clear();
+            for (int i = 0; i < _snapshot.Count; i++) { _liveKeys.Add(KeyOf(_snapshot[i])); }
+            _expanded.IntersectWith(_liveKeys);
+        }
+
+        static long KeyOf(in TweenEngine.DebugInfo info) {
+            return ((long)info.Index << 32) | info.Version;
         }
 
         // ----- Rows -----
@@ -211,7 +241,7 @@ namespace RavenTween.Editor {
         }
 
         void DrawRow(in TweenEngine.DebugInfo info) {
-            long key = ((long)info.Index << 32) | info.Version;
+            long key = KeyOf(info);
             EditorGUILayout.BeginVertical(EditorStyles.helpBox);
             EditorGUILayout.BeginHorizontal();
             bool expanded = _expanded.Contains(key);
@@ -224,8 +254,8 @@ namespace RavenTween.Editor {
             DrawTarget(info.Target, info.IsSequence);
             GUILayout.Label(info.Property == PropertyKind.None ? "(value)" : info.Property.ToString(), GUILayout.Width(120f));
             Rect bar = GUILayoutUtility.GetRect(60f, 16f, GUILayout.ExpandWidth(true));
-            EditorGUI.ProgressBar(bar, Progress(info), info.Paused ? "paused" : (Progress(info) * 100f).ToString("0") + "%");
-            GUILayout.Label(info.CyclesDone + "/" + (info.Cycles < 0 ? "∞" : info.Cycles.ToString()), GUILayout.Width(50f));
+            EditorGUI.ProgressBar(bar, Progress(info), ProgressLabel(info));
+            GUILayout.Label(info.OwnedBySequence ? "—" : info.CyclesDone + "/" + (info.Cycles < 0 ? "∞" : info.Cycles.ToString()), GUILayout.Width(50f));
             DrawControls(info);
             EditorGUILayout.EndHorizontal();
             if (info.IsSequence && expanded) { DrawSequenceTimeline(info); }
@@ -245,7 +275,8 @@ namespace RavenTween.Editor {
 
         void DrawSequenceTimeline(in TweenEngine.DebugInfo info) {
             if (!TweenEngine.CollectSequenceItems(info.Index, info.Version, _items) || _items.Count == 0) { return; }
-            float length = Mathf.Max(info.CycleLength, 0.0001f);
+            // Children are placed on the sequence's own timeline, which starts after the delay.
+            float length = Mathf.Max(info.CycleLength - info.StartDelay, 0.0001f);
             for (int i = 0; i < _items.Count; i++) {
                 TweenEngine.DebugSequenceItem item = _items[i];
                 Rect row = GUILayoutUtility.GetRect(10f, 14f, GUILayout.ExpandWidth(true));
@@ -257,7 +288,7 @@ namespace RavenTween.Editor {
                 float x0 = lane.x + lane.width * Mathf.Clamp01(item.StartTime / length);
                 float x1 = lane.x + lane.width * Mathf.Clamp01((item.StartTime + item.Duration) / length);
                 EditorGUI.DrawRect(new Rect(x0, lane.y, Mathf.Max(x1 - x0, 2f), lane.height), GraphLine);
-                float head = lane.x + lane.width * Progress(info);
+                float head = lane.x + lane.width * TimelinePosition(info);
                 EditorGUI.DrawRect(new Rect(head, lane.y - 1f, 1f, lane.height + 2f), Color.white);
             }
         }

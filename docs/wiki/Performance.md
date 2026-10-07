@@ -6,16 +6,16 @@ RavenTween is built so that animations create **no garbage while they play**. Ga
 
 ## Measured numbers
 
-These figures come from the package's own test suite (`Tests/PerformanceTests.cs`). The tests **fail** on any regression, so the numbers can't silently drift.
+These figures come from the package's own test suite (`Tests/PerformanceTests.cs`). The allocation tests **fail** on a single allocated byte, so zero garbage can't silently regress. The timing test logs the engine cost and only fails above a full 60 FPS frame (16 ms), because timings vary from one machine to another.
 
 | Scenario | Result |
 | :--- | :--- |
 | 5,000 mixed tweens (position, scale, rotation, shake, custom), steady state | **0 B** allocated per frame |
 | 200 infinite sequences, including the moment they loop | **0 B** allocated per frame |
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
-| 5,000 mixed tweens, engine cost | **~0.77 ms per frame** |
+| 5,000 mixed tweens, engine cost | **0.6–0.8 ms per frame** |
 
-The timing was measured in the Unity Editor (Mono), which is slower than a built player with IL2CPP.
+The timing was measured in the Unity Editor (Mono) on a desktop CPU, which is slower than a built player with IL2CPP.
 
 ---
 

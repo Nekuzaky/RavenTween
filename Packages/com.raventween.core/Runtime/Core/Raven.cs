@@ -11,7 +11,8 @@ namespace RavenTween {
         public static float TimeScale {
             get { return TweenEngine.TimeScale; }
             set {
-                Debug.Assert(value >= 0f, "Raven.TimeScale cannot be negative.");
+                Debug.Assert(value >= 0f && !float.IsNaN(value) && !float.IsInfinity(value), "Raven.TimeScale must be a finite, non-negative number.");
+                if (float.IsNaN(value) || float.IsInfinity(value)) { return; }
                 TweenEngine.TimeScale = Mathf.Max(value, 0f);
             }
         }
@@ -106,6 +107,11 @@ namespace RavenTween {
             Debug.Assert(duration >= 0f, "Tween duration cannot be negative.");
             if (target == null) {
                 Debug.LogError("RavenTween: cannot tween a null or destroyed target.");
+                return default;
+            }
+            if (!PropertyAccessor.TargetType(property).IsInstanceOfType(target)) {
+                Debug.LogError("RavenTween: " + property + " needs a " + PropertyAccessor.TargetType(property).Name +
+                               ", got a " + target.GetType().Name + " (" + target.name + ").", target);
                 return default;
             }
             int index = TweenEngine.Rent(out TweenSlot slot);

@@ -41,7 +41,8 @@ namespace RavenTweenSamples {
 
         static void SpawnSpinner(Vector3 position, Color color) {
             Transform cube = SpawnCube(position, color, "Spinner");
-            // Relative-style spin: each cycle adds a half turn, restarting from the captured value.
+            // Each Restart cycle turns half a turn and jumps back to the start; a cube looks the
+            // same after a half turn, so the loop reads as one continuous spin.
             Raven.LocalEulerAngles(cube, new Vector3(0f, 180f, 0f), 1f)
                 .Ease(Ease.InOutCubic)
                 .Infinite(CycleMode.Restart);
@@ -54,7 +55,7 @@ namespace RavenTweenSamples {
                 .Chain(Raven.Position(cube, position + Vector3.right * 2f, 1f).Ease(Ease.InOutSine))
                 .ChainDelay(0.3f)
                 .Chain(Raven.Position(cube, position, 1f).Ease(Ease.InOutSine))
-                .Group(Raven.Scale(cube, new Vector3(1.2f, 0.8f, 1.2f), 0.5f).Cycles(2, CycleMode.Yoyo))
+                .Chain(Raven.Scale(cube, new Vector3(1.2f, 0.8f, 1.2f), 0.15f).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo))
                 .Infinite();
         }
     }

@@ -11,11 +11,11 @@ RavenTween is a standard Unity package installed from its Git repository. There 
 3. Paste the URL below and click **Add**.
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.4.1
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0
 ```
 
 > [!TIP]
-> The `#v1.4.1` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
+> The `#v1.5.0` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
 
 ---
 
@@ -24,7 +24,7 @@ https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1
 Add this line to the `dependencies` block of your project's `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.4.1"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.5.0"
 ```
 
 Unity resolves the package the next time it gains focus.
@@ -61,7 +61,8 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | **04 - Materials** | Staggered material color waves on a grid of spheres |
 | **05 - Complex Sequence** | Nested `Chain` / `Group` / `Insert` driven by a coroutine |
 | **06 - Benchmark** | Thousands of tweens with a live frame-time and GC readout |
-| **07 - TextMeshPro** | Typewriter reveal, score counter, punch feedback |
+| **07 - TextMeshPro** | Typewriter reveal, score counter, punch feedback (needs TextMeshPro) |
+| **08 - Procedural** | A head tracking an orbiting target, a swinging antenna, a look-away driven by weight tweens |
 
 > [!NOTE]
 > The samples work with both the legacy Input Manager and the Input System package.
@@ -73,8 +74,9 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | Requirement | Detail |
 | :--- | :--- |
 | **Unity version** | Unity 2021.3 LTS or newer, including Unity 6 |
-| **Dependencies** | `com.unity.ugui` (installed automatically) |
+| **Dependencies** | `com.unity.ugui` and the built-in Audio, JSON Serialize and Unity Web Request modules — all installed automatically |
 | **TextMeshPro** | Optional. The TMP module compiles only when TextMeshPro is present |
+| **Animation Rigging** | Optional. The rigging module compiles only when `com.unity.animation.rigging` is present |
 | **Platforms** | Every platform Unity targets: Windows, macOS, Linux, Android, iOS, WebGL, consoles |
 | **Scripting backends** | Mono and IL2CPP |
 

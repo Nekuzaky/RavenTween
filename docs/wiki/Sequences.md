@@ -72,9 +72,11 @@ Nesting goes up to 8 levels deep, which is far beyond anything practical.
 ## Rules
 
 > [!IMPORTANT]
-> - A tween can belong to **one** sequence only. Adding it to a second one logs an error and is ignored.
+> - A tween can belong to **one** sequence only. Adding it to a second one logs an error and is ignored. A sequence can't contain itself, directly or through nested sequences.
 > - **Infinite tweens can't be nested** — a sequence needs a finite length. An infinite child logs an error and is clamped to one cycle.
 > - Add tweens right after creating them, before the next frame, so they don't start on their own.
+> - Set a child's `Delay()` and `Cycles()` **before** adding it. Once added, the sequence drives the child: `Stop()`, `Complete()`, `Pause()`, `Delay()` and `Cycles()` on the child log a message and are ignored.
+> - Several children may animate the **same property** at different times: each one starts from where the previous one left it, also after a rewind or a Yoyo cycle. Items can be inserted in any order.
 
 ---
 

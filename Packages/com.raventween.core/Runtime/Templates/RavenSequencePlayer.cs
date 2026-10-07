@@ -108,14 +108,17 @@ namespace RavenTween {
 
         /// <summary>Stops the running sequence, if any.</summary>
         public void Stop() {
-            if (_sequence.IsAlive) { _sequence.Stop(); }
+            Sequence running = _sequence;
             _sequence = default;
+            if (running.IsAlive) { running.Stop(); }
         }
 
         /// <summary>Jumps the running sequence to its end.</summary>
+        /// <remarks>The handle is cleared first: On Complete may start a new run (Play) safely.</remarks>
         public void CompleteNow() {
-            if (_sequence.IsAlive) { _sequence.Complete(); }
+            Sequence running = _sequence;
             _sequence = default;
+            if (running.IsAlive) { running.Complete(); }
         }
     }
 }

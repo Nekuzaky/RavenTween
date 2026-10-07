@@ -34,7 +34,12 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>Applies every setting to a live tween and returns it.</summary>
+        /// <summary>
+        /// Applies delay, easing, cycles and time mode to a live tween and returns it.
+        /// <see cref="duration"/> is not applied: a tween's duration is set when it is created,
+        /// so pass it to the factory, e.g. <c>p.ApplyTo(Raven.Scale(t, 1.2f, p.duration))</c>.
+        /// Call it before adding the tween to a sequence.
+        /// </summary>
         public Tween ApplyTo(Tween tween) {
             Debug.Assert(duration >= 0f, "TweenParams duration cannot be negative.");
             Debug.Assert(cycles == -1 || cycles >= 0, "TweenParams cycles must be -1 or non-negative.");

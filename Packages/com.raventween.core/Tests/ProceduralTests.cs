@@ -20,14 +20,12 @@ namespace RavenTween.Tests {
             Object.DestroyImmediate(_root);
         }
 
-        // Mirrors one frame: Update (pose restore) then LateUpdate (procedural layer).
+        // One frame of the procedural layer (LateUpdate).
         static void Frame(RavenLookAt lookAt, float dt) {
-            lookAt.RestorePose();
             lookAt.Evaluate(dt);
         }
 
         static void Frame(RavenSpringChain chain, float dt) {
-            chain.RestorePose();
             chain.Evaluate(dt);
         }
 
@@ -156,6 +154,54 @@ namespace RavenTween.Tests {
             Transform tip = chain.transform.GetChild(0).GetChild(0);
             for (int i = 0; i < 60; i++) { Frame(chain, 1f / 60f); }
             Assert.That(Vector3.Distance(tip.position, new Vector3(1f, 0f, 0f)), Is.LessThan(1e-4f));
+        }
+
+        // Audit regressions.
+
+        [Test]
+        public void LookAt_KeepsRotationSetByOthers_AsNewBasePose() {
+            RavenLookAt lookAt = CreateHead(out Transform target);
+            lookAt.Weight = 0f;
+            target.position = new Vector3(5f, 0f, 0f);
+            Frame(lookAt, 0.016f);
+            lookAt.transform.localRotation = Quaternion.Euler(0f, 45f, 0f); // e.g. a finished tween
+            for (int i = 0; i < 5; i++) { Frame(lookAt, 0.016f); }
+            Assert.That(Quaternion.Angle(lookAt.transform.localRotation, Quaternion.Euler(0f, 45f, 0f)), Is.LessThan(0.01f),
+                "A rotation written by someone else must stick, not snap back to the OnEnable pose.");
+        }
+
+        [Test]
+        public void LookAt_TweenWeight_ReadsWeightWhenItStarts() {
+            RavenLookAt lookAt = CreateHead(out Transform target);
+            lookAt.Weight = 1f;
+            Raven.Sequence().Chain(lookAt.TweenWeight(0f, 0.5f)).Chain(lookAt.TweenWeight(1f, 0.5f));
+            TweenEngine.Process(0.5f, 0.5f);
+            TweenEngine.Process(0.25f, 0.25f);
+            Assert.That(lookAt.Weight, Is.EqualTo(0.5f).Within(1e-3f), "The second blend must start from 0, not from the weight at build time.");
+        }
+
+        [Test]
+        public void Spring_DestroyedBone_RebuildsInsteadOfThrowing() {
+            RavenSpringChain chain = CreateChain(4, 0.5f);
+            for (int i = 0; i < 5; i++) { Frame(chain, 1f / 60f); }
+            Object.DestroyImmediate(chain.transform.GetChild(0).GetChild(0).gameObject);
+            Assert.DoesNotThrow(() => { for (int i = 0; i < 5; i++) { Frame(chain, 1f / 60f); } });
+            Assert.That(chain.BoneCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void Spring_Build_DoesNotCaptureSwungPose() {
+            RavenSpringChain chain = CreateChain(3, 0.5f);
+            chain.Gravity = new Vector3(0f, -9.81f, 0f);
+            chain.Stiffness = 0.005f;
+            for (int i = 0; i < 120; i++) { Frame(chain, 1f / 60f); }
+            chain.Build();
+            chain.Gravity = Vector3.zero;
+            chain.Stiffness = 0.3f;
+            for (int i = 0; i < 600; i++) { Frame(chain, 1f / 60f); }
+            Transform tip = chain.transform.GetChild(0).GetChild(0);
+            Assert.That(Vector3.Distance(tip.position, new Vector3(1f, 0f, 0f)), Is.LessThan(0.01f),
+                "Rebuilding mid-swing must keep the original base pose.");
         }
 
         [Test]
