@@ -44,6 +44,9 @@ namespace RavenTween.Editor {
             var player = (RavenSequencePlayer)target;
             Debug.Assert(player != null, "Editor target must be a RavenSequencePlayer.");
             DrawLoopingStepWarnings(player);
+            if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.Activity, "Open Timeline", "Edit, scrub and preview this sequence visually"), GUILayout.Height(26f))) {
+                RavenSequenceEditorWindow.Open(player);
+            }
             RavenPreviewBar.Draw(player.Play, player.Stop, player.CompleteNow);
         }
 

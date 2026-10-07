@@ -3,6 +3,18 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-10-07
+
+### Added
+- **Sequence Editor** (**Tools ▸ RavenTween ▸ Sequence Editor**, or *Open Timeline* on a Raven Sequence Player): one track per step, drag blocks to retime them (snaps to 0.05 s, Alt for free), change modes, reorder, add and remove steps, and scrub or play the whole sequence in the scene outside Play Mode. Every change supports Undo.
+- **Tween Template inspector**: 15 presets (pop, fade, slide, bounce, spin, blink, flicker…), value fields that match the animated property (sliders for alpha and volume, color pickers, euler rotations), a live easing-curve view, a timing summary, and **Preview** on a scene object with a time scrubber.
+- **Monitor**: search, kind and paused filters, sorting, an activity graph with peak, a GC readout, a global time-scale slider, clickable targets, and expandable sequences with a mini-timeline of their children.
+- Edit Mode previews always restore every touched value, including before entering Play Mode and before script reloads.
+
+### Fixed
+- **Sequences**: a tween chained after another tween on the **same property** started too early, captured the wrong start value and overrode the earlier tween for its whole duration (for example, *move to A, then move to B* on one transform). Children now start exactly at their time, and Yoyo sequences retrace their path.
+- The update checker no longer runs during Play Mode domain reloads.
+
 ## [1.3.1] - 2026-10-07
 
 ### Fixed

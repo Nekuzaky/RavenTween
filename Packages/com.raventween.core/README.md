@@ -33,13 +33,13 @@
 **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.3.1
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.4.0
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.3.1"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.4.0"
 ```
 
 Requires Unity 2021.3 or newer. Unity 6 is fully supported.
@@ -172,7 +172,7 @@ tween.Ease(t => t * t * (3f - 2f * t));
 2. Add a **Raven Animator** to a GameObject, reference targets and templates, then enable *Play On Enable* or wire `Play()` to any UnityEvent.
 3. For timelines, use **Raven Sequence Player**: each step chains, groups or inserts a template.
 
-Preview with the **Play / Stop / Complete** buttons in Play Mode.
+Template assets come with **presets**, value fields that match the property, a **live easing curve**, and **Preview** on a scene object outside Play Mode. Sequences get a visual **Sequence Editor** (*Open Timeline*): drag steps in time, reorder them, and scrub the whole sequence in the scene. Previews always restore your objects afterwards.
 
 Expose `TweenParams` in your own components so designers can tune timing without recompiling:
 
@@ -184,7 +184,7 @@ void Show() => show.ApplyTo(Raven.AnchoredPosition(panel, Vector2.zero, show.dur
 
 ## Live monitor
 
-**Tools → RavenTween → Monitor** lists every live tween and sequence with its target, property, progress and cycle count. Pause, complete or kill any of them from the row controls.
+**Tools → RavenTween → Monitor** lists every live tween and sequence with its target, property, progress and cycle count, with search, filters, sorting, an activity graph, a GC readout and expandable sequence timelines. Pause, complete or kill any of them from the row controls.
 
 <img src="Documentation~/images/monitor.png" width="720" alt="Raven Monitor window">
 

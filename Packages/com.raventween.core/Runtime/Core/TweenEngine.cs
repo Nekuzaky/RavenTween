@@ -245,9 +245,17 @@ namespace RavenTween {
         // Iterative deep reset so nested sequences replay cleanly on every cycle wrap.
         static void ResetSequenceChildren(TweenSlot slot) {
             Debug.Assert(slot.IsSequence, "Only sequences carry child items.");
+            ResetForReplay(slot, false);
+        }
+
+        // Clears per-run state of a root and all its descendants. With recapture, children also
+        // forget their captured start values (seeking); without, they keep them (cycle wraps).
+        static void ResetForReplay(TweenSlot root, bool recapture) {
+            Debug.Assert(root != null, "Reset needs a slot.");
             Debug.Assert(_resetWork.Length > 0, "Reset work stack must be allocated.");
+            if (recapture) { ClearRunState(root, true); }
             int top = 0;
-            _resetWork[top++] = slot;
+            _resetWork[top++] = root;
             while (top > 0) {
                 TweenSlot current = _resetWork[--top];
                 _resetWork[top] = null;
@@ -255,14 +263,20 @@ namespace RavenTween {
                 for (int i = 0; i < current.Items.Count; i++) {
                     SequenceItem item = current.Items[i];
                     if (!TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out TweenSlot child)) { continue; }
-                    child.StartFired = false;
-                    child.CompleteNotified = false;
-                    child.CyclesDone = 0;
+                    ClearRunState(child, recapture);
                     if (!child.IsSequence) { continue; }
                     if (top == _resetWork.Length) { Array.Resize(ref _resetWork, _resetWork.Length * 2); }
                     _resetWork[top++] = child;
                 }
             }
+        }
+
+        static void ClearRunState(TweenSlot slot, bool recapture) {
+            slot.StartFired = false;
+            slot.CompleteNotified = false;
+            slot.Rewound = false;
+            slot.CyclesDone = 0;
+            if (recapture && !slot.HasExplicitFrom) { slot.FromCaptured = false; }
         }
 
         static void ApplySequenceTime(TweenSlot slot, float time, int cycleIndex) {
@@ -279,9 +293,25 @@ namespace RavenTween {
                     HandleTargetDestroyed(child, item.ChildIndex);
                     continue;
                 }
-                float childLocal = Mathf.Clamp(t - item.StartTime, 0f, item.Duration);
-                EvaluateChildAtTime(child, childLocal);
+                float childTime = t - item.StartTime;
+                if (childTime < 0f) {
+                    // Not reached yet: never start (and capture) early, or this child would
+                    // overwrite earlier tweens animating the same property.
+                    RewindOnce(child);
+                    continue;
+                }
+                child.Rewound = false;
+                EvaluateChildAtTime(child, Mathf.Min(childTime, item.Duration));
             }
+        }
+
+        // Time moved back before a child that already ran (yoyo, scrubbing): show its start
+        // value once, then leave the property to whatever plays earlier on the timeline.
+        static void RewindOnce(TweenSlot child) {
+            if (!child.StartFired || child.Rewound) { return; }
+            child.Rewound = true;
+            child.CompleteNotified = false;
+            EvaluateChildAtTime(child, child.StartDelay);
         }
 
         const int MaxSequenceDepth = 8;
@@ -502,6 +532,59 @@ namespace RavenTween {
                     CyclesDone = slot.CyclesDone
                 });
             }
+        }
+
+        /// <summary>One child of a sequence, for timeline views.</summary>
+        internal struct DebugSequenceItem {
+            public float StartTime;
+            public float Duration;
+            public UnityEngine.Object Target;
+            public PropertyKind Property;
+            public bool IsSequence;
+        }
+
+        /// <summary>Lists the children of a live sequence. Returns false when the handle is dead.</summary>
+        public static bool CollectSequenceItems(int index, uint version, List<DebugSequenceItem> buffer) {
+            Debug.Assert(buffer != null, "Item buffer cannot be null.");
+            buffer.Clear();
+            if (!TryGetSlotInternal(index, version, out TweenSlot slot) || !slot.IsSequence || slot.Items == null) { return false; }
+            for (int i = 0; i < slot.Items.Count; i++) {
+                SequenceItem item = slot.Items[i];
+                TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out TweenSlot child);
+                buffer.Add(new DebugSequenceItem {
+                    StartTime = item.StartTime,
+                    Duration = item.Duration,
+                    Target = child != null ? child.UnityTarget : null,
+                    Property = child != null ? child.Property : PropertyKind.None,
+                    IsSequence = child != null && child.IsSequence
+                });
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Evaluates a root tween or sequence at <paramref name="time"/> seconds from its start
+        /// (start delay included), from scratch: every child re-captures its start value, in
+        /// timeline order. Used for editor scrubbing; the caller restores target values first.
+        /// Tweens honor their cycles and yoyo; sequences cover their first cycle.
+        /// </summary>
+        public static void Seek(int index, uint version, float time) {
+            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            Debug.Assert(!slot.OwnedBySequence, "Seek the root, not a sequence child.");
+            Debug.Assert(!float.IsNaN(time), "Seek time must be a number.");
+            ResetForReplay(slot, true);
+            float local = time - slot.StartDelay;
+            if (local < 0f) { return; }
+            EnsureStarted(slot);
+            if (slot.IsSequence) {
+                ApplySequenceTime(slot, Mathf.Min(local, Mathf.Max(slot.SequenceDuration, 0f)), 0);
+                return;
+            }
+            float duration = Mathf.Max(slot.Duration, 1e-6f);
+            int maxCycles = slot.Cycles < 0 ? int.MaxValue : Mathf.Max(slot.Cycles, 1);
+            int cycle = Mathf.Min((int)(local / duration), maxCycles - 1);
+            float progress = Mathf.Clamp01((local - cycle * duration) / duration);
+            ApplyProgress(slot, progress, cycle);
         }
 
         static void InvokeCustom(TweenSlot slot, in TweenValue value) {

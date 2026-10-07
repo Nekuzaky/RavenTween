@@ -16,7 +16,14 @@ A template is a reusable animation recipe saved as an asset. Create one with **C
 | **Material Property** | The shader property name, used only by the material properties. |
 | **End Value** | Where to go. Uses `x` for single numbers, `xyz` for vectors and euler rotations, `xyzw` as RGBA for colors. |
 | **Use Explicit From** / **From Value** | Start from a fixed value instead of the object's current one. |
-| **Settings** | Duration, start delay, ease (or a custom curve), cycles (`-1` loops forever), cycle mode, unscaled time. |
+| **Settings** | Duration, start delay, ease (or a custom curve), cycles or **Loop Forever**, cycle mode, unscaled time. |
+
+The inspector is built to iterate quickly:
+
+- **Presets** — pick *Pop In*, *Fade Out*, *Slide In From Left*, *Bounce Drop*, *Spin*, *Blink*, *Flicker* and more to fill every field at once, then adjust.
+- **Fields that fit the property** — sliders for alpha and volume, a color picker for colors, euler angles for rotations, two components for UI positions.
+- **Live curve** — the easing curve is drawn as you change it, with a summary of the total length underneath.
+- **Preview** — choose a target (it's picked from the selection automatically), press **Preview**, and the animation plays on the scene object in Edit Mode. Drag the **Time** slider to scrub. **Reset** puts the object back exactly as it was; values are also restored before entering Play Mode.
 
 Because tweens themselves are single-use, a template is how you **reuse** an animation: every time it plays, it spawns a fresh tween. One `PopIn` template can serve every button in the game.
 
@@ -54,6 +61,16 @@ The whole sequence takes **Cycles** (`-1` loops forever), **Cycle Mode** and **U
 
 > [!IMPORTANT]
 > To loop a timeline, set the **player's** Cycles to `-1` — not the templates'. A step whose template loops forever can't have a length on the timeline, so it plays once per sequence cycle: one out-and-back for a **Yoyo** template (it ends where it started), one pass for **Restart**. The inspector shows a warning on such steps.
+
+### Sequence Editor
+
+Press **Open Timeline** on a Raven Sequence Player (or use **Tools ▸ RavenTween ▸ Sequence Editor**) for a visual timeline:
+
+- **One track per step**, colored by mode: Chain, Group or Insert. Steps whose template loops forever are marked, and incomplete steps are greyed out.
+- **Drag a block** to move it in time — it becomes an *Insert* at that time. Moves snap to 0.05 s; hold **Alt** for free placement.
+- **Edit in place**: change a step's mode, target or template, reorder with the arrow, add with **+ Add Step**, remove with the cross.
+- **Scrub and play**: click or drag on the ruler to see the scene at any time, or press Play (optionally Loop). Stop restores the scene exactly.
+- Every change supports **Undo**. The window follows the selection; **Lock** keeps it on one player.
 
 > [!TIP]
 > Both components show **Play**, **Stop** and **Complete** buttons in the Inspector during Play Mode, so you can iterate on timing without restarting.

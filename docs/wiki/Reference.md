@@ -155,7 +155,8 @@ Every property tween has an extension form on its target type: `TweenPosition`, 
 | Menu | Opens |
 | :--- | :--- |
 | **Tools ▸ RavenTween ▸ Monitor** | The live **[Monitor](Monitor)** window. |
-| **Tools ▸ RavenTween ▸ Documentation** | The repository on GitHub. |
+| **Tools ▸ RavenTween ▸ Sequence Editor** | The visual timeline for a Raven Sequence Player. |
+| **Tools ▸ RavenTween ▸ Documentation** | This manual. |
 | **Tools ▸ RavenTween ▸ Updates ▸ Check Now** | Checks for a newer release immediately. |
 | **Tools ▸ RavenTween ▸ Updates ▸ Check Automatically** | Daily check on or off (on by default). |
 | **Tools ▸ RavenTween ▸ Updates ▸ Install Automatically** | Install new releases without asking (off by default). |

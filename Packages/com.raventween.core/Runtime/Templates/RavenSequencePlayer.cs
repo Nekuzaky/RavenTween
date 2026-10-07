@@ -58,13 +58,8 @@ namespace RavenTween {
         /// <summary>Stops any previous run, rebuilds the sequence from steps, and plays it.</summary>
         public void Play() {
             Stop();
-            Sequence sequence = Raven.Sequence();
-            int added = 0;
-            for (int i = 0; i < steps.Count; i++) {
-                added += TryAddStep(sequence, steps[i], i) ? 1 : 0;
-            }
-            if (added == 0) {
-                sequence.Stop();
+            Sequence sequence = BuildSequence();
+            if (!sequence.IsAlive) {
                 onComplete.Invoke();
                 return;
             }
@@ -74,9 +69,26 @@ namespace RavenTween {
             _sequence = sequence;
         }
 
+        /// <summary>
+        /// Builds one cycle of the timeline from the steps, without cycles or callbacks.
+        /// Returns a dead handle when no step is usable. Shared with the editor timeline preview.
+        /// </summary>
+        internal Sequence BuildSequence() {
+            Sequence sequence = Raven.Sequence();
+            int added = 0;
+            for (int i = 0; i < steps.Count; i++) {
+                added += TryAddStep(sequence, steps[i], i) ? 1 : 0;
+            }
+            if (added > 0) { return sequence; }
+            sequence.Stop();
+            return default;
+        }
+
         bool TryAddStep(Sequence sequence, Step step, int index) {
             if (step.template == null || step.target == null) {
-                Debug.LogWarning("RavenTween: sequence step " + index + " is incomplete and was skipped.", this);
+                if (Application.isPlaying) {
+                    Debug.LogWarning("RavenTween: sequence step " + index + " is incomplete and was skipped.", this);
+                }
                 return false;
             }
             Tween tween = step.template.Play(step.target);

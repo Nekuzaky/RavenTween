@@ -26,7 +26,8 @@ namespace RavenTween.Editor {
         static AddRequest _install;
 
         static RavenUpdateChecker() {
-            if (Application.isBatchMode) { return; }
+            // Domain reloads also happen when entering or leaving Play Mode; stay out of those.
+            if (Application.isBatchMode || EditorApplication.isPlayingOrWillChangePlaymode) { return; }
             EditorApplication.delayCall += OnEditorReady;
         }
 
@@ -41,7 +42,7 @@ namespace RavenTween.Editor {
         }
 
         static void OnEditorReady() {
-            if (!CheckEnabled) { return; }
+            if (!CheckEnabled || EditorApplication.isPlayingOrWillChangePlaymode) { return; }
             long.TryParse(EditorPrefs.GetString(PrefLastCheck, "0"), out long last);
             if (!UpdateLogic.IsCheckDue(last, DateTime.UtcNow)) { return; }
             StartCheck(false);

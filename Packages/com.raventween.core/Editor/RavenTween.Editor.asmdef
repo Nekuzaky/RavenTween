@@ -2,7 +2,8 @@
     "name": "RavenTween.Editor",
     "rootNamespace": "RavenTween.Editor",
     "references": [
-        "RavenTween.Runtime"
+        "RavenTween.Runtime",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

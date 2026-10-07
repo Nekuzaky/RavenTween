@@ -91,6 +91,7 @@ namespace RavenTween {
 
         public bool StartFired;
         public bool CompleteNotified; // Child-in-sequence: OnComplete fired for the current cycle.
+        public bool Rewound;          // Child-in-sequence: start value already restored after time went back.
 
         // Sequence data (only used when IsSequence is true).
         public List<SequenceItem> Items;
@@ -143,6 +144,7 @@ namespace RavenTween {
             AwaitContinuations = null;
             StartFired = false;
             CompleteNotified = false;
+            Rewound = false;
             SequenceDuration = 0f;
             ChainCursor = 0f;
             LastInsertTime = 0f;

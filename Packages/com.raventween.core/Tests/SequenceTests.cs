@@ -121,6 +121,52 @@ namespace RavenTween.Tests {
             Assert.That(sequence.IsAlive, Is.False, "Clamped child must let the sequence finish.");
         }
 
+        // Regression: a later child on the same property used to start (and capture) at t = 0,
+        // then overwrite the earlier child for its whole duration.
+        [Test]
+        public void ChainedTweens_OnSameProperty_PlayInOrder() {
+            var go = new GameObject("same-property");
+            Raven.Sequence()
+                .Chain(Raven.LocalPosition(go.transform, new Vector3(1f, 0f, 0f), 1f))
+                .Chain(Raven.LocalPosition(go.transform, new Vector3(1f, 1f, 0f), 1f));
+            Step(0.1f, 5);
+            Assert.That(Vector3.Distance(go.transform.localPosition, new Vector3(0.5f, 0f, 0f)), Is.LessThan(1e-3f),
+                "First move must not be overridden by the second.");
+            Step(0.1f, 8);
+            Assert.That(Vector3.Distance(go.transform.localPosition, new Vector3(1f, 0.3f, 0f)), Is.LessThan(1e-3f),
+                "Second move must start where the first ended.");
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
+        public void YoyoSequence_SameProperty_RetracesPath() {
+            var go = new GameObject("yoyo-same-property");
+            Raven.Sequence()
+                .Chain(Raven.LocalPosition(go.transform, new Vector3(1f, 0f, 0f), 1f))
+                .Chain(Raven.LocalPosition(go.transform, new Vector3(1f, 1f, 0f), 1f))
+                .Cycles(2, CycleMode.Yoyo);
+            Step(0.1f, 5);   // t = 0.5 forward
+            Vector3 forward = go.transform.localPosition;
+            Step(0.1f, 30);  // t = 3.5 -> backward cycle at sequence time 0.5
+            Assert.That(Vector3.Distance(go.transform.localPosition, forward), Is.LessThan(1e-3f),
+                "Going back must pass through the same pose.");
+            Step(0.1f, 6);   // past the end
+            Assert.That(go.transform.localPosition.magnitude, Is.LessThan(1e-3f), "Yoyo x2 must end at the start.");
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
+        public void RestartSequence_SameProperty_JumpsBackEachCycle() {
+            var go = new GameObject("restart-same-property");
+            Raven.Sequence()
+                .Chain(Raven.LocalPosition(go.transform, new Vector3(1f, 0f, 0f), 1f))
+                .Chain(Raven.LocalPosition(go.transform, new Vector3(1f, 1f, 0f), 1f))
+                .Cycles(3);
+            Step(0.1f, 25);  // t = 2.5 -> second cycle at 0.5
+            Assert.That(Vector3.Distance(go.transform.localPosition, new Vector3(0.5f, 0f, 0f)), Is.LessThan(1e-3f));
+            Object.DestroyImmediate(go);
+        }
+
         [Test]
         public void ChainDelay_ShiftsFollowingTweens() {
             float value = 0f;

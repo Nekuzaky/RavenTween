@@ -33,7 +33,14 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 
 ---
 
-## What's new in 1.3.0
+## What's new in 1.4.0
+
+- **Sequence Editor**: a visual timeline to retime, reorder, scrub and preview sequences in the scene, outside Play Mode.
+- **A richer Tween Template inspector**: presets, fields that fit the property, a live easing curve, and one-click preview with scrubbing.
+- **An advanced Monitor**: search, filters, sorting, an activity graph and sequence mini-timelines.
+- **Fix**: tweens chained on the same property in a sequence now play strictly one after the other.
+
+## New in 1.3.0
 
 - **Built-in updates**: RavenTween checks for new releases once a day and installs them in one click, or automatically if you enable it. See **[Installation](Installation)**.
 - **Fix**: the package now compiles in projects that disable Unity's built-in Audio module.
