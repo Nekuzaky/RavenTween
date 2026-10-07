@@ -1,20 +1,20 @@
-# RavenTween
+﻿# RavenTween
 
 High-performance tweening for Unity. Code-first, allocation-free in steady state, with a fluent API, sequences, async/await, coroutine support, and optional inspector-driven templates for designers.
 
-- **Zero steady-state GC** — tween state lives in pooled, fixed-size slots; built-in property tweens (Transform, UI, Camera, Audio, Material, ...) allocate nothing per frame.
-- **Safe by construction** — handles are structs; a handle to a finished tween is simply dead. Destroyed targets kill their tweens cleanly and can notify you via `OnTargetDestroyed`.
-- **Single-use tweens, reusable templates** — tweens cannot be restarted (no hidden state); `TweenTemplate` ScriptableObjects hold reusable configurations.
-- **No threads, no reflection** — WebGL-friendly; the engine runs inside the player loop.
+- **Zero steady-state GC** â€” tween state lives in pooled, fixed-size slots; built-in property tweens (Transform, UI, Camera, Audio, Material, ...) allocate nothing per frame.
+- **Safe by construction** â€” handles are structs; a handle to a finished tween is simply dead. Destroyed targets kill their tweens cleanly and can notify you via `OnTargetDestroyed`.
+- **Single-use tweens, reusable templates** â€” tweens cannot be restarted (no hidden state); `TweenTemplate` ScriptableObjects hold reusable configurations.
+- **No threads, no reflection** â€” WebGL-friendly; the engine runs inside the player loop.
 
 Supports Unity 2021.3 and newer, including Unity 6.
 
 ## Installation
 
-Install via Git URL (Package Manager → `+` → *Add package from git URL...*):
+Install via Git URL (Package Manager â†’ `+` â†’ *Add package from git URL...*):
 
 ```
-https://github.com/Nekuzaky/MortTween.git?path=/Packages/com.raventween.core
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core
 ```
 
 Pin a version with a tag: `...?path=/Packages/com.raventween.core#v1.0.0`.
@@ -98,7 +98,7 @@ tween.Ease(t => t * t * (3f - 2f * t)); // delegate
 
 ## Inspector workflow (no code)
 
-1. Create a **Tween Template** asset: *Create → RavenTween → Tween Template*. Choose the property, end value, duration, ease, cycles.
+1. Create a **Tween Template** asset: *Create â†’ RavenTween â†’ Tween Template*. Choose the property, end value, duration, ease, cycles.
 2. Add a **Raven Animator** component, reference targets + templates, enable *Play On Enable* or wire `Play()` to a UnityEvent / button.
 3. For timelines, use **Raven Sequence Player**: each step chains, groups or inserts a template on a target.
 
@@ -129,9 +129,9 @@ Every method also exists in extension form (`transform.TweenPosition(...)`, `mat
 ## Performance notes
 
 - Built-in property tweens allocate **zero** bytes per frame and zero at creation beyond the (pooled) slot.
-- `OnUpdate(v => ...)` lambdas that capture locals allocate a closure **once at creation** — standard C# behavior. For hot paths, prefer built-in property tweens, or cache the delegate.
+- `OnUpdate(v => ...)` lambdas that capture locals allocate a closure **once at creation** â€” standard C# behavior. For hot paths, prefer built-in property tweens, or cache the delegate.
 - `ToYieldInstruction()` allocates one small object per call; `await` allocates the async state machine. Use them for flow control, not per-frame work.
-- The engine never uses reflection, threads, or `DOTS`-style codegen — it is fully AOT/WebGL safe.
+- The engine never uses reflection, threads, or `DOTS`-style codegen â€” it is fully AOT/WebGL safe.
 
 ## Migrating from DOTween / PrimeTween
 
@@ -142,7 +142,7 @@ Every method also exists in extension form (`transform.TweenPosition(...)`, `mat
 | `DOVirtual.DelayedCall(d, cb)` | `Tween.Delay(d, cb)` | `Raven.Delay(d, cb)` |
 | `DOTween.Sequence().Append(x)` | `Sequence.Create().Chain(x)` | `Raven.Sequence().Chain(x)` |
 | `.Join(x)` | `.Group(x)` | `.Group(x)` |
-| `.Insert(t, x)` | — | `.Insert(t, x)` |
+| `.Insert(t, x)` | â€” | `.Insert(t, x)` |
 | `.SetLoops(n, LoopType.Yoyo)` | `cycles, CycleMode.Yoyo` | `.Cycles(n, CycleMode.Yoyo)` |
 | `.SetEase(Ease.OutQuad)` | `ease: Ease.OutQuad` | `.Ease(Ease.OutQuad)` |
 | `.SetUpdate(true)` | `useUnscaledTime: true` | `.UnscaledTime()` |
@@ -164,4 +164,4 @@ Like PrimeTween (and unlike DOTween), tweens are **not** reusable: create a new 
 
 ## License
 
-MIT — see [LICENSE.md](LICENSE.md).
+MIT â€” see [LICENSE.md](LICENSE.md).

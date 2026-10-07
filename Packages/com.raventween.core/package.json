@@ -1,4 +1,4 @@
-{
+﻿{
   "name": "com.raventween.core",
   "version": "1.0.0",
   "displayName": "RavenTween",
@@ -7,9 +7,9 @@
   "dependencies": {
     "com.unity.ugui": "1.0.0"
   },
-  "documentationUrl": "https://github.com/Nekuzaky/MortTween",
-  "changelogUrl": "https://github.com/Nekuzaky/MortTween/blob/main/Packages/com.raventween.core/CHANGELOG.md",
-  "licensesUrl": "https://github.com/Nekuzaky/MortTween/blob/main/Packages/com.raventween.core/LICENSE.md",
+  "documentationUrl": "https://github.com/Nekuzaky/RavenTween",
+  "changelogUrl": "https://github.com/Nekuzaky/RavenTween/blob/main/Packages/com.raventween.core/CHANGELOG.md",
+  "licensesUrl": "https://github.com/Nekuzaky/RavenTween/blob/main/Packages/com.raventween.core/LICENSE.md",
   "keywords": [
     "tween",
     "animation",
