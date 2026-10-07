@@ -17,6 +17,12 @@ Tween / Sequence (structs)    Handles: index + version. Dead handles are safe no
 Templates                     TweenTemplate (SO), RavenAnimator, RavenSequencePlayer.
 ```
 
+Extensions plug into the same slot model without new allocation paths:
+
+- **Effects** (shake / punch) store strength, frequency and a noise seed in the slot and evaluate an offset around the captured start value; the decay reaches exactly zero at the end.
+- **Custom tweens** store the target, the user delegate and a cached typed invoker (`CustomInvokers<T>`, created once per closed generic type), so dispatch never boxes or allocates.
+- **TextMeshPro** support is a separate assembly gated by `versionDefines`; it only compiles when TMP is present.
+
 Key invariants:
 
 - A slot is only addressable while its version matches the handle. Completion, kill or target destruction bumps the version, so stale handles can never touch recycled slots.

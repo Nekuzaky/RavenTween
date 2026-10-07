@@ -1,6 +1,6 @@
 ﻿{
   "name": "com.raventween.core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "displayName": "RavenTween",
   "description": "High-performance, allocation-free tweening engine for Unity. Fluent code-first API, sequences, async/await, coroutines, and optional inspector-driven templates.",
   "unity": "2021.3",
@@ -15,7 +15,10 @@
     "animation",
     "easing",
     "sequence",
-    "performance"
+    "performance",
+    "shake",
+    "textmeshpro",
+    "zero-allocation"
   ],
   "author": {
     "name": "Nekuzaky",
@@ -46,6 +49,16 @@
       "displayName": "05 - Complex Sequence",
       "description": "Nested sequences with Chain, Group and Insert.",
       "path": "Samples~/05_ComplexSequence"
+    },
+    {
+      "displayName": "06 - Benchmark",
+      "description": "Thousands of live tweens with frame time and GC allocation readout.",
+      "path": "Samples~/06_Benchmark"
+    },
+    {
+      "displayName": "07 - TextMeshPro",
+      "description": "Typewriter reveal, number counter and punch feedback on TMP text.",
+      "path": "Samples~/07_TextMeshPro"
     }
   ]
 }

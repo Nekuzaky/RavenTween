@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/Nekuzaky/RavenTween/blob/main/Packages/com.raventween.core/README.md
+    about: API tour, migration guide from DOTween / PrimeTween, and FAQ.

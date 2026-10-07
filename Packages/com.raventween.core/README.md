@@ -1,137 +1,203 @@
-﻿# RavenTween
+<p align="center">
+  <img src="Documentation~/images/logo.png" width="96" alt="RavenTween logo">
+</p>
 
-High-performance tweening for Unity. Code-first, allocation-free in steady state, with a fluent API, sequences, async/await, coroutine support, and optional inspector-driven templates for designers.
+<h1 align="center">RavenTween</h1>
 
-- **Zero steady-state GC** â€” tween state lives in pooled, fixed-size slots; built-in property tweens (Transform, UI, Camera, Audio, Material, ...) allocate nothing per frame.
-- **Safe by construction** â€” handles are structs; a handle to a finished tween is simply dead. Destroyed targets kill their tweens cleanly and can notify you via `OnTargetDestroyed`.
-- **Single-use tweens, reusable templates** â€” tweens cannot be restarted (no hidden state); `TweenTemplate` ScriptableObjects hold reusable configurations.
-- **No threads, no reflection** â€” WebGL-friendly; the engine runs inside the player loop.
+<p align="center">
+  High-performance, allocation-free tweening for Unity.<br>
+  Fluent code-first API · sequences · async/await · shake &amp; punch · TextMeshPro · designer templates · live monitor
+</p>
 
-Supports Unity 2021.3 and newer, including Unity 6.
+<p align="center">
+  <a href="https://github.com/Nekuzaky/RavenTween/actions/workflows/tests.yml"><img src="https://github.com/Nekuzaky/RavenTween/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
+  <img src="https://img.shields.io/badge/Unity-2021.3%2B-222?logo=unity" alt="Unity 2021.3+">
+  <img src="https://img.shields.io/badge/GC-0%20B%2Fframe-2ea44f" alt="Zero GC">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
+</p>
+
+---
+
+## Why RavenTween
+
+| | |
+| --- | --- |
+| **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
+| **Fast** | 5,000 simultaneous tweens step in **~0.77 ms/frame** (Editor, Mono, mixed workload). |
+| **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
+| **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
+| **Portable** | Pure managed C#: no threads, reflection, native plugins or runtime codegen. IL2CPP, WebGL, mobile and consoles are all fine. |
 
 ## Installation
 
-Install via Git URL (Package Manager â†’ `+` â†’ *Add package from git URL...*):
+**Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.1.0
 ```
 
-Pin a version with a tag: `...?path=/Packages/com.raventween.core#v1.0.0`.
+Or add it to `Packages/manifest.json`:
+
+```json
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.1.0"
+```
+
+Requires Unity 2021.3 or newer. Unity 6 is fully supported.
 
 ## Quick start
 
 ```csharp
 using RavenTween;
 
-// Values
-Raven.Value(0f, 1f, duration: 0.5f)
-    .OnUpdate(v => fillImage.fillAmount = v)
-    .Ease(Ease.InOutSine);
-
 // Transforms
-Raven.Position(transform, targetPos, 0.6f).Ease(Ease.OutQuad);
-transform.TweenScale(1.2f, 0.25f).Cycles(2, CycleMode.Yoyo); // extension style
+Raven.Position(transform, target, 0.6f).Ease(Ease.OutQuad);
+transform.TweenScale(1.2f, 0.25f).Cycles(2, CycleMode.Yoyo);   // extension style
 
-// Delays
+// Values
+Raven.Value(0f, 1f, 0.5f).OnUpdate(v => fill.fillAmount = v);
+
+// Timers
 Raven.Delay(1.2f, () => Debug.Log("done"));
 ```
 
-Tweens play automatically on creation. `Start()` exists for explicit call sites and resumes a paused tween.
+Tweens play as soon as they are created. `Start()` exists for explicit call sites and resumes a paused tween.
 
 ### Sequences
 
 ```csharp
-Sequence s = Raven.Sequence()
-    .Chain(Raven.AnchoredPosition(panel, Vector2.zero, 0.5f).Ease(Ease.OutBack)) // after previous
-    .Group(Raven.Alpha(canvasGroup, 1f, 0.4f))                                   // alongside previous
-    .Insert(0.2f, Raven.Scale(icon, 1f, 0.3f))                                   // at absolute time
+Raven.Sequence()
+    .Chain(Raven.AnchoredPosition(panel, Vector2.zero, 0.5f).Ease(Ease.OutBack)) // after the previous item
+    .Group(Raven.Alpha(canvasGroup, 1f, 0.4f))                                   // alongside the previous item
+    .Insert(0.2f, Raven.Scale(icon, 1f, 0.3f))                                   // at an absolute time
     .ChainDelay(0.25f)
     .Chain(Raven.Color(title, Color.white, 0.3f))
     .Cycles(2, CycleMode.Yoyo)
     .OnComplete(() => Debug.Log("sequence done"));
 ```
 
-Sequences own their children, support nesting (`Chain(otherSequence)`), cycles, yoyo, and infinite loops.
+Sequences own their children and support nesting (`Chain(otherSequence)`), cycles, yoyo and infinite loops.
+
+### Shake & punch
+
+```csharp
+Raven.ShakePosition(camera.transform, new Vector3(0.3f, 0.3f, 0f), 0.4f);   // screen shake
+Raven.PunchScale(button, Vector3.one * 0.15f, 0.3f);                         // press feedback
+transform.ShakeRotation(new Vector3(0f, 0f, 8f), 0.5f, frequency: 20f);
+```
+
+Effects oscillate around the value the target had when the effect started and always settle exactly on it.
+
+### Custom tweens without allocations
+
+Tween anything through a setter. With a **non-capturing** lambda the tween allocates nothing — the compiler caches the delegate and RavenTween caches the typed invoker.
+
+```csharp
+Raven.Custom(light, 0f, 8f, 1f, (l, v) => l.range = v);
+Raven.Custom(this, Vector3.zero, Vector3.one, 1f, (self, v) => self.offset = v);
+```
+
+If the target is a `UnityEngine.Object`, the tween dies with it.
+
+### TextMeshPro
+
+Compiled automatically when TextMeshPro is present (built into uGUI 2.0 on Unity 6, or the `com.unity.textmeshpro` package on 2021/2022).
+
+```csharp
+title.TweenTypewriter(1.5f);                 // reveal characters
+score.TweenNumber(0, 2500, 0.8f);            // allocation-free counter (TMP SetText)
+label.TweenFontSize(64f, 0.3f);
+Raven.Color(label, Color.red, 0.2f);         // TMP_Text is a Graphic: color and alpha just work
+```
 
 ### Async / await and coroutines
 
 ```csharp
-// async/await
 await Raven.Delay(1.2f);
-await tween.ToCompletion();
+await tween;                     // or tween.ToCompletion()
 await sequence;
 
-// coroutines
 yield return tween.ToYieldInstruction();
-yield return sequence.ToYieldInstruction();
 ```
 
-Awaiting a tween resumes when it completes **or** is killed; check your own state if the distinction matters.
+Awaiting resumes when the tween completes **or** is killed.
 
-### Cycles, yoyo, infinite
-
-```csharp
-Raven.Scale(transform, 1.1f, 0.4f).Cycles(4, CycleMode.Yoyo); // 4 cycles, ping-pong
-Raven.Position(t, top, 0.5f).Infinite(CycleMode.Yoyo);        // forever
-```
-
-### Callbacks
-
-`OnStart`, `OnUpdate` (`Action`, `Action<float>`, or `Action<TweenValue>`), `OnComplete`, `OnKill`, `OnTargetDestroyed`.
-
-### Time control
+### Cycles, callbacks, time
 
 ```csharp
+tween.Cycles(4, CycleMode.Yoyo);          // ping-pong 4 times
+tween.Infinite(CycleMode.Restart);        // forever
+
+tween.OnStart(...).OnUpdate(...).OnComplete(...).OnKill(...).OnTargetDestroyed(...);
+
 Raven.TimeScale = 0.5f;                   // global, independent of Time.timeScale
-tween.UnscaledTime();                     // per-tween, ignores Time.timeScale
-Raven.UpdatePhase = UpdatePhase.LateUpdate; // step tweens in LateUpdate instead
+tween.UnscaledTime();                     // keeps playing while Time.timeScale == 0
+Raven.UpdatePhase = UpdatePhase.LateUpdate;
 ```
 
-### Custom easing
+### Easing
+
+31 standard easings (`Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic`, `Bounce` × In/Out/InOut, plus `Linear`), any `AnimationCurve`, or a delegate:
 
 ```csharp
-tween.Ease(Ease.OutElastic);          // 31 standard easings
-tween.Ease(myAnimationCurve);         // AnimationCurve
-tween.Ease(t => t * t * (3f - 2f * t)); // delegate
+tween.Ease(Ease.OutElastic);
+tween.Ease(myCurve);
+tween.Ease(t => t * t * (3f - 2f * t));
 ```
 
-## Inspector workflow (no code)
+## Designer workflow (no code)
 
-1. Create a **Tween Template** asset: *Create â†’ RavenTween â†’ Tween Template*. Choose the property, end value, duration, ease, cycles.
-2. Add a **Raven Animator** component, reference targets + templates, enable *Play On Enable* or wire `Play()` to a UnityEvent / button.
-3. For timelines, use **Raven Sequence Player**: each step chains, groups or inserts a template on a target.
+<img src="Documentation~/images/inspector-animator.png" width="560" alt="Raven Animator inspector">
 
-Expose a `TweenParams` field in your own MonoBehaviours to let designers tune duration/ease/cycles without recompiling:
+1. **Create → RavenTween → Tween Template** — pick the property, end value, duration, ease and cycles.
+2. Add a **Raven Animator** to a GameObject, reference targets and templates, then enable *Play On Enable* or wire `Play()` to any UnityEvent.
+3. For timelines, use **Raven Sequence Player**: each step chains, groups or inserts a template.
+
+Preview with the **Play / Stop / Complete** buttons in Play Mode.
+
+Expose `TweenParams` in your own components so designers can tune timing without recompiling:
 
 ```csharp
-[SerializeField] TweenParams entranceSettings = TweenParams.Default;
+[SerializeField] TweenParams show = TweenParams.Default;
 
-void Show() {
-    entranceSettings.ApplyTo(Raven.AnchoredPosition(panel, Vector2.zero, entranceSettings.duration));
-}
+void Show() => show.ApplyTo(Raven.AnchoredPosition(panel, Vector2.zero, show.duration));
 ```
 
-## Built-in tween targets
+## Live monitor
+
+**Tools → RavenTween → Monitor** lists every live tween and sequence with its target, property, progress and cycle count. Pause, complete or kill any of them from the row controls.
+
+<img src="Documentation~/images/monitor.png" width="720" alt="Raven Monitor window">
+
+## Built-in targets
 
 | Area | Methods |
 | --- | --- |
 | Transform | `Position`, `LocalPosition`, `Rotation`, `LocalRotation`, `EulerAngles`, `LocalEulerAngles`, `Scale` |
+| Effects | `ShakePosition`, `ShakeRotation`, `ShakeScale`, `PunchPosition`, `PunchRotation`, `PunchScale` |
 | UI | `AnchoredPosition`, `SizeDelta`, `Alpha(CanvasGroup)`, `Color(Graphic)`, `Alpha(Graphic)` |
 | Camera | `FieldOfView`, `OrthographicSize`, `BackgroundColor` |
 | Audio | `Volume`, `Pitch` |
-| Material | `MaterialFloat`, `MaterialColor` (by ID or name) |
+| Material | `MaterialFloat`, `MaterialColor` (by property ID or name) |
 | Rendering | `Color(SpriteRenderer)`, `Intensity(Light)`, `Color(Light)` |
-| Values | `Value(float/Vector2/Vector3/Vector4/Quaternion/Color)`, `Delay` |
+| TextMeshPro | `TweenTypewriter`, `TweenMaxVisibleCharacters`, `TweenNumber`, `TweenFontSize`, `TweenCharacterSpacing` |
+| Anything | `Value(...)`, `Custom(target, from, to, duration, setter)`, `Delay` |
 
-Every method also exists in extension form (`transform.TweenPosition(...)`, `material.TweenColor(...)`, ...).
+Every method also exists in extension form: `transform.TweenPosition(...)`, `material.TweenColor(...)`, `text.TweenTypewriter(...)`.
 
-## Performance notes
+## Performance
 
-- Built-in property tweens allocate **zero** bytes per frame and zero at creation beyond the (pooled) slot.
-- `OnUpdate(v => ...)` lambdas that capture locals allocate a closure **once at creation** â€” standard C# behavior. For hot paths, prefer built-in property tweens, or cache the delegate.
-- `ToYieldInstruction()` allocates one small object per call; `await` allocates the async state machine. Use them for flow control, not per-frame work.
-- The engine never uses reflection, threads, or `DOTS`-style codegen â€” it is fully AOT/WebGL safe.
+Measured by the package's own test suite (`Tests/PerformanceTests.cs`), which fails the build on any regression:
+
+| Scenario | Result |
+| --- | --- |
+| 5,000 mixed tweens (position, scale, rotation, shake, custom), steady state | **0 B** allocated per frame |
+| 200 infinite sequences, including cycle wraps | **0 B** allocated per frame |
+| Creating 1,000 tweens from a warm pool | **0 B** allocated |
+| 5,000 mixed tweens, engine step cost | **~0.77 ms/frame** (Editor, Mono) |
+
+What does allocate, by design: a lambda that **captures** a local (once, at creation — standard C#), `ToYieldInstruction()` (one small object per call) and `async` state machines. Use them for flow control, not per-frame work.
+
+The *06 - Benchmark* sample spawns thousands of animated cubes with a live frame-time and GC readout.
 
 ## Migrating from DOTween / PrimeTween
 
@@ -139,29 +205,50 @@ Every method also exists in extension form (`transform.TweenPosition(...)`, `mat
 | --- | --- | --- |
 | `transform.DOMove(p, d)` | `Tween.Position(t, p, d)` | `Raven.Position(t, p, d)` |
 | `DOVirtual.Float(a, b, d, cb)` | `Tween.Custom(a, b, d, cb)` | `Raven.Value(a, b, d).OnUpdate(cb)` |
+| `DOTween.To(getter, setter, …)` | `Tween.Custom(target, …)` | `Raven.Custom(target, a, b, d, setter)` |
 | `DOVirtual.DelayedCall(d, cb)` | `Tween.Delay(d, cb)` | `Raven.Delay(d, cb)` |
+| `transform.DOShakePosition(d, s)` | `Tween.ShakeLocalPosition(t, s, d)` | `Raven.ShakePosition(t, s, d)` |
+| `transform.DOPunchScale(p, d)` | `Tween.PunchScale(t, p, d)` | `Raven.PunchScale(t, p, d)` |
 | `DOTween.Sequence().Append(x)` | `Sequence.Create().Chain(x)` | `Raven.Sequence().Chain(x)` |
 | `.Join(x)` | `.Group(x)` | `.Group(x)` |
-| `.Insert(t, x)` | â€” | `.Insert(t, x)` |
-| `.SetLoops(n, LoopType.Yoyo)` | `cycles, CycleMode.Yoyo` | `.Cycles(n, CycleMode.Yoyo)` |
+| `.Insert(t, x)` | `.Insert(t, x)` | `.Insert(t, x)` |
+| `.SetLoops(n, LoopType.Yoyo)` | `cycles: n, CycleMode.Yoyo` | `.Cycles(n, CycleMode.Yoyo)` |
 | `.SetEase(Ease.OutQuad)` | `ease: Ease.OutQuad` | `.Ease(Ease.OutQuad)` |
 | `.SetUpdate(true)` | `useUnscaledTime: true` | `.UnscaledTime()` |
 | `.Kill()` / `.Complete()` | `.Stop()` / `.Complete()` | `.Stop()` / `.Complete()` |
 | `.WaitForCompletion()` | `.ToYieldInstruction()` | `.ToYieldInstruction()` |
 | `await t.AsyncWaitForCompletion()` | `await tween` | `await tween` |
 
-Like PrimeTween (and unlike DOTween), tweens are **not** reusable: create a new one each time, or use a `TweenTemplate`.
+As with PrimeTween (and unlike DOTween), tweens are not reusable: create a new one each time, or use a `TweenTemplate`.
+
+## Samples
+
+Import from **Package Manager → RavenTween → Samples**. Each sample builds its own scene at runtime: add the demo component to an empty GameObject and press Play.
+
+| Sample | Shows |
+| --- | --- |
+| 01 - UI Basics | Panel slide-in, canvas group fade, pulsing button |
+| 02 - Gameplay | Hops, spins, patrol loop |
+| 03 - Camera | Breathing zoom, background blend, punch zoom |
+| 04 - Materials | Staggered material color waves |
+| 05 - Complex Sequence | Nested Chain / Group / Insert driven by a coroutine |
+| 06 - Benchmark | Thousands of tweens with frame-time and GC readout |
+| 07 - TextMeshPro | Typewriter, number counter, punch feedback |
+
+Samples work with both the legacy Input Manager and the Input System package.
 
 ## FAQ
 
-**Does it survive object destruction mid-tween?** Yes. The tween dies silently (plus `OnTargetDestroyed` if you subscribed). No exceptions, no leaks.
+**What happens if the target is destroyed mid-tween?** The tween dies on its next update and fires `OnTargetDestroyed` if subscribed. No exceptions, no leaks.
 
-**What happens at `Time.timeScale = 0`?** Scaled tweens freeze; `UnscaledTime()` tweens keep playing (menus, pause screens).
+**What happens at `Time.timeScale = 0`?** Scaled tweens freeze; `UnscaledTime()` tweens keep playing — ideal for pause menus.
 
-**Is it thread-safe?** The API must be called from the main thread, like the Unity API it drives. Internally no threads are used.
+**Is it thread-safe?** The API is main-thread only, like the Unity API it drives. The engine itself uses no threads.
 
-**Can I reuse a `Tween` handle?** Handles are cheap value types; once the tween dies, every method on the handle becomes a safe no-op.
+**Does it work with Enter Play Mode Options (no domain reload)?** Yes. Engine state resets on `SubsystemRegistration`.
+
+**Which platforms?** Everything Unity targets: the runtime is pure managed C# with no platform-specific code. The repository's CI workflow runs the full test suite on Linux against Unity 2021.3, 2022.3 and 6.
 
 ## License
 
-MIT â€” see [LICENSE.md](LICENSE.md).
+MIT — see [LICENSE.md](LICENSE.md). Editor glyphs from Bootstrap Icons (MIT), see [Third Party Notices.md](Third%20Party%20Notices.md).

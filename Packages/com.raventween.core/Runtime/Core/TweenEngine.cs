@@ -166,8 +166,32 @@ namespace RavenTween {
             float t = cycleProgress;
             if (slot.Mode == CycleMode.Yoyo && (cycleIndex & 1) == 1) { t = 1f - t; }
             float eased = EvaluateEase(slot, t);
-            TweenValue value = TweenValue.Lerp(slot.StartValue, slot.EndValue, eased);
+            TweenValue value = slot.Effect == EffectKind.None
+                ? TweenValue.Lerp(slot.StartValue, slot.EndValue, eased)
+                : EvaluateEffect(slot, eased);
             WriteValue(slot, value);
+        }
+
+        // Effects oscillate around the captured start value and decay to exactly zero at t = 1.
+        static TweenValue EvaluateEffect(TweenSlot slot, float t) {
+            Debug.Assert(slot.Effect != EffectKind.None, "EvaluateEffect requires an effect slot.");
+            Debug.Assert(slot.StartValue.Kind == ValueKind.Vector3, "Effects operate on Vector3 properties.");
+            float decay = 1f - Mathf.Clamp01(t);
+            float phase = t * slot.EffectFrequency;
+            Vector3 offset;
+            if (slot.Effect == EffectKind.Shake) {
+                float seed = slot.EffectSeed;
+                offset = new Vector3(
+                    (Mathf.PerlinNoise(seed, phase) - 0.5f) * 2f,
+                    (Mathf.PerlinNoise(seed + 31.7f, phase) - 0.5f) * 2f,
+                    (Mathf.PerlinNoise(seed + 63.1f, phase) - 0.5f) * 2f);
+            } else {
+                float wave = Mathf.Sin(phase * 2f * Mathf.PI);
+                offset = new Vector3(wave, wave, wave);
+            }
+            Vector3 strength = slot.EffectStrength * decay;
+            offset.Scale(strength);
+            return new TweenValue(slot.StartValue.Vector3 + offset);
         }
 
         static float EvaluateEase(TweenSlot slot, float t) {
@@ -181,6 +205,7 @@ namespace RavenTween {
             if (slot.Property != PropertyKind.None && slot.UnityTarget != null) {
                 PropertyAccessor.Write(slot.Property, slot.UnityTarget, slot.PropertyId, value);
             }
+            if (slot.CustomInvoker != null) { InvokeCustom(slot, value); }
             if (slot.OnUpdateFloat != null) { InvokeSafe(slot.OnUpdateFloat, value.Float); }
             if (slot.OnUpdateValue != null) { InvokeSafe(slot.OnUpdateValue, value); }
             InvokeSafe(slot.OnUpdate);
@@ -213,15 +238,19 @@ namespace RavenTween {
             }
         }
 
-        static readonly Stack<TweenSlot> ResetWork = new Stack<TweenSlot>(16);
+        // Plain array work stack: no generic collection on the hot path, grows only when a
+        // sequence tree is wider than anything seen before (amortized, never in steady state).
+        static TweenSlot[] _resetWork = new TweenSlot[32];
 
         // Iterative deep reset so nested sequences replay cleanly on every cycle wrap.
         static void ResetSequenceChildren(TweenSlot slot) {
             Debug.Assert(slot.IsSequence, "Only sequences carry child items.");
-            Debug.Assert(ResetWork.Count == 0, "Reset work stack must start empty.");
-            ResetWork.Push(slot);
-            while (ResetWork.Count > 0) {
-                TweenSlot current = ResetWork.Pop();
+            Debug.Assert(_resetWork.Length > 0, "Reset work stack must be allocated.");
+            int top = 0;
+            _resetWork[top++] = slot;
+            while (top > 0) {
+                TweenSlot current = _resetWork[--top];
+                _resetWork[top] = null;
                 if (current.Items == null) { continue; }
                 for (int i = 0; i < current.Items.Count; i++) {
                     SequenceItem item = current.Items[i];
@@ -229,7 +258,9 @@ namespace RavenTween {
                     child.StartFired = false;
                     child.CompleteNotified = false;
                     child.CyclesDone = 0;
-                    if (child.IsSequence) { ResetWork.Push(child); }
+                    if (!child.IsSequence) { continue; }
+                    if (top == _resetWork.Length) { Array.Resize(ref _resetWork, _resetWork.Length * 2); }
+                    _resetWork[top++] = child;
                 }
             }
         }
@@ -471,6 +502,21 @@ namespace RavenTween {
                     CyclesDone = slot.CyclesDone
                 });
             }
+        }
+
+        static void InvokeCustom(TweenSlot slot, in TweenValue value) {
+            Debug.Assert(slot.CustomSetter != null, "Custom invoker without a setter.");
+            Debug.Assert(slot.CustomTarget != null, "Custom invoker without a target.");
+            try { slot.CustomInvoker(slot.CustomTarget, slot.CustomSetter, value); }
+            catch (Exception exception) { Debug.LogException(exception); }
+        }
+
+        static float _seedCursor;
+
+        /// <summary>Deterministic, allocation-free per-tween noise seed.</summary>
+        public static float NextSeed() {
+            _seedCursor = (_seedCursor + 61.803398f) % 1000f;
+            return _seedCursor;
         }
 
         static void InvokeSafe(Action callback) {

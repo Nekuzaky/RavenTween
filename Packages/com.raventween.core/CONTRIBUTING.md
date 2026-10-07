@@ -18,6 +18,18 @@ Thanks for taking the time to improve RavenTween. The bar for this package is "i
 4. Update `CHANGELOG.md` under an `Unreleased` heading.
 5. Open a pull request with a short description of the behavior change and the tests covering it.
 
+## Continuous integration
+
+`.github/workflows/tests.yml` runs the Play Mode suite in package mode on Unity 2021.3, 2022.3 and 6 using GameCI. It needs three repository secrets (**Settings → Secrets and variables → Actions**):
+
+| Secret | Value |
+| --- | --- |
+| `UNITY_LICENSE` | Contents of your `Unity_lic.ulf` file (Personal licenses work) |
+| `UNITY_EMAIL` | Your Unity account email |
+| `UNITY_PASSWORD` | Your Unity account password |
+
+See [GameCI activation](https://game.ci/docs/github/activation) for how to obtain the license file. Without these secrets the workflow skips the Unity steps and reports a notice instead of failing.
+
 ## Reporting bugs
 
 Open an issue with: Unity version, package version, a minimal reproduction (ideally a single script), expected vs. actual behavior. Crashes and GC regressions are treated as release blockers.

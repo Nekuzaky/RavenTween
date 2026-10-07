@@ -1,0 +1,40 @@
+name: Bug report
+description: Something behaves incorrectly, crashes, or allocates where it should not.
+labels: [bug]
+body:
+  - type: input
+    id: unity
+    attributes:
+      label: Unity version
+      placeholder: e.g. 6000.3.13f1
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: RavenTween version
+      placeholder: e.g. 1.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options: [Editor, Windows, macOS, Linux, Android, iOS, WebGL, Console]
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: Ideally a single script. Paste code, not screenshots of code.
+      render: csharp
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs. actual behavior
+    validations:
+      required: true

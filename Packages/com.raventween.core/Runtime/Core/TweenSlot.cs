@@ -11,6 +11,13 @@ namespace RavenTween {
         Yoyo = 1
     }
 
+    /// <summary>Procedural effect applied on top of the captured start value.</summary>
+    enum EffectKind : byte {
+        None = 0,
+        Shake = 1,
+        Punch = 2
+    }
+
     enum SlotState : byte {
         Free = 0,
         Running = 1,
@@ -40,6 +47,17 @@ namespace RavenTween {
         public bool RequiresTarget;
         public PropertyKind Property = PropertyKind.None;
         public int PropertyId;
+
+        // Custom setter: target + user delegate + cached typed invoker (no per-frame allocation).
+        public object CustomTarget;
+        public Delegate CustomSetter;
+        public Action<object, Delegate, TweenValue> CustomInvoker;
+
+        // Procedural effects (shake / punch).
+        public EffectKind Effect;
+        public Vector3 EffectStrength;
+        public float EffectFrequency;
+        public float EffectSeed;
 
         // Values.
         public TweenValue StartValue;
@@ -94,6 +112,13 @@ namespace RavenTween {
             RequiresTarget = false;
             Property = PropertyKind.None;
             PropertyId = 0;
+            CustomTarget = null;
+            CustomSetter = null;
+            CustomInvoker = null;
+            Effect = EffectKind.None;
+            EffectStrength = Vector3.zero;
+            EffectFrequency = 0f;
+            EffectSeed = 0f;
             StartValue = default;
             EndValue = default;
             HasExplicitFrom = false;

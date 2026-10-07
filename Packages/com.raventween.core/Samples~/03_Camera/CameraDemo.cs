@@ -29,7 +29,16 @@ namespace RavenTweenSamples {
         }
 
         void Update() {
-            if (Input.GetKeyDown(KeyCode.Space)) { PunchZoom(); }
+            if (SpacePressed()) { PunchZoom(); }
+        }
+
+        static bool SpacePressed() {
+#if ENABLE_INPUT_SYSTEM
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            return keyboard != null && keyboard.spaceKey.wasPressedThisFrame;
+#else
+            return Input.GetKeyDown(KeyCode.Space);
+#endif
         }
 
         void PunchZoom() {
