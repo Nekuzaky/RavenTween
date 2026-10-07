@@ -1,0 +1,25 @@
+{
+    "name": "RavenTween.AnimationRigging",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime",
+        "Unity.Animation.Rigging"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_RIGGING"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.animation.rigging",
+            "expression": "1.0.0",
+            "define": "RAVEN_RIGGING"
+        }
+    ],
+    "noEngineReferences": false
+}

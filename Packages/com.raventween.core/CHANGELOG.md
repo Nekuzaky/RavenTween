@@ -3,6 +3,16 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-10-07
+
+### Added
+- `RavenLookAt` component: turns a bone or object toward a moving target on top of its animation, with smoothing, an angle limit and a blend weight.
+- `RavenSpringChain` component: secondary motion for bone chains (ponytails, antennae, tails, cables) with stiffness, damping, gravity and an optional tip, simulated at a fixed 60 Hz.
+- `TweenWeight` for both components, and `LookAtTarget` to switch targets and blend in.
+- Optional Animation Rigging module (`RavenTween.AnimationRigging`), compiled only when `com.unity.animation.rigging` is installed: `TweenWeight` for any rig constraint and for `Rig`, `TweenReach` and `TweenRelease` for two-bone IK.
+- Sample *08 - Procedural*.
+- Tests for both components (including a zero-allocation check) and for the Animation Rigging module.
+
 ## [1.1.0] - 2026-10-07
 
 ### Added

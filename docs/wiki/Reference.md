@@ -101,6 +101,26 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 
 ---
 
+## Procedural components
+
+| Type | Members |
+| :--- | :--- |
+| `RavenLookAt` | `Target`, `Weight`, `MaxAngle`, `SmoothTime`; `ResetSmoothing()`; extensions `TweenWeight(to, duration)`, `LookAtTarget(target, blendDuration)` |
+| `RavenSpringChain` | `Weight`, `Stiffness`, `Damping`, `Gravity`, `BoneCount`; `Build()`, `ResetPhysics()`; extension `TweenWeight(to, duration)` |
+
+## Animation Rigging extensions
+
+Compiled only when `com.unity.animation.rigging` is installed.
+
+| Member | Description |
+| :--- | :--- |
+| `TweenWeight(float to, float duration)` on any `IRigConstraint` | Blend a constraint's weight. |
+| `TweenWeight(float to, float duration)` on `Rig` | Blend a rig layer's weight. |
+| `TweenReach(Vector3 worldPosition, float duration)` on `TwoBoneIKConstraint` | Move the IK target and blend to full weight; returns a `Sequence`. |
+| `TweenRelease(float duration)` on `TwoBoneIKConstraint` | Blend the IK back to 0. |
+
+---
+
 ## Types
 
 | Type | Description |
@@ -137,7 +157,7 @@ Every property tween has an extension form on its target type: `TweenPosition`, 
 | **Tools ▸ RavenTween ▸ Monitor** | The live **[Monitor](Monitor)** window. |
 | **Tools ▸ RavenTween ▸ Documentation** | The repository on GitHub. |
 | **Create ▸ RavenTween ▸ Tween Template** | A new template asset. |
-| **Add Component ▸ RavenTween** | Raven Animator, Raven Sequence Player. |
+| **Add Component ▸ RavenTween** | Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
 
 ---
 

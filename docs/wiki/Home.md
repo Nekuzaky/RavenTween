@@ -23,6 +23,7 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 | **[Custom Tweens](Custom-Tweens)** | Tween any field or property with zero allocations. |
 | **[TextMeshPro](TextMeshPro)** | Typewriter reveal, score counters, font size and spacing. |
 | **[Control and Lifecycle](Control-and-Lifecycle)** | Callbacks, pause, stop, complete, time scale, destroyed targets, async/await and coroutines. |
+| **[Procedural Animation](Procedural-Animation)** | Look-at, spring chains for ponytails and antennae, and Animation Rigging integration. |
 | **[Designer Workflow](Designer-Workflow)** | Tween Templates, Raven Animator, Raven Sequence Player and `TweenParams`. |
 | **[Monitor](Monitor)** | The live debugging window under **Tools ▸ RavenTween**. |
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
@@ -32,13 +33,12 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 
 ---
 
-## What's new in 1.1.0
+## What's new in 1.2.0
 
-- **Shake and punch** on position, rotation and scale. Effects always settle exactly on the starting value.
-- **`Raven.Custom`** tweens any field through a setter, with zero allocations when the lambda captures nothing.
-- **TextMeshPro module**: typewriter reveal, allocation-free number counter, font size and character spacing.
-- **The Monitor window**: every live tween with its progress, and pause / complete / kill buttons.
-- **A performance test suite** that enforces 0 B per frame and a 5,000-tween frame budget.
+- **Raven Look At**: heads, eyes and turrets track a moving target on top of their animation, smoothed and angle-limited.
+- **Raven Spring Chain**: secondary motion for ponytails, antennae, tails and cables.
+- **Weight tweens**: blend both in and out with `TweenWeight`, like any other tween.
+- **Animation Rigging module**: tween constraint and rig weights, and reach for a point with two-bone IK. Compiled only when the package is installed.
 
 The full list is in the **[Changelog](Changelog)**.
 

@@ -33,13 +33,13 @@
 **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.1.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.2.0
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.1.0"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.2.0"
 ```
 
 Requires Unity 2021.3 or newer. Unity 6 is fully supported.
@@ -107,6 +107,26 @@ title.TweenTypewriter(1.5f);                 // reveal characters
 score.TweenNumber(0, 2500, 0.8f);            // allocation-free counter (TMP SetText)
 label.TweenFontSize(64f, 0.3f);
 Raven.Color(label, Color.red, 0.2f);         // TMP_Text is a Graphic: color and alpha just work
+```
+
+### Procedural animation
+
+Two components layer life on top of your animations, and RavenTween blends them in and out:
+
+```csharp
+var look = head.gameObject.AddComponent<RavenLookAt>();   // head tracks a moving target
+look.Target = player;
+look.TweenWeight(0f, 0.5f);                               // ...and looks away
+
+var tail = tailRoot.gameObject.AddComponent<RavenSpringChain>(); // swings, lags, settles
+tail.Gravity = new Vector3(0f, -2f, 0f);
+```
+
+With Unity's **Animation Rigging** package installed, an optional module adds `constraint.TweenWeight(...)`, `rig.TweenWeight(...)` and two-bone IK helpers:
+
+```csharp
+await handIK.TweenReach(doorHandle.position, 0.4f);
+handIK.TweenRelease(0.3f);
 ```
 
 ### Async / await and coroutines
@@ -180,6 +200,8 @@ void Show() => show.ApplyTo(Raven.AnchoredPosition(panel, Vector2.zero, show.dur
 | Material | `MaterialFloat`, `MaterialColor` (by property ID or name) |
 | Rendering | `Color(SpriteRenderer)`, `Intensity(Light)`, `Color(Light)` |
 | TextMeshPro | `TweenTypewriter`, `TweenMaxVisibleCharacters`, `TweenNumber`, `TweenFontSize`, `TweenCharacterSpacing` |
+| Procedural | `RavenLookAt`, `RavenSpringChain` components; `TweenWeight`, `LookAtTarget` |
+| Animation Rigging | `TweenWeight` (any constraint, `Rig`), `TweenReach`, `TweenRelease` |
 | Anything | `Value(...)`, `Custom(target, from, to, duration, setter)`, `Delay` |
 
 Every method also exists in extension form: `transform.TweenPosition(...)`, `material.TweenColor(...)`, `text.TweenTypewriter(...)`.
@@ -234,6 +256,7 @@ Import from **Package Manager → RavenTween → Samples**. Each sample builds i
 | 05 - Complex Sequence | Nested Chain / Group / Insert driven by a coroutine |
 | 06 - Benchmark | Thousands of tweens with frame-time and GC readout |
 | 07 - TextMeshPro | Typewriter, number counter, punch feedback |
+| 08 - Procedural | Head look-at and antenna spring, blended with weight tweens |
 
 Samples work with both the legacy Input Manager and the Input System package.
 

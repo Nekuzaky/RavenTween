@@ -36,6 +36,7 @@ await Raven.Delay(1.2f);
 - **0 B per frame** for property, effect, sequence and custom tweens — enforced by the test suite.
 - **~0.77 ms/frame** for 5,000 simultaneous tweens.
 - Sequences, shake & punch, TextMeshPro, async/await, coroutines.
+- Procedural look-at and spring chains, plus optional Animation Rigging integration.
 - Designer templates and a live **Tools → RavenTween → Monitor** window.
 
 <p align="center">
@@ -47,12 +48,12 @@ await Raven.Delay(1.2f);
 Package Manager → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.1.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.2.0
 ```
 
 ## Documentation
 
-The full guide lives in the [package README](Packages/com.raventween.core/README.md): API tour, designer workflow, performance numbers, migration from DOTween / PrimeTween, samples and FAQ.
+**[Read the manual at nekuzaky.com/docs/raventween](https://nekuzaky.com/docs/raventween)** — getting started, guides, procedural animation, designer tools, performance, migration from DOTween / PrimeTween, full API reference and FAQ. Its source lives in [`docs/wiki`](docs/wiki). The [package README](Packages/com.raventween.core/README.md) has a one-page API tour.
 
 [Changelog](Packages/com.raventween.core/CHANGELOG.md) · [Contributing](Packages/com.raventween.core/CONTRIBUTING.md) · [Security](SECURITY.md) · MIT license
 

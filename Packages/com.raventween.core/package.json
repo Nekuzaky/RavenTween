@@ -1,13 +1,13 @@
-﻿{
+{
   "name": "com.raventween.core",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "displayName": "RavenTween",
   "description": "High-performance, allocation-free tweening engine for Unity. Fluent code-first API, sequences, async/await, coroutines, and optional inspector-driven templates.",
   "unity": "2021.3",
   "dependencies": {
     "com.unity.ugui": "1.0.0"
   },
-  "documentationUrl": "https://github.com/Nekuzaky/RavenTween",
+  "documentationUrl": "https://nekuzaky.com/docs/raventween",
   "changelogUrl": "https://github.com/Nekuzaky/RavenTween/blob/main/Packages/com.raventween.core/CHANGELOG.md",
   "licensesUrl": "https://github.com/Nekuzaky/RavenTween/blob/main/Packages/com.raventween.core/LICENSE.md",
   "keywords": [
@@ -18,7 +18,9 @@
     "performance",
     "shake",
     "textmeshpro",
-    "zero-allocation"
+    "zero-allocation",
+    "procedural",
+    "animation-rigging"
   ],
   "author": {
     "name": "Nekuzaky",
@@ -59,6 +61,11 @@
       "displayName": "07 - TextMeshPro",
       "description": "Typewriter reveal, number counter and punch feedback on TMP text.",
       "path": "Samples~/07_TextMeshPro"
+    },
+    {
+      "displayName": "08 - Procedural",
+      "description": "Head look-at and antenna spring chain blended with weight tweens.",
+      "path": "Samples~/08_Procedural"
     }
   ]
 }

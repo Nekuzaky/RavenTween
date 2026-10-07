@@ -1,0 +1,31 @@
+{
+    "name": "RavenTween.AnimationRigging.Tests",
+    "rootNamespace": "RavenTween.Tests",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.AnimationRigging",
+        "Unity.Animation.Rigging",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "RAVEN_RIGGING"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.animation.rigging",
+            "expression": "1.0.0",
+            "define": "RAVEN_RIGGING"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -92,4 +92,4 @@ Sequence s = player.Current; // handle to the running sequence
 
 ---
 
-#### ◀ **[Control and Lifecycle](Control-and-Lifecycle)**  ·  Next: **[Monitor ▶](Monitor)**
+#### ◀ **[Procedural Animation](Procedural-Animation)**  ·  Next: **[Monitor ▶](Monitor)**
