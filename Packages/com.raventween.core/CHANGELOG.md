@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.4.1] - 2026-10-07
+
+### Fixed
+- Sequence Editor: removing a step threw an `ArgumentOutOfRangeException`. Removing, reordering and adding steps now apply after the timeline is drawn.
+
 ## [1.4.0] - 2026-10-07
 
 ### Added

@@ -89,6 +89,7 @@ namespace RavenTween.Editor {
             DrawAddRow(new Rect(0f, RulerHeight + _player.Steps.Count * RowHeight, width, RowHeight));
             DrawPlayhead(new Rect(ListWidth, 0f, width - ListWidth, RulerHeight + RowHeight * _player.Steps.Count));
             GUI.EndScrollView();
+            if (ApplyPendingEdit()) { return; }
             HandleTimelineInput(new Rect(area.x + ListWidth, area.y, area.width - ListWidth - 16f, area.height), total);
         }
 
@@ -164,15 +165,11 @@ namespace RavenTween.Editor {
         }
 
         void DrawAddRow(Rect row) {
-            if (GUI.Button(new Rect(row.x + 4f, row.y + 3f, 110f, row.height - 6f), "+ Add Step", EditorStyles.miniButton)) {
-                Undo.RecordObject(_player, "Add Sequence Step");
-                _player.Steps.Add(new RavenSequencePlayer.Step { mode = RavenSequencePlayer.StepMode.Chain });
-                MarkChanged();
-            }
+            if (GUI.Button(new Rect(row.x + 4f, row.y + 3f, 110f, row.height - 6f), "+ Add Step", EditorStyles.miniButton)) { AddStep(); }
         }
 
         void DrawBlock(int index, Rect row) {
-            if (index >= _blocks.Count) { return; }
+            if (index >= _blocks.Count || index >= _player.Steps.Count) { return; }
             SequenceLayout.Block block = _blocks[index];
             RavenSequencePlayer.Step step = _player.Steps[index];
             float x = ListWidth + TimeToX(block.Start);
@@ -286,18 +283,43 @@ namespace RavenTween.Editor {
             MarkChanged();
         }
 
+        // Structural edits (count or order) are deferred until the rows are drawn: changing the
+        // list in the middle of the draw loop would shift indices under the rows still to draw.
+        System.Action _pendingEdit;
+
         void Swap(int a, int b) {
-            Undo.RecordObject(_player, "Reorder Sequence Steps");
-            RavenSequencePlayer.Step tmp = _player.Steps[a];
-            _player.Steps[a] = _player.Steps[b];
-            _player.Steps[b] = tmp;
-            MarkChanged();
+            _pendingEdit = () => {
+                Undo.RecordObject(_player, "Reorder Sequence Steps");
+                RavenSequencePlayer.Step tmp = _player.Steps[a];
+                _player.Steps[a] = _player.Steps[b];
+                _player.Steps[b] = tmp;
+                MarkChanged();
+            };
         }
 
         void RemoveStep(int index) {
-            Undo.RecordObject(_player, "Remove Sequence Step");
-            _player.Steps.RemoveAt(index);
-            MarkChanged();
+            _pendingEdit = () => {
+                Undo.RecordObject(_player, "Remove Sequence Step");
+                _player.Steps.RemoveAt(index);
+                MarkChanged();
+            };
+        }
+
+        void AddStep() {
+            _pendingEdit = () => {
+                Undo.RecordObject(_player, "Add Sequence Step");
+                _player.Steps.Add(new RavenSequencePlayer.Step { mode = RavenSequencePlayer.StepMode.Chain });
+                MarkChanged();
+            };
+        }
+
+        bool ApplyPendingEdit() {
+            if (_pendingEdit == null) { return false; }
+            System.Action edit = _pendingEdit;
+            _pendingEdit = null;
+            edit();
+            GUIUtility.ExitGUI();
+            return true;
         }
 
         void MarkChanged() {
