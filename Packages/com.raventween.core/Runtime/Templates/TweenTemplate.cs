@@ -22,6 +22,19 @@ namespace RavenTween {
 
         public TweenParams settings = TweenParams.Default;
 
+        /// <summary>True when this template loops forever (cycles = -1).</summary>
+        public bool LoopsForever {
+            get { return settings.cycles < 0; }
+        }
+
+        /// <summary>
+        /// Finite stand-in used when a looping template plays inside a sequence: one full
+        /// out-and-back for Yoyo (so it ends where it started), one pass for Restart.
+        /// </summary>
+        public int CyclesInsideSequence {
+            get { return settings.cycleMode == CycleMode.Yoyo ? 2 : 1; }
+        }
+
         /// <summary>Creates and plays a tween of this template on <paramref name="target"/>.</summary>
         public Tween Play(Object target) {
             Debug.Assert(property != PropertyKind.None, "Template has no property to animate.");

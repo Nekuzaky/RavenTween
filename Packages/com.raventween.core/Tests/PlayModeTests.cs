@@ -101,6 +101,32 @@ namespace RavenTween.Tests {
             Object.Destroy(template);
         }
 
+        [Test]
+        public void SequencePlayer_LoopingTemplate_PlaysFinitely_WithoutErrors() {
+            // Any error log would fail this test: looping templates must be handled quietly.
+            var template = ScriptableObject.CreateInstance<TweenTemplate>();
+            template.property = PropertyKind.LocalScale;
+            template.endValue = new Vector4(2f, 2f, 2f, 0f);
+            template.settings = TweenParams.Default;
+            template.settings.duration = 0.25f;
+            template.settings.cycles = -1;
+            template.settings.cycleMode = CycleMode.Yoyo;
+            var go = new GameObject("player-host");
+            var player = go.AddComponent<RavenSequencePlayer>();
+            player.Steps.Add(new RavenSequencePlayer.Step {
+                mode = RavenSequencePlayer.StepMode.Chain, target = go.transform, template = template
+            });
+            player.Play();
+            Sequence sequence = player.Current;
+            Assert.That(sequence.IsAlive, Is.True);
+            Assert.That(sequence.Duration, Is.EqualTo(0.5f).Within(1e-4f), "Yoyo loop becomes one out-and-back.");
+            TweenEngine.Process(0.6f, 0.6f);
+            Assert.That(sequence.IsAlive, Is.False);
+            Assert.That(go.transform.localScale.x, Is.EqualTo(1f).Within(1e-3f), "Out-and-back ends where it started.");
+            Object.DestroyImmediate(go);
+            Object.DestroyImmediate(template);
+        }
+
         [UnityTest]
         public IEnumerator Animator_PlaysEntries_AndRaisesEvent() {
             var template = ScriptableObject.CreateInstance<TweenTemplate>();

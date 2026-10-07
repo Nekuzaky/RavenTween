@@ -43,7 +43,20 @@ namespace RavenTween.Editor {
             DrawDefaultInspector();
             var player = (RavenSequencePlayer)target;
             Debug.Assert(player != null, "Editor target must be a RavenSequencePlayer.");
+            DrawLoopingStepWarnings(player);
             RavenPreviewBar.Draw(player.Play, player.Stop, player.CompleteNow);
+        }
+
+        static void DrawLoopingStepWarnings(RavenSequencePlayer player) {
+            for (int i = 0; i < player.Steps.Count; i++) {
+                TweenTemplate template = player.Steps[i].template;
+                if (template == null || !template.LoopsForever) { continue; }
+                string once = template.CyclesInsideSequence == 2 ? "once out and back" : "once";
+                EditorGUILayout.HelpBox(
+                    "Step " + i + " uses '" + template.name + "', which loops forever. Inside a sequence it plays " +
+                    once + " per sequence cycle. To repeat the whole timeline, set this component's Cycles to -1.",
+                    MessageType.Warning);
+            }
         }
     }
 }

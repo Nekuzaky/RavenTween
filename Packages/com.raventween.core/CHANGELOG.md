@@ -3,6 +3,14 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.1] - 2026-10-07
+
+### Fixed
+- A Raven Sequence Player step using a template that loops forever logged an error every time the player started. Such steps now play once per sequence cycle (one out-and-back for Yoyo, so they end where they started), without errors.
+
+### Added
+- The Raven Sequence Player inspector warns about steps whose template loops forever and explains how to loop the whole sequence instead.
+
 ## [1.3.0] - 2026-10-07
 
 ### Added

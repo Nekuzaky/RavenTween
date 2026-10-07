@@ -81,6 +81,10 @@ namespace RavenTween {
             }
             Tween tween = step.template.Play(step.target);
             if (!tween.IsAlive) { return false; }
+            // A sequence needs a finite length; the inspector warns about looping templates.
+            if (step.template.LoopsForever) {
+                tween.Cycles(step.template.CyclesInsideSequence, step.template.settings.cycleMode);
+            }
             switch (step.mode) {
                 case StepMode.Chain: sequence.Chain(tween); break;
                 case StepMode.Group: sequence.Group(tween); break;

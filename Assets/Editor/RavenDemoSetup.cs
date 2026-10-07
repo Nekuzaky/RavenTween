@@ -6,6 +6,17 @@ using UnityEngine;
 namespace RavenTweenDemo {
     /// <summary>Builds a small demo scene and template assets used to showcase the inspectors.</summary>
     public static class RavenDemoSetup {
+        [MenuItem("Tools/RavenTween/Dev/Rebuild Demo Scene")]
+        static void RebuildFromMenu() {
+            if (!EditorUtility.DisplayDialog("Rebuild demo scene",
+                    "Regenerate Assets/Demo/RavenDemo.unity and its templates? Unsaved changes in the open scene will be lost.",
+                    "Rebuild", "Cancel")) {
+                return;
+            }
+            CreateDemo();
+            EditorSceneManager.OpenScene("Assets/Demo/RavenDemo.unity");
+        }
+
         public static void CreateDemo() {
             if (!AssetDatabase.IsValidFolder("Assets/Demo")) {
                 AssetDatabase.CreateFolder("Assets", "Demo");
@@ -23,13 +34,23 @@ namespace RavenTweenDemo {
 
             TweenTemplate moveTemplate = ScriptableObject.CreateInstance<TweenTemplate>();
             moveTemplate.property = PropertyKind.LocalPosition;
-            moveTemplate.endValue = new Vector4(0f, 2f, 0f, 0f);
+            moveTemplate.endValue = new Vector4(2.5f, 1.5f, 0f, 0f);
             moveTemplate.settings = TweenParams.Default;
             moveTemplate.settings.duration = 1.2f;
             moveTemplate.settings.ease = Ease.InOutSine;
-            moveTemplate.settings.cycles = -1;
+            moveTemplate.settings.cycles = 2; // Finite: sequence steps must have a length.
             moveTemplate.settings.cycleMode = CycleMode.Yoyo;
             AssetDatabase.CreateAsset(moveTemplate, "Assets/Demo/FloatUp.asset");
+
+            TweenTemplate popTemplate = ScriptableObject.CreateInstance<TweenTemplate>();
+            popTemplate.property = PropertyKind.LocalScale;
+            popTemplate.endValue = new Vector4(1.3f, 1.3f, 1.3f, 0f);
+            popTemplate.settings = TweenParams.Default;
+            popTemplate.settings.duration = 0.6f;
+            popTemplate.settings.ease = Ease.OutBack;
+            popTemplate.settings.cycles = 2;
+            popTemplate.settings.cycleMode = CycleMode.Yoyo;
+            AssetDatabase.CreateAsset(popTemplate, "Assets/Demo/PopOnce.asset");
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.DefaultGameObjects, NewSceneMode.Single);
 
@@ -49,7 +70,7 @@ namespace RavenTweenDemo {
                 mode = RavenSequencePlayer.StepMode.Chain, target = sphere.transform, template = moveTemplate
             });
             player.Steps.Add(new RavenSequencePlayer.Step {
-                mode = RavenSequencePlayer.StepMode.Group, target = sphere.transform, template = scaleTemplate
+                mode = RavenSequencePlayer.StepMode.Group, target = sphere.transform, template = popTemplate
             });
             var playerSo = new SerializedObject(player);
             playerSo.FindProperty("playOnEnable").boolValue = true;

@@ -52,6 +52,9 @@ Each **Step** has a **Mode**:
 
 The whole sequence takes **Cycles** (`-1` loops forever), **Cycle Mode** and **Use Unscaled Time**, and raises **On Complete** at the end. See **[Sequences](Sequences)** for how the three modes interact.
 
+> [!IMPORTANT]
+> To loop a timeline, set the **player's** Cycles to `-1` — not the templates'. A step whose template loops forever can't have a length on the timeline, so it plays once per sequence cycle: one out-and-back for a **Yoyo** template (it ends where it started), one pass for **Restart**. The inspector shows a warning on such steps.
+
 > [!TIP]
 > Both components show **Play**, **Stop** and **Complete** buttons in the Inspector during Play Mode, so you can iterate on timing without restarting.
 
