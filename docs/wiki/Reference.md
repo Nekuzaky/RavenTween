@@ -156,6 +156,9 @@ Every property tween has an extension form on its target type: `TweenPosition`, 
 | :--- | :--- |
 | **Tools ▸ RavenTween ▸ Monitor** | The live **[Monitor](Monitor)** window. |
 | **Tools ▸ RavenTween ▸ Documentation** | The repository on GitHub. |
+| **Tools ▸ RavenTween ▸ Updates ▸ Check Now** | Checks for a newer release immediately. |
+| **Tools ▸ RavenTween ▸ Updates ▸ Check Automatically** | Daily check on or off (on by default). |
+| **Tools ▸ RavenTween ▸ Updates ▸ Install Automatically** | Install new releases without asking (off by default). |
 | **Create ▸ RavenTween ▸ Tween Template** | A new template asset. |
 | **Add Component ▸ RavenTween** | Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
 

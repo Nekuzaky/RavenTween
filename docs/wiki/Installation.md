@@ -11,11 +11,11 @@ RavenTween is a standard Unity package installed from its Git repository. There 
 3. Paste the URL below and click **Add**.
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.2.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.3.0
 ```
 
 > [!TIP]
-> The `#v1.2.0` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
+> The `#v1.3.0` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
 
 ---
 
@@ -24,10 +24,28 @@ https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1
 Add this line to the `dependencies` block of your project's `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.2.0"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.3.0"
 ```
 
 Unity resolves the package the next time it gains focus.
+
+---
+
+## Staying up to date
+
+RavenTween keeps itself current from inside the Editor — no need to edit the URL by hand.
+
+- **Once a day**, it asks GitHub whether a newer release exists. If so, a small window offers **Update now**, **What's new**, **Skip this version** or **Later**.
+- **Update now** installs the new version through the Package Manager and rewrites the tag in your `manifest.json` for you.
+- **Fully automatic**: enable **Tools ▸ RavenTween ▸ Updates ▸ Install Automatically** and new releases install on their own, without asking.
+- **Check now**: **Tools ▸ RavenTween ▸ Updates ▸ Check Now** checks immediately and tells you if you're already up to date.
+- **Off switch**: untick **Tools ▸ RavenTween ▸ Updates ▸ Check Automatically**.
+
+> [!NOTE]
+> The check is a single anonymous request to the public GitHub API — nothing about your project or your machine is sent. It never runs in batch mode (CI, build servers), and it leaves embedded or local copies of the package alone, since those are meant to be edited by hand.
+
+> [!TIP]
+> On a team, leave automatic installs **off** and update on purpose: the version tag is shared through `manifest.json`, so one person updating and committing moves the whole team together. Settings are per machine, never per project.
 
 ---
 

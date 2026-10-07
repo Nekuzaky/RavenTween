@@ -3,6 +3,16 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-10-07
+
+### Added
+- In-editor update checker. At most once a day, RavenTween checks GitHub for a newer release and offers **Update now / What's new / Skip this version / Later**. Optional fully automatic installs. Menu: **Tools ▸ RavenTween ▸ Updates**. Silent in batch mode and for embedded or local copies of the package.
+- Edit Mode tests for the update rules (version parsing and comparison, check interval, Git and registry update identifiers, release parsing).
+
+### Fixed
+- The package failed to compile in projects with the built-in Audio module disabled. It now declares `com.unity.modules.audio` and `com.unity.modules.unitywebrequest` as dependencies.
+- Sample *08 - Procedural* no longer references the Physics module.
+
 ## [1.2.0] - 2026-10-07
 
 ### Added

@@ -90,7 +90,6 @@ namespace RavenTweenSamples {
         static Transform Primitive(PrimitiveType type, Transform parent, Vector3 localPosition, Vector3 scale, string name) {
             GameObject go = GameObject.CreatePrimitive(type);
             go.name = name;
-            Object.Destroy(go.GetComponent<Collider>());
             go.transform.SetParent(parent, false);
             go.transform.localPosition = localPosition;
             go.transform.localScale = scale;

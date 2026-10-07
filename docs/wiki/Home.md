@@ -33,7 +33,12 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 
 ---
 
-## What's new in 1.2.0
+## What's new in 1.3.0
+
+- **Built-in updates**: RavenTween checks for new releases once a day and installs them in one click, or automatically if you enable it. See **[Installation](Installation)**.
+- **Fix**: the package now compiles in projects that disable Unity's built-in Audio module.
+
+## New in 1.2.0
 
 - **Raven Look At**: heads, eyes and turrets track a moving target on top of their animation, smoothed and angle-limited.
 - **Raven Spring Chain**: secondary motion for ponytails, antennae, tails and cables.

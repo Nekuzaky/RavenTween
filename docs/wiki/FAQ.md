@@ -10,6 +10,10 @@ Yes. It is open source under the MIT license, free for commercial projects. If i
 
 Unity 2021.3 LTS and newer, including Unity 6. See **[Installation](Installation)**.
 
+### How do I update?
+
+You usually don't have to think about it: RavenTween checks for new releases once a day and offers to install them. You can also install updates fully automatically, or check by hand from **Tools ▸ RavenTween ▸ Updates**. See **[Installation](Installation)**.
+
 ### Which platforms?
 
 All of them. The runtime is pure managed C# with no threads, reflection, native plugins or runtime code generation, so it runs on Windows, macOS, Linux, Android, iOS, WebGL and consoles, under Mono or IL2CPP.

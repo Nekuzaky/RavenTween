@@ -1,11 +1,13 @@
 {
   "name": "com.raventween.core",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "displayName": "RavenTween",
   "description": "High-performance, allocation-free tweening engine for Unity. Fluent code-first API, sequences, async/await, coroutines, and optional inspector-driven templates.",
   "unity": "2021.3",
   "dependencies": {
-    "com.unity.ugui": "1.0.0"
+    "com.unity.ugui": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0"
   },
   "documentationUrl": "https://nekuzaky.com/docs/raventween",
   "changelogUrl": "https://github.com/Nekuzaky/RavenTween/blob/main/Packages/com.raventween.core/CHANGELOG.md",
