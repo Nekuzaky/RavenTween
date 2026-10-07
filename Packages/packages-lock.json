@@ -1,5 +1,13 @@
 {
   "dependencies": {
+    "com.raventween.core": {
+      "version": "file:com.raventween.core",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.ugui": "1.0.0"
+      }
+    },
     "com.unity.2d.animation": {
       "version": "13.0.4",
       "depth": 0,

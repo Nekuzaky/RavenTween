@@ -1,0 +1,51 @@
+{
+  "name": "com.raventween.core",
+  "version": "1.0.0",
+  "displayName": "RavenTween",
+  "description": "High-performance, allocation-free tweening engine for Unity. Fluent code-first API, sequences, async/await, coroutines, and optional inspector-driven templates.",
+  "unity": "2021.3",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0"
+  },
+  "documentationUrl": "https://github.com/Nekuzaky/MortTween",
+  "changelogUrl": "https://github.com/Nekuzaky/MortTween/blob/main/Packages/com.raventween.core/CHANGELOG.md",
+  "licensesUrl": "https://github.com/Nekuzaky/MortTween/blob/main/Packages/com.raventween.core/LICENSE.md",
+  "keywords": [
+    "tween",
+    "animation",
+    "easing",
+    "sequence",
+    "performance"
+  ],
+  "author": {
+    "name": "Nekuzaky",
+    "url": "https://github.com/Nekuzaky"
+  },
+  "samples": [
+    {
+      "displayName": "01 - UI Basics",
+      "description": "Buttons, panels and canvas group fades driven by RavenTween.",
+      "path": "Samples~/01_UIBasics"
+    },
+    {
+      "displayName": "02 - Gameplay",
+      "description": "Transform tweens for gameplay feel: jumps, punches, loops.",
+      "path": "Samples~/02_Gameplay"
+    },
+    {
+      "displayName": "03 - Camera",
+      "description": "Camera field of view, shake and color transitions.",
+      "path": "Samples~/03_Camera"
+    },
+    {
+      "displayName": "04 - Materials",
+      "description": "Material property tweens using shader property IDs.",
+      "path": "Samples~/04_Materials"
+    },
+    {
+      "displayName": "05 - Complex Sequence",
+      "description": "Nested sequences with Chain, Group and Insert.",
+      "path": "Samples~/05_ComplexSequence"
+    }
+  ]
+}
