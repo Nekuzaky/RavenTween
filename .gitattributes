@@ -169,3 +169,8 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+# Unity's Package Manager installs this package straight from Git and may run without Git LFS
+# (common on Linux): every file of the package must be a regular Git object.
+Packages/com.raventween.core/** -filter -diff -merge
+Packages/com.raventween.core/**/*.png binary

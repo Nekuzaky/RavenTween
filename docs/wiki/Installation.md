@@ -11,11 +11,11 @@ RavenTween is a standard Unity package installed from its Git repository. There 
 3. Paste the URL below and click **Add**.
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.1
 ```
 
 > [!TIP]
-> The `#v1.6.0` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
+> The `#v1.6.1` suffix pins the version, so every teammate and every CI build gets exactly the same code. To update later, change the tag to the newer version.
 
 ---
 
@@ -24,7 +24,7 @@ https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1
 Add this line to the `dependencies` block of your project's `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.1"
 ```
 
 Unity resolves the package the next time it gains focus.

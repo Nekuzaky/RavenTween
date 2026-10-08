@@ -51,7 +51,7 @@ await Raven.Delay(1.2f);
 Package Manager → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.1
 ```
 
 **Updates are built in.** Once a day RavenTween checks for a newer release and offers to install it in one click — or installs it for you if you enable **Tools → RavenTween → Updates → Install Automatically**. The version tag in the URL keeps every teammate on the same release until someone updates on purpose.

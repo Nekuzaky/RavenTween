@@ -21,7 +21,7 @@ permissions:
 
 jobs:
   meta-files:
-    name: Every package file has a .meta
+    name: Package files (metas, no LFS)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -36,6 +36,17 @@ jobs:
             if [ ! -f "$path.meta" ]; then echo "::error file=Packages/com.raventween.core/${path#./}::missing .meta"; missing=1; fi
           done < <(find . -mindepth 1 \( -name '*~' -o -name '.*' \) -prune -o -print0)
           exit $missing
+
+      - name: No Git LFS pointers in the package
+        shell: bash
+        run: |
+          # Unity may install the package without Git LFS: a pointer file breaks the asset import.
+          cd Packages/com.raventween.core
+          pointers=$(grep -rlI --exclude='*.meta' '^version https://git-lfs.github.com/spec/' . || true)
+          if [ -n "$pointers" ]; then
+            echo "$pointers" | while read -r f; do echo "::error file=Packages/com.raventween.core/${f#./}::stored as a Git LFS pointer"; done
+            exit 1
+          fi
 
   test:
     name: Unity ${{ matrix.unityVersion }}

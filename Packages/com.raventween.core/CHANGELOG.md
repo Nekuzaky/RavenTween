@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.6.1] - 2026-10-08
+
+### Fixed
+- Installing from the Git URL on a machine without Git LFS (common on Linux) imported the editor icons as text files: Unity logged "Could not create asset from Packages/com.raventween.core/Editor/Icons/… File could not be read" for every icon. The package's images are now regular Git files, and CI rejects any Git LFS file in the package.
+
 ## [1.6.0] - 2026-10-08
 
 ### Added
