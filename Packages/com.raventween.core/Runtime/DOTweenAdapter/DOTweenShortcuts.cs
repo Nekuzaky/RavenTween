@@ -1,11 +1,23 @@
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace RavenTween.DOTweenAdapter {
     /// <summary>DOTween's shortcut extensions (DOMove, DOFade, …), running on RavenTween.</summary>
     public static class DOTweenShortcuts {
         static readonly int ColorId = Shader.PropertyToID("_Color");
+
+        /// <summary>The property Material.color reads: the one marked [MainColor], or _Color when no property is.</summary>
+        static int MainColorId(Material material) {
+            Shader shader = material != null ? material.shader : null;
+            if (shader == null) return ColorId;
+            int count = shader.GetPropertyCount();
+            for (int i = 0; i < count; i++) {
+                if ((shader.GetPropertyFlags(i) & ShaderPropertyFlags.MainColor) != 0) return shader.GetPropertyNameId(i);
+            }
+            return ColorId;
+        }
 
         // ----- Transform -----
 
@@ -86,7 +98,8 @@ namespace RavenTween.DOTweenAdapter {
 
         public static Tween DOColor(this SpriteRenderer target, Color endValue, float duration) { return Raven.Color(target, endValue, duration); }
         public static Tween DOFade(this SpriteRenderer target, float endValue, float duration) { return Raven.Alpha(target, endValue, duration); }
-        public static Tween DOColor(this Material target, Color endValue, float duration) { return Raven.MaterialColor(target, ColorId, endValue, duration); }
+        /// <summary>Tweens the shader's main color, like Material.color: _BaseColor on URP and HDRP Lit, _Color on built-in shaders.</summary>
+        public static Tween DOColor(this Material target, Color endValue, float duration) { return Raven.MaterialColor(target, MainColorId(target), endValue, duration); }
         public static Tween DOColor(this Material target, Color endValue, string property, float duration) { return Raven.MaterialColor(target, property, endValue, duration); }
         public static Tween DOFloat(this Material target, float endValue, string property, float duration) { return Raven.MaterialFloat(target, property, endValue, duration); }
 

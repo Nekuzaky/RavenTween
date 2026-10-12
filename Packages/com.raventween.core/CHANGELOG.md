@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- DOTween adapter: `material.DOColor(color, duration)` wrote `_Color`, which URP and HDRP Lit materials ignore, so the color never changed. It now tweens the shader's main color, like `Material.color` (`_BaseColor` on URP and HDRP Lit, `_Color` on built-in shaders).
+
 ## [1.6.1] - 2026-10-08
 
 ### Fixed

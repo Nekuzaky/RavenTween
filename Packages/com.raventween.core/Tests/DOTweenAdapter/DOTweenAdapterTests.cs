@@ -46,6 +46,22 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void DOColor_OnMaterial_TweensTheMainColor() {
+            Shader shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (shader == null) shader = Shader.Find("HDRP/Lit");
+            if (shader == null) shader = Shader.Find("Standard");
+            if (shader == null) Assert.Ignore("No lit shader in this project.");
+            Material material = new Material(shader) { color = Color.black };
+            try {
+                material.DOColor(Color.red, 1f).SetEase(Ease.Linear);
+                Step(1f);
+                Assert.That(material.color, Is.EqualTo(Color.red), "Material.color reads the main color property (_BaseColor on URP/HDRP Lit).");
+            } finally {
+                Object.DestroyImmediate(material);
+            }
+        }
+
+        [Test]
         public void DOKill_StopsTheTargetsTweens() {
             _go.transform.DOMove(Vector3.one, 1f);
             _go.transform.DOScale(2f, 1f);
