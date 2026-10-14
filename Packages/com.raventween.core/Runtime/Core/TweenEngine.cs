@@ -247,17 +247,54 @@ namespace RavenTween {
             long pass = ++_pass;
             int count = Slots.Count;
             try {
-                for (int i = 0; i < count; i++) {
-                    TweenSlot slot = Slots[i];
-                    if (slot.State == SlotState.Free || slot.OwnedBySequence || slot.BornPass >= pass) { continue; }
-                    if (phase >= 0 && (int)EffectivePhase(slot) != phase) { continue; }
-                    if (StopIfCancelled(slot, i) || slot.State != SlotState.Running) { continue; }
-                    float delta = Sanitize((slot.UseUnscaledTime ? unscaledDelta : scaledDelta) * TimeScale * slot.TimeScale);
-                    StepRootGuarded(slot, i, delta);
+                // One protected region for the whole pass (instead of one per tween): when a tween
+                // throws, it is stopped and the pass resumes with the next one.
+                int next = 0;
+                while (next < count) {
+                    try {
+                        next = StepRange(next, count, phase, pass, scaledDelta, unscaledDelta);
+                    } catch (Exception exception) {
+                        StopFailedTween(exception);
+                        next = _stepping + 1;
+                    }
                 }
             } finally {
                 _processing = false;
                 _sequenceDepth = 0;
+            }
+        }
+
+        // The tween being stepped, so that after an exception the pass knows which one threw.
+        static int _stepping;
+        static uint _steppingVersion;
+
+        // Steps the root tweens from index first on and returns count once done.
+        static int StepRange(int first, int count, int phase, long pass, float scaledDelta, float unscaledDelta) {
+            _stepping = first;
+            _steppingVersion = 0;
+            for (int i = first; i < count; i++) {
+                TweenSlot slot = Slots[i];
+                _stepping = i;
+                _steppingVersion = slot.Version;
+                if (slot.State == SlotState.Free || slot.OwnedBySequence || slot.BornPass >= pass) { continue; }
+                if (phase >= 0 && (int)EffectivePhase(slot) != phase) { continue; }
+                if (StopIfCancelled(slot, i) || slot.State != SlotState.Running) { continue; }
+                float delta = Sanitize((slot.UseUnscaledTime ? unscaledDelta : scaledDelta) * TimeScale * slot.TimeScale);
+                StepRoot(slot, i, delta);
+            }
+            return count;
+        }
+
+        // One misbehaving tween (throwing ease, wrong target type) is logged and stopped;
+        // it never stops the rest of the engine.
+        static void StopFailedTween(Exception exception) {
+            int index = _stepping;
+            _sequenceDepth = 0;
+            Debug.LogException(exception);
+            TweenSlot slot = Slots[index];
+            if (IsLive(slot, _steppingVersion)) {
+                Debug.LogError("RavenTween: a tween threw an exception and was stopped.");
+                KillInternal(slot, index, false);
             }
         }
 
@@ -267,22 +304,6 @@ namespace RavenTween {
             if (!slot.HasCancellation || !slot.Cancellation.IsCancellationRequested) { return false; }
             KillInternal(slot, index, true);
             return true;
-        }
-
-        // One misbehaving tween (throwing ease, wrong target type) is logged and stopped;
-        // it never stops the rest of the engine.
-        static void StepRootGuarded(TweenSlot slot, int index, float delta) {
-            uint version = slot.Version;
-            try {
-                StepRoot(slot, index, delta);
-            } catch (Exception exception) {
-                _sequenceDepth = 0;
-                Debug.LogException(exception);
-                if (IsLive(slot, version)) {
-                    Debug.LogError("RavenTween: a tween threw an exception and was stopped.");
-                    KillInternal(slot, index, false);
-                }
-            }
         }
 
         static void LogTargetDestroyed(TweenSlot slot) {
@@ -471,7 +492,7 @@ namespace RavenTween {
             return t;
         }
 
-        // Setters and eases run unguarded: an exception stops the tween (see StepRootGuarded)
+        // Setters and eases run unguarded: an exception stops the tween (see StopFailedTween)
         // instead of being logged again every frame. User callbacks are contained.
         // Each piece of user code may stop this tween and reuse its slot at once: the slot is
         // checked again before the next one runs.

@@ -113,6 +113,21 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void ThrowingTween_InTheMiddle_OthersStepInTheSamePass() {
+            LogAssert.ignoreFailingMessages = true;
+            float before = -1f, after = -1f;
+            Raven.Value(0f, 10f, 1f).Ease(Ease.Linear).OnUpdate(x => before = x);
+            Tween failing = Raven.Value(0f, 1f, 1f).Ease(x => throw new InvalidOperationException("boom"));
+            Raven.Value(0f, 10f, 1f).Ease(Ease.Linear).OnUpdate(x => after = x);
+            Step(0.5f);
+            Assert.That(before, Is.EqualTo(5f).Within(1e-3f), "The tween before the failing one stepped.");
+            Assert.That(after, Is.EqualTo(5f).Within(1e-3f), "The tween after the failing one stepped in the same pass.");
+            Assert.That(failing.IsAlive, Is.False, "Only the failing tween is stopped.");
+            Step(0.5f);
+            Assert.That(after, Is.EqualTo(10f).Within(1e-3f));
+        }
+
+        [Test]
         public void TemplateWithWrongTarget_IsRejected_NotCrashing() {
             var template = ScriptableObject.CreateInstance<TweenTemplate>();
             template.property = PropertyKind.CanvasGroupAlpha;

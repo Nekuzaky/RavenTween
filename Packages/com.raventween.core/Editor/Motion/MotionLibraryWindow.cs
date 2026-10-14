@@ -95,10 +95,12 @@ namespace RavenTween.Editor {
             Repaint();
         }
 
-        // The card animates at 30 frames per second while the window is on screen.
+        // The card animates at 30 frames per second while the window is in use, and slowly
+        // (6 per second) when it just sits in the layout, to keep the editor light.
         void Animate() {
             double now = EditorApplication.timeSinceStartup;
-            if (now - _lastFrame < FrameInterval) { return; }
+            bool inUse = focusedWindow == this || mouseOverWindow == this;
+            if (now - _lastFrame < (inUse ? FrameInterval : FrameInterval * 5.0)) { return; }
             _lastFrame = now;
             Repaint();
         }
