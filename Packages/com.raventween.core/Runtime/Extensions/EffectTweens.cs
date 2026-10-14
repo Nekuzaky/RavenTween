@@ -70,6 +70,7 @@ namespace RavenTween {
             slot.EffectStrength = strength;
             slot.EffectFrequency = Mathf.Max(frequency, 0.01f) * Mathf.Max(duration, 0.0001f);
             slot.EffectSeed = TweenEngine.NextSeed();
+            TweenEngine.RegisterEffect(tween.Index);
             return tween;
         }
     }

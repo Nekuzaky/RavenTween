@@ -112,6 +112,19 @@ namespace RavenTween {
         /// </summary>
         public static void SetCapacity(int capacity) { TweenEngine.EnsureCapacity(Mathf.Max(capacity, 0)); }
 
+        /// <summary>
+        /// Advances every tween and sequence by <paramref name="deltaTime"/> seconds right away,
+        /// whatever its update phase and whether it uses scaled or unscaled time (Time.timeScale
+        /// is not applied; <see cref="TimeScale"/> and per-tween time scales are). For editor tools,
+        /// frame-by-frame recording and tests: it also works outside Play Mode, where nothing steps
+        /// tweens otherwise. In Play Mode tweens keep advancing on their own as well. A call made
+        /// from a tween callback while tweens are updating is ignored.
+        /// </summary>
+        public static void Step(float deltaTime) {
+            Debug.Assert(deltaTime >= 0f, "Step needs a non-negative delta time.");
+            TweenEngine.Process(deltaTime, deltaTime);
+        }
+
         // ----- Time scale tweens -----
 
         static readonly object TimeScaleTarget = new object();

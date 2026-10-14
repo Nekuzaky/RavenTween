@@ -71,6 +71,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `PauseAll(object target = null)`, `ResumeAll(object target = null)` | Pause or resume, for one target or everything. Return the count. |
 | `CountTweens(object target)` | Live tweens animating `target`. |
 | `SetCapacity(int)` | Pre-create pooled slots. |
+| `Step(float deltaTime)` | Advance every tween now, in any phase, also outside Play Mode. |
 
 ---
 

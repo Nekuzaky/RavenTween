@@ -55,6 +55,76 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void NewEffect_ReplacesOnlyTheSameTargetAndProperty() {
+            var other = new GameObject("other-effect-target");
+            try {
+                Tween first = Raven.ShakePosition(_go.transform, Vector3.one, 1f);
+                Tween otherTarget = Raven.ShakePosition(other.transform, Vector3.one, 1f);
+                Tween otherProperty = Raven.PunchScale(_go.transform, Vector3.one, 1f);
+                Step(0.1f);
+                Tween second = Raven.ShakePosition(_go.transform, Vector3.one, 1f);
+                Assert.That(first.IsAlive, Is.False, "The earlier shake on the same property is replaced.");
+                Assert.That(second.IsAlive, Is.True);
+                Assert.That(otherTarget.IsAlive, Is.True, "Another target keeps its shake.");
+                Assert.That(otherProperty.IsAlive, Is.True, "Another property keeps its punch.");
+            } finally {
+                Object.DestroyImmediate(other);
+            }
+        }
+
+        [Test]
+        public void NewEffect_LeavesAnEffectInsideASequence() {
+            Sequence sequence = Raven.Sequence().Chain(Raven.ShakePosition(_go.transform, Vector3.one, 1f));
+            Step(0.1f);
+            Raven.ShakePosition(_go.transform, Vector3.one, 1f);
+            Assert.That(sequence.IsAlive, Is.True);
+            Assert.That(Raven.CountTweens(_go.transform), Is.EqualTo(1), "Only the standalone shake counts as a root tween.");
+        }
+
+        [Test]
+        public void NewEffect_IgnoresAReusedSlot() {
+            Raven.ShakePosition(_go.transform, Vector3.one, 0.2f);
+            Step(0.1f, 3);
+            Tween move = Raven.Position(_go.transform, Vector3.one, 1f);
+            Tween shake = Raven.ShakePosition(_go.transform, Vector3.one, 0.5f);
+            Assert.That(move.IsAlive, Is.True, "A finished shake's slot reused by another tween is not taken over.");
+            Assert.That(shake.IsAlive, Is.True);
+        }
+
+        [Test]
+        public void ManyEffects_EachRetriggerRestsAtItsOrigin() {
+            const int Count = 64;
+            var targets = new GameObject[Count];
+            try {
+                for (int i = 0; i < Count; i++) {
+                    targets[i] = new GameObject("effect-" + i);
+                    targets[i].transform.localPosition = new Vector3(i, 0f, 0f);
+                    Raven.ShakePosition(targets[i].transform, Vector3.one, 0.5f);
+                }
+                Step(0.05f, 2);
+                for (int i = 0; i < Count; i++) { Raven.ShakePosition(targets[i].transform, Vector3.one, 0.5f); }
+                Assert.That(Raven.AliveCount, Is.EqualTo(Count), "Each retrigger replaces its own shake.");
+                Step(0.05f, 20);
+                for (int i = 0; i < Count; i++) {
+                    Assert.That(Vector3.Distance(targets[i].transform.localPosition, new Vector3(i, 0f, 0f)), Is.LessThan(1e-4f));
+                }
+            } finally {
+                for (int i = 0; i < Count; i++) {
+                    if (targets[i] != null) { Object.DestroyImmediate(targets[i]); }
+                }
+            }
+        }
+
+        [Test]
+        public void RavenStep_AdvancesEveryPhase() {
+            Raven.Position(_go.transform, new Vector3(2f, 0f, 0f), 1f).Ease(Ease.Linear);
+            Raven.Scale(_go.transform, Vector3.one * 3f, 1f).Ease(Ease.Linear).UpdateIn(UpdatePhase.FixedUpdate);
+            Raven.Step(0.5f);
+            Assert.That(_go.transform.position.x, Is.EqualTo(1f).Within(1e-4f));
+            Assert.That(_go.transform.localScale.x, Is.EqualTo(2f).Within(1e-4f));
+        }
+
+        [Test]
         public void Complete_OnEffect_RestoresOrigin() {
             _go.transform.localPosition = Vector3.zero;
             Tween tween = Raven.ShakePosition(_go.transform, Vector3.one * 2f, 1f);

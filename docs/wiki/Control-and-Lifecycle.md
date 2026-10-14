@@ -104,6 +104,19 @@ int moving = Raven.CountTweens(player.transform);
 
 The target can be any component or material a tween animates, the target of a custom tween, or a **GameObject** — which covers the tweens of all its components. Each call returns how many tweens it affected.
 
+### Stepping by hand
+
+`Raven.Step(deltaTime)` advances every tween and sequence by that many seconds, right away, whatever their update phase. It works outside Play Mode too, which makes it the tool for editor previews, frame-by-frame recording and tests:
+
+```csharp
+for (int frame = 0; frame < 120; frame++) {
+    Raven.Step(1f / 60f);
+    CaptureFrame(frame);
+}
+```
+
+`Time.timeScale` is not applied (`Raven.TimeScale` and per-tween time scales are). In Play Mode tweens keep advancing on their own as well.
+
 ### Dead handles are safe
 
 A `Tween` handle is a 2-number struct: a slot index and a version. When the tween ends, the version moves on, so an old handle can never touch a tween that later reuses the same slot. Every method on a dead handle does nothing.

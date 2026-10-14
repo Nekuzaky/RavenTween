@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 using UnityEngine.LowLevel;
 using UnityEngine.PlayerLoop;
@@ -30,6 +31,9 @@ namespace RavenTween {
 
         static readonly List<TweenSlot> Slots = new List<TweenSlot>(InitialCapacity);
         static readonly Stack<int> FreeIndices = new Stack<int>(InitialCapacity);
+        // Standalone shake / punch per target and property, so starting one finds the effect it
+        // replaces without scanning every slot. Validated on lookup, removed on release.
+        static readonly Dictionary<EffectKey, int> Effects = new Dictionary<EffectKey, int>(InitialCapacity);
         static bool _processing;
         // Increases on every update or global stop; a slot born at or after a pass started is
         // skipped by that pass, even when a callback inside it started another pass.
@@ -56,6 +60,7 @@ namespace RavenTween {
         static void DomainReset() {
             Slots.Clear();
             FreeIndices.Clear();
+            Effects.Clear();
             TimeScale = 1f;
             Phase = UpdatePhase.Update;
             _processing = false;
@@ -951,6 +956,7 @@ namespace RavenTween {
                     }
                     currentSlot.Items.Clear();
                 }
+                if (currentSlot.Effect != EffectKind.None) { UnregisterEffect(currentSlot, current); }
                 currentSlot.ClearReferences();
                 currentSlot.State = SlotState.Free;
                 currentSlot.Version++;
@@ -1167,18 +1173,46 @@ namespace RavenTween {
         /// </summary>
         public static bool TryTakeOverEffect(UnityEngine.Object target, PropertyKind property, out TweenValue rest) {
             rest = default;
-            bool found = false;
-            for (int i = 0; i < Slots.Count; i++) {
-                TweenSlot slot = Slots[i];
-                if (slot.State == SlotState.Free || slot.Effect == EffectKind.None) { continue; }
-                if (slot.UnityTarget != target || slot.Property != property || slot.OwnedBySequence) { continue; }
-                if (slot.FromCaptured && !found) {
-                    rest = slot.StartValue;
-                    found = true;
-                }
-                KillInternal(slot, i, true);
-            }
+            var key = new EffectKey(target, property);
+            if (!Effects.TryGetValue(key, out int index)) { return false; }
+            Effects.Remove(key);
+            TweenSlot slot = Slots[index];
+            // The entry may be stale: the effect joined a sequence, or its slot was reused.
+            if (slot.State == SlotState.Free || slot.Effect == EffectKind.None || slot.OwnedBySequence) { return false; }
+            if (!ReferenceEquals(slot.UnityTarget, target) || slot.Property != property) { return false; }
+            bool found = slot.FromCaptured;
+            if (found) { rest = slot.StartValue; }
+            KillInternal(slot, index, true);
             return found;
+        }
+
+        /// <summary>Makes a new effect the one the next shake or punch on the same target and property replaces.</summary>
+        public static void RegisterEffect(int index) {
+            TweenSlot slot = Slots[index];
+            Debug.Assert(slot.Effect != EffectKind.None, "Only effects are registered.");
+            Debug.Assert(slot.UnityTarget != null, "Effects are registered with a live target.");
+            Effects[new EffectKey(slot.UnityTarget, slot.Property)] = index;
+        }
+
+        static void UnregisterEffect(TweenSlot slot, int index) {
+            if (ReferenceEquals(slot.UnityTarget, null)) { return; }
+            var key = new EffectKey(slot.UnityTarget, slot.Property);
+            if (Effects.TryGetValue(key, out int registered) && registered == index) { Effects.Remove(key); }
+        }
+
+        // Compares targets by reference: Unity's == operator is not needed to match an instance.
+        readonly struct EffectKey : IEquatable<EffectKey> {
+            readonly UnityEngine.Object _target;
+            readonly PropertyKind _property;
+
+            public EffectKey(UnityEngine.Object target, PropertyKind property) {
+                _target = target;
+                _property = property;
+            }
+
+            public bool Equals(EffectKey other) { return ReferenceEquals(_target, other._target) && _property == other._property; }
+            public override bool Equals(object obj) { return obj is EffectKey other && Equals(other); }
+            public override int GetHashCode() { return (RuntimeHelpers.GetHashCode(_target) * 397) ^ (int)_property; }
         }
 
         // ----- Debug introspection (used by editor tooling) -----
