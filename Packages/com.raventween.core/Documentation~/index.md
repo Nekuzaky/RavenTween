@@ -1,6 +1,6 @@
 # RavenTween Documentation
 
-RavenTween is a code-first tweening engine for Unity with zero steady-state GC allocation, struct handles, sequences, async/await and an optional inspector workflow.
+RavenTween is a tweening engine for Unity with zero steady-state GC allocation, struct handles, sequences and async/await, driven from code or from the Inspector. Its no-code layer goes from 43 ready-made motions (**Tools ▸ RavenTween ▸ Motion Library**) to templates and a visual Sequence Editor. The full manual is at https://nekuzaky.com/docs/raventween.
 
 Start with the [README](../README.md) for installation and the API tour.
 
@@ -15,6 +15,8 @@ Raven (static API)            Public entry: Value, Delay, Sequence, property twe
         └── TweenValue        Tagged union (Vector4 + kind). No boxing.
 Tween / Sequence (structs)    Handles: index + version. Dead handles are safe no-ops.
 Templates                     TweenTemplate (SO), RavenAnimator, RavenSequencePlayer.
+Motions                       MotionPreset → MotionBuilder → an ordinary Sequence.
+                              RavenMotion, RavenStagger, RavenButtonFeel components.
 ```
 
 Extensions plug into the same slot model without new allocation paths:
@@ -22,6 +24,7 @@ Extensions plug into the same slot model without new allocation paths:
 - **Effects** (shake / punch) store strength, frequency and a noise seed in the slot and evaluate an offset around the captured start value; the decay reaches exactly zero at the end.
 - **Custom tweens** store the target, the user delegate and a cached typed invoker (`CustomInvokers<T>`, created once per closed generic type), so dispatch never boxes or allocates.
 - **TextMeshPro** support is a separate assembly gated by `versionDefines`; it only compiles when TMP is present.
+- **Motions** are not a new kind of tween: a preset is turned into a sequence of ordinary property tweens around a captured rest pose (`MotionRest`), so they share the engine's zero-allocation playback, seeking and Edit Mode preview.
 
 Key invariants:
 
@@ -31,7 +34,7 @@ Key invariants:
 
 ## Determinism and testing
 
-The engine advances through a single internal `Process(scaledDelta, unscaledDelta)` entry point. The test suite calls it directly with fixed deltas, which makes every core behavior reproducible independent of frame rate. See `Tests/` for examples.
+The engine advances through a single `Process(scaledDelta, unscaledDelta)` entry point, public as `Raven.Step(deltaTime)` (and `Raven.Step(deltaTime, phase)` for `UpdatePhase.Manual` tweens). The test suite calls it with fixed deltas, which makes every behavior reproducible independent of frame rate. See `Tests/` for examples.
 
 ## Platform notes
 
