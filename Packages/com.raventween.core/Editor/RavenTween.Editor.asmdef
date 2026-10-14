@@ -24,6 +24,11 @@
             "name": "com.unity.modules.physics2d",
             "expression": "1.0.0",
             "define": "RAVEN_MODULE_PHYSICS2D"
+        },
+        {
+            "name": "com.unity.modules.particlesystem",
+            "expression": "1.0.0",
+            "define": "RAVEN_MODULE_PARTICLES"
         }
     ],
     "noEngineReferences": false

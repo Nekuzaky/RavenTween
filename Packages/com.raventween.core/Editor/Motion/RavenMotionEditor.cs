@@ -26,6 +26,7 @@ namespace RavenTween.Editor {
             new GUIContent("Manually (event or script)", "Call Play() from a UnityEvent, such as another button's On Click.")
         };
 
+        SerializedProperty _style;
         SerializedProperty _preset;
         SerializedProperty _trigger;
         SerializedProperty _target;
@@ -35,11 +36,14 @@ namespace RavenTween.Editor {
         SerializedProperty _distance;
         SerializedProperty _repeat;
         SerializedProperty _unscaled;
+        SerializedProperty _color;
+        SerializedProperty _thenPlay;
         SerializedProperty _filterTag;
         SerializedProperty _whenFinished;
         SerializedProperty _onComplete;
 
         void OnEnable() {
+            _style = serializedObject.FindProperty("style");
             _preset = serializedObject.FindProperty("preset");
             _trigger = serializedObject.FindProperty("trigger");
             _target = serializedObject.FindProperty("target");
@@ -50,6 +54,8 @@ namespace RavenTween.Editor {
             _distance = settings.FindPropertyRelative("distance");
             _repeat = settings.FindPropertyRelative("repeat");
             _unscaled = settings.FindPropertyRelative("useUnscaledTime");
+            _color = settings.FindPropertyRelative("color");
+            _thenPlay = serializedObject.FindProperty("thenPlay");
             _filterTag = serializedObject.FindProperty("filterTag");
             _whenFinished = serializedObject.FindProperty("whenFinished");
             _onComplete = serializedObject.FindProperty("onComplete");
@@ -61,13 +67,17 @@ namespace RavenTween.Editor {
 
         public override void OnInspectorGUI() {
             serializedObject.Update();
-            var preset = (MotionPreset)_preset.intValue;
-            DrawPreset(preset);
+            var style = _style.objectReferenceValue as MotionStyle;
+            var preset = style != null ? style.Preset : (MotionPreset)_preset.intValue;
+            EditorGUILayout.PropertyField(_style, new GUIContent("Style (optional)", "A saved Motion Style replaces the motion and feel below. Shared by every object that uses it."));
+            if (style != null && !_style.hasMultipleDifferentValues) { DrawStyleSummary(style); }
+            else { DrawPreset(preset); }
             DrawTrigger();
             EditorGUILayout.PropertyField(_target, new GUIContent("Animate", "Object to animate. Empty = this object."));
             EditorGUILayout.Space(4f);
-            DrawFeel(preset);
+            if (style == null) { DrawFeel(preset); }
             DrawFinish(preset);
+            EditorGUILayout.PropertyField(_thenPlay, new GUIContent("Then Play", "Another Raven Motion to start when this one ends, e.g. Pop In then Float. Set its start to Manually."));
             EditorGUILayout.PropertyField(_onComplete);
             serializedObject.ApplyModifiedProperties();
             DrawWarnings(preset);
@@ -75,6 +85,15 @@ namespace RavenTween.Editor {
         }
 
         // ----- Sections -----
+
+        static void DrawStyleSummary(MotionStyle style) {
+            EditorGUILayout.BeginHorizontal();
+            EditorGUILayout.LabelField(MotionLibrary.DisplayName(style.Preset) + "  ·  " + MotionLibrary.Category(style.Preset), EditorStyles.boldLabel);
+            if (GUILayout.Button("Edit Style", EditorStyles.miniButton, GUILayout.Width(80f))) { Selection.activeObject = style; }
+            EditorGUILayout.EndHorizontal();
+            string notes = string.IsNullOrEmpty(style.Notes) ? MotionLibrary.Description(style.Preset) : style.Notes;
+            EditorGUILayout.LabelField(notes, EditorStyles.wordWrappedMiniLabel);
+        }
 
         void DrawPreset(MotionPreset preset) {
             EditorGUILayout.LabelField("Motion", EditorStyles.boldLabel);
@@ -120,6 +139,9 @@ namespace RavenTween.Editor {
             if (MotionLibrary.Category(preset) == MotionCategory.Attention) {
                 EditorGUILayout.PropertyField(_repeat, new GUIContent("Repeat", "How many times in a row."));
             }
+            if (MotionLibrary.NeedsColor(preset)) {
+                EditorGUILayout.PropertyField(_color, new GUIContent("Color", "The color it flashes: red for damage, yellow for warnings, white for highlights."));
+            }
             EditorGUILayout.PropertyField(_unscaled, new GUIContent("Play While Paused", "Keep playing when Time.timeScale is 0 (pause menus)."));
         }
 
@@ -145,10 +167,17 @@ namespace RavenTween.Editor {
         void DrawWarnings(MotionPreset preset) {
             if (targets.Length != 1) { return; }
             var motion = (RavenMotion)target;
+            preset = motion.EffectivePreset;
             Transform animated = motion.AnimatedTransform;
             MotionTarget resolved = MotionTarget.Resolve(animated);
             var trigger = motion.Trigger;
             if (MotionLibrary.NeedsAlpha(preset) && !resolved.HasAlpha) { WarnNoAlpha(animated); }
+            if (MotionLibrary.NeedsColor(preset) && !resolved.HasColor) {
+                EditorGUILayout.HelpBox("Nothing here has a color (an Image, a Text, a Sprite Renderer or a renderer whose material has _BaseColor or _Color). The motion pulses instead.", MessageType.Warning);
+            }
+            if (motion.ThenPlay != null && motion.ThenPlay != motion && motion.ThenPlay.Trigger != MotionTrigger.Manual) {
+                EditorGUILayout.HelpBox("'" + motion.ThenPlay.EffectivePreset + "' also starts on its own trigger. Set its start to Manually so it only plays after this one.", MessageType.Info);
+            }
             if (MotionLibrary.MovesPosition(preset) && resolved.Rect != null && animated.parent != null && animated.parent.GetComponent<LayoutGroup>() != null) {
                 EditorGUILayout.HelpBox("This object sits in a Layout Group, which places it every time the layout changes. Prefer motions that don't move it (fades, pops, pulses).", MessageType.Info);
             }
@@ -264,7 +293,7 @@ namespace RavenTween.Editor {
             var motion = (RavenMotion)target;
             var list = new List<Transform>(targets.Length);
             for (int i = 0; i < targets.Length; i++) { list.Add(((RavenMotion)targets[i]).AnimatedTransform); }
-            MotionPreview.Play(this, list, motion.Preset, motion.Settings, 0f);
+            MotionPreview.Play(this, list, motion.EffectivePreset, motion.EffectiveSettings, 0f);
         }
 
         void ForEachMotion(System.Action<RavenMotion> action) {

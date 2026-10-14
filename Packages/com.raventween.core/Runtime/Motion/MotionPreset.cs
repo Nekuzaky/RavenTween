@@ -51,6 +51,7 @@ namespace RavenTween {
         Squash = 79,
         Nod = 80,
         HeadShake = 81,
+        Tint = 82,
 
         // Loops: play until stopped, centered on the rest pose.
         Float = 100,
@@ -121,10 +122,15 @@ namespace RavenTween {
         [Min(1)] public int repeat;
         [Tooltip("Keep playing while the game is paused (Time.timeScale = 0).")]
         public bool useUnscaledTime;
+        [Tooltip("Color of the Tint motion (damage red, warning yellow, highlight white).")]
+        public Color color;
+
+        /// <summary>The Tint color used when none is set: a damage red.</summary>
+        public static readonly Color DefaultTint = new Color(1f, 0.22f, 0.2f, 1f);
 
         /// <summary>Automatic timing and distance, full intensity, no delay, plays once.</summary>
         public static MotionSettings Default {
-            get { return new MotionSettings { duration = 0f, intensity = 1f, delay = 0f, distance = 0f, repeat = 1, useUnscaledTime = false }; }
+            get { return new MotionSettings { duration = 0f, intensity = 1f, delay = 0f, distance = 0f, repeat = 1, useUnscaledTime = false, color = DefaultTint }; }
         }
     }
 
@@ -140,7 +146,7 @@ namespace RavenTween {
             MotionPreset.FlipOut,
             MotionPreset.Pulse, MotionPreset.Bounce, MotionPreset.Shake, MotionPreset.Wobble, MotionPreset.Jello,
             MotionPreset.Heartbeat, MotionPreset.Tada, MotionPreset.Flash, MotionPreset.Swing, MotionPreset.Squash,
-            MotionPreset.Nod, MotionPreset.HeadShake,
+            MotionPreset.Nod, MotionPreset.HeadShake, MotionPreset.Tint,
             MotionPreset.Float, MotionPreset.Breathe, MotionPreset.Spin, MotionPreset.Sway, MotionPreset.Rock,
             MotionPreset.Blink, MotionPreset.Throb, MotionPreset.Wiggle
         };
@@ -178,6 +184,11 @@ namespace RavenTween {
         public static bool NeedsAlpha(MotionPreset preset) {
             return preset == MotionPreset.FadeIn || preset == MotionPreset.FadeOut
                 || preset == MotionPreset.Flash || preset == MotionPreset.Blink;
+        }
+
+        /// <summary>True when the preset changes the object's color and needs a Graphic, a Sprite Renderer or a renderer with a color.</summary>
+        public static bool NeedsColor(MotionPreset preset) {
+            return preset == MotionPreset.Tint;
         }
 
         /// <summary>True when the preset moves the object, which a parent Layout Group would fight.</summary>
@@ -257,6 +268,7 @@ namespace RavenTween {
                 case MotionPreset.Squash: return "Squashes flat and springs back. Impacts and presses.";
                 case MotionPreset.Nod: return "Bobs down twice, like nodding 'yes'.";
                 case MotionPreset.HeadShake: return "Turns side to side, like shaking 'no'.";
+                case MotionPreset.Tint: return "Flashes a color and fades back. Damage, warnings, highlights.";
                 case MotionPreset.Float: return "Drifts gently up and down. Pickups, idle objects, menus.";
                 case MotionPreset.Breathe: return "Slowly grows and shrinks a little, as if breathing.";
                 case MotionPreset.Spin: return "Turns round and round at a steady speed.";

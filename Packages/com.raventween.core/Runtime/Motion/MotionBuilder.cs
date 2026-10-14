@@ -108,6 +108,7 @@ namespace RavenTween {
             public float Duration;
             public float Intensity;
             public float Distance;
+            public Color Tint;
             public MotionChannels Channels;
             // The pose at time 0, applied at once for entrances so a delay never shows the object.
             public MotionChannels StartChannels;
@@ -127,6 +128,8 @@ namespace RavenTween {
                 Start = rest
             };
             c.Distance = (settings.distance > 0f ? settings.distance : target.AutoDistance(rest)) * c.Intensity;
+            // A color never set (an old serialized motion, or default(MotionSettings)) means the default red.
+            c.Tint = settings.color.a > 0f ? settings.color : MotionSettings.DefaultTint;
             MotionCategory category = MotionLibrary.Category(preset);
             Compose(ref c, preset);
             if (category == MotionCategory.Entrance) { c.Start.Apply(target, c.StartChannels); }
@@ -276,6 +279,7 @@ namespace RavenTween {
                 case MotionPreset.Swing: Keys(ref c, Channel.Rotation, SwingTimes, SwingTilt, k, Ease.InOutSine); break;
                 case MotionPreset.Squash: Squash(ref c); break;
                 case MotionPreset.Nod: Keys(ref c, Channel.Position, Even5, NodMove, small, Ease.InOutSine); break;
+                case MotionPreset.Tint: Tint(ref c); break;
                 default: // HeadShake
                     Keys(ref c, Channel.Rotation, HeadShakeTimes, HeadShakeTurn, k, Ease.InOutSine);
                     Keys(ref c, Channel.Position, HeadShakeTimes, HeadShakeMove, c.Distance, Ease.InOutSine);
@@ -292,6 +296,20 @@ namespace RavenTween {
         static void Bounce(ref Context c) {
             Keys(ref c, Channel.Position, BounceTimes, BounceMove, c.Distance * 0.35f, Ease.OutQuad, Ease.InQuad);
             Keys(ref c, Channel.Scale, LandTimes, LandScale, c.Intensity, Ease.OutQuad);
+        }
+
+        // Up to the tint quickly, back to the rest color slowly. Without anything to color, a pulse.
+        static void Tint(ref Context c) {
+            if (!c.Target.HasColor) {
+                Keys(ref c, Channel.Scale, Half3, PulseScale, 0.12f * c.Intensity, Ease.InOutQuad);
+                return;
+            }
+            Color rest = c.Rest.Color;
+            Color peak = Color.Lerp(rest, c.Tint, Mathf.Clamp01(c.Intensity));
+            peak.a = rest.a;
+            float rise = c.Duration * 0.15f;
+            Recolor(ref c, rest, peak, 0f, rise, Ease.OutQuad);
+            Recolor(ref c, peak, rest, rise, c.Duration - rise, Ease.InOutSine);
         }
 
         static void Squash(ref Context c) {
@@ -402,6 +420,16 @@ namespace RavenTween {
             c.Sequence.Insert(start, Raven.Scale(c.Target.Transform, to, length).From(from).Ease(ease));
             c.Channels |= MotionChannels.Scale;
             if (start <= 0f) { c.Start.Scale = from; c.StartChannels |= MotionChannels.Scale; }
+        }
+
+        static void Recolor(ref Context c, Color from, Color to, float start, float length, Ease ease) {
+            Tween tween;
+            if (c.Target.Graphic != null) { tween = Raven.Color(c.Target.Graphic, to, length); }
+            else if (c.Target.Sprite != null) { tween = Raven.Color(c.Target.Sprite, to, length); }
+            else { tween = Raven.PropertyBlockColor(c.Target.Renderer, c.Target.ColorId, to, length); }
+            c.Sequence.Insert(start, tween.From(from).Ease(ease));
+            c.Channels |= MotionChannels.Color;
+            if (start <= 0f) { c.Start.Color = from; c.StartChannels |= MotionChannels.Color; }
         }
 
         // Alpha values are fractions of the rest alpha, so a half-transparent panel fades to its own level.

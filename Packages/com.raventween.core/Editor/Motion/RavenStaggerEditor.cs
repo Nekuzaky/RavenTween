@@ -15,13 +15,13 @@ namespace RavenTween.Editor {
         public override void OnInspectorGUI() {
             DrawDefaultInspector();
             var stagger = (RavenStagger)target;
-            if (stagger.Preset != MotionPreset.None) {
-                EditorGUILayout.LabelField(MotionLibrary.Description(stagger.Preset), EditorStyles.wordWrappedMiniLabel);
+            if (stagger.EffectivePreset != MotionPreset.None) {
+                EditorGUILayout.LabelField(MotionLibrary.Description(stagger.EffectivePreset), EditorStyles.wordWrappedMiniLabel);
             }
             if (stagger.transform.childCount == 0) {
                 EditorGUILayout.HelpBox("Raven Stagger animates the children of this object. Add some children first.", MessageType.Info);
             }
-            if (MotionLibrary.Category(stagger.Preset) == MotionCategory.Loop) {
+            if (MotionLibrary.Category(stagger.EffectivePreset) == MotionCategory.Loop) {
                 EditorGUILayout.HelpBox("Loops start one after another and then keep going: a wave. The preview shows the first child.", MessageType.None);
             }
             EditorGUILayout.Space(6f);
@@ -45,7 +45,7 @@ namespace RavenTween.Editor {
                 Transform child = root.GetChild(i);
                 if (child.gameObject.activeInHierarchy) { _children.Add(child); }
             }
-            MotionPreview.Play(this, _children, stagger.Preset, stagger.Settings, stagger.Interval);
+            MotionPreview.Play(this, _children, stagger.EffectivePreset, stagger.EffectiveSettings, stagger.Interval);
         }
 
         static bool Button(Texture icon, string label) {

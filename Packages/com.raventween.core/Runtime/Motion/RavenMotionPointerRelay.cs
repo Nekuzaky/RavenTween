@@ -4,15 +4,15 @@ using UnityEngine.EventSystems;
 
 namespace RavenTween {
     /// <summary>
-    /// Forwards pointer events to the Raven Motions of its GameObject. Added on demand, only to
-    /// objects that use a pointer trigger: an event handler stops pointer events from reaching
-    /// parent objects, so it must not sit on objects that don't need it.
+    /// Forwards pointer events to the no-code components of its GameObject (Raven Motion, Raven
+    /// Feedback…). Added on demand, only to objects that use a pointer trigger: an event handler
+    /// stops pointer events from reaching parent objects, so it must not sit where it isn't needed.
     /// </summary>
     [AddComponentMenu("")]
     [DisallowMultipleComponent]
     public sealed class RavenMotionPointerRelay : MonoBehaviour,
         IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler {
-        static readonly List<RavenMotion> Motions = new List<RavenMotion>(4);
+        static readonly List<IMotionTriggerable> Listeners = new List<IMotionTriggerable>(4);
 
         void Awake() {
             hideFlags = HideFlags.HideInInspector;
@@ -24,15 +24,16 @@ namespace RavenTween {
         public void OnPointerUp(PointerEventData eventData) { Forward(MotionTrigger.OnPointerUp); }
         public void OnPointerClick(PointerEventData eventData) { Forward(MotionTrigger.OnClick); }
 
+        // A listener may run user code (a feedback's UnityEvent can trigger another pointer
+        // event), so it works on a copy rather than the shared list.
         void Forward(MotionTrigger trigger) {
-            GetComponents(Motions);
-            // Play runs no user code (OnComplete fires later), so the shared list cannot be re-entered.
-            int count = Motions.Count;
-            for (int i = 0; i < count; i++) {
-                RavenMotion motion = Motions[i];
-                if (motion != null && motion.isActiveAndEnabled) { motion.HandleTrigger(trigger); }
+            GetComponents(Listeners);
+            IMotionTriggerable[] copy = Listeners.ToArray();
+            Listeners.Clear();
+            for (int i = 0; i < copy.Length; i++) {
+                var behaviour = copy[i] as Behaviour;
+                if (behaviour != null && behaviour.isActiveAndEnabled) { copy[i].HandleTrigger(trigger); }
             }
-            Motions.Clear();
         }
     }
 }

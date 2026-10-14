@@ -26,17 +26,18 @@ A motion is a complete, tuned animation with a name you can guess: *Slide In Lef
 | Family | What it's for | Motions |
 | :--- | :--- | :--- |
 | **Entrances** | Make something appear. It is hidden at once, then revealed. | Fade In, Pop In, Zoom In, Slide In Left / Right / Up / Down, Drop In, Rise In, Spin In, Flip In, Elastic In |
-| **Attention** | Make something noticed, then settle back. | Pulse, Bounce, Shake, Wobble, Jello, Heartbeat, Tada, Flash, Swing, Squash, Nod, Head Shake |
+| **Attention** | Make something noticed, then settle back. | Pulse, Bounce, Shake, Wobble, Jello, Heartbeat, Tada, Flash, Swing, Squash, Nod, Head Shake, Tint (flashes a color: damage red, warning yellow) |
 | **Loops** | Keep something alive while it is on screen. | Float, Breathe, Spin, Sway, Rock, Blink, Throb, Wiggle |
 | **Exits** | Make something disappear. | Fade Out, Pop Out, Zoom Out, Slide Out Left / Right / Up / Down, Fall Out, Sink Out, Spin Out, Flip Out |
 
 ### Motion Library
 
-**Tools ▸ RavenTween ▸ Motion Library** shows every motion on one page, grouped by family, with a search field. Select objects in the Hierarchy and click a motion to watch it on them — select several to see them cascade. **Intensity** and **Duration** sliders tune it live. Then:
+**Tools ▸ RavenTween ▸ Motion Library** shows every motion on one page, grouped by family, with a search field. **Hover** a motion and the animated card at the bottom of the window plays it — no object needed. Select objects in the Hierarchy and **click** a motion to watch it on them — select several to see them cascade. **Intensity** and **Duration** sliders tune it live. Then:
 
 - **Add to selected object** adds a **Raven Motion** with these settings and the chosen start.
 - **Cascade children** adds a **Raven Stagger**: the motion plays on each child, one after another.
-- **Quick add** has one-click setups: **Button Feel**, **Idle Float** and **Pop In On Show**.
+- **Save as style…** saves the motion and its settings as a **Motion Style** asset (see below); saved styles appear at the top of the library under **Your Styles**.
+- **Quick add** has one-click setups: **Button Feel**, **Show / Hide**, **Idle Float** and **Pop In On Show**.
 
 Nothing is changed until you add something: previews always put the objects back.
 
@@ -46,6 +47,7 @@ Nothing is changed until you add something: previews always put the objects back
 
 | Setting | Meaning |
 | :--- | :--- |
+| **Style** | Optional. A saved **Motion Style** replaces the motion and the feel settings, so a whole team shares one tuned animation. |
 | **Motion** | Pick from the grouped menu; a sentence under it says what it looks like. **Browse all motions…** opens the library. |
 | **When** | What starts it: *When enabled*, *When the scene starts*, *On click*, *On hover*, *When the pointer leaves*, *On press*, *On release*, *When something enters / leaves (trigger)*, *On collision*, or *Manually* (from any UnityEvent, such as another button's **On Click** → `RavenMotion.Play`). |
 | **Only Tag** | For triggers and collisions: only objects with this tag count. |
@@ -55,7 +57,9 @@ Nothing is changed until you add something: previews always put the objects back
 | **Distance** | Slides and drops only. *Auto* derives it from the object's size. |
 | **Repeat** | Attention motions only: how many times in a row. |
 | **Play While Paused** | Keep playing when `Time.timeScale` is 0 (pause menus). |
+| **Color** | Tint only: the color it flashes. |
 | **When Finished** | *Deactivate* or *Destroy* the object afterwards — typical after an exit. |
+| **Then Play** | Another Raven Motion to start when this one ends — *Pop In* then *Float*, an entrance then an idle loop. Set the next one to start *Manually*. |
 | **On Complete** | A UnityEvent fired when the motion ends. |
 
 Press **Preview** to see it in the scene outside Play Mode; **Reset** puts the object back. The inspector also catches the usual mistakes and fixes them in one click: a fade on something that can't fade (**Add Canvas Group**), a click trigger without an Event System (**Create Event System**) or without a collider (**Add Box Collider**), a trigger collider that isn't set as a trigger, or a moving motion inside a Layout Group.
@@ -70,6 +74,53 @@ Several Raven Motions can share an object: an entrance plus a hover pulse plus a
 
 **Add Component ▸ RavenTween ▸ Raven Button Feel** makes any button feel alive: it grows a little under the pointer, sinks when pressed and springs back when released. Pick a **Style** — *Subtle*, *Bouncy* (default) or *Juicy* — or *Custom* sizes and timing. It respects the Button's **Interactable** flag and keeps working in pause menus.
 
+### Raven Show Hide
+
+**Add Component ▸ RavenTween ▸ Raven Show Hide** is the one-stop component for panels, popups and menus. Pick a **Show** motion and a **Hide** motion (or Motion Styles), then wire any button's **On Click** to **Show**, **Hide** or **Toggle**. The object is deactivated while hidden (or, with *Deactivate When Hidden* off, kept active but transparent and unclickable through its Canvas Group), always reappears exactly where it was designed, and raises **On Shown** / **On Hidden**. **Start Hidden** hides it when the scene starts; `SetVisible(bool)` shows or hides at once without animation.
+
+### Raven Feedback
+
+**Add Component ▸ RavenTween ▸ Raven Feedback** gives an event its "juice": a list of actions played together, each after its own delay.
+
+| Action | Does |
+| :--- | :--- |
+| **Camera Shake** | Shakes a camera (the main one by default). |
+| **Punch** | A springy scale kick. |
+| **Color Flash** | Flashes a color and fades back (Images, Texts, Sprite Renderers, mesh materials). |
+| **Motion** | Any of the motions above, on any object. |
+| **Sound** | Plays a clip, through an Audio Source or as a one-shot, with a random pitch range so repeats don't sound identical. |
+| **Hit Stop** | Freezes the game for an instant, like a heavy hit (`Time.timeScale` drops, then comes back). |
+| **Particles** | Plays a Particle System. |
+| **Set Active** | Turns an object on or off. |
+| **Event** | Calls anything through a UnityEvent. |
+
+Start it like a Raven Motion — on click, hover, trigger, collision, or **Manually** through `Play()` from any UnityEvent. **Cooldown** stops a burst of hits from stacking. The **Hit**, **Pickup** and **Damage** buttons add ready-made recipes to tweak. Delays are counted in real time, so a hit stop never delays the actions after it.
+
+### Raven Path
+
+**Add Component ▸ RavenTween ▸ Raven Path** moves an object along a path you draw in the Scene view: moving platforms, patrols, flying pickups, camera fly-bys. The path starts where the object stands; drag the numbered points with the move handles, add or remove points from the inspector, and press **Preview** to watch the trip in Edit Mode.
+
+| Setting | Meaning |
+| :--- | :--- |
+| **Closed** | Come back to the start, making a circuit. |
+| **Smooth** | Round the corners into a curve. The object always moves at a constant speed. |
+| **Timing** | *Duration* (the whole trip in seconds) or *Speed* (units per second). |
+| **Loop** | *Once*, *Loop* (start over), or *Back And Forth*. |
+| **Orientation** | *None*, *Face Path* (3D) or *Face Path 2D* (the object's right side leads). |
+
+The path is stored relative to the object, so moving the object moves the whole path.
+
+### Raven Typewriter and Raven Counter
+
+For TextMeshPro texts:
+
+- **Raven Typewriter** reveals the text letter by letter, at **Letters Per Second**, with an optional typing sound every few letters. `Skip()` shows it all at once (a "skip" button); `Play(string)` types a new line.
+- **Raven Counter** counts a number up or down — scores, coins, damage, timers — with a prefix, a suffix, decimals and a punch when it lands. Call `CountTo(value)` or `Add(amount)` from a UnityEvent or a script; it counts from what is shown, even mid-count. It formats through TextMeshPro's allocation-free `SetText`.
+
+### Motion Styles
+
+A **Motion Style** (**Create ▸ RavenTween ▸ Motion Style**, or **Save as style…** in the library) is a motion with its settings saved as an asset — your project's own "Menu Pop In" or "Damage Flash". Raven Motion, Raven Stagger and Raven Show Hide can use a style instead of their own settings; changing the asset changes every object that uses it. Write in **Notes** what it is for, and it shows up in the inspector.
+
 ### From code
 
 The same motions are one line away for programmers:
@@ -78,6 +129,8 @@ The same motions are one line away for programmers:
 Raven.Motion(panel, MotionPreset.SlideInUp);
 coin.PlayMotion(MotionPreset.Float);
 Raven.Motion(icon, MotionPreset.Tada, new MotionSettings { intensity = 1.5f, repeat = 2 });
+menuPopIn.Play(button);                     // a Motion Style asset
+Raven.HitStop(0.05f, 0.08f);                // freeze an instant
 ```
 
 `Raven.Motion` returns an ordinary `Sequence`: await it, chain it, stop it.

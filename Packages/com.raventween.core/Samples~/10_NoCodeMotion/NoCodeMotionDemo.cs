@@ -20,6 +20,7 @@ namespace RavenTweenSamples {
             _font = Resources.GetBuiltinResource<Font>(BuiltinFontName());
             EnsureEventSystem();
             BuildCoin();
+            BuildPlatform();
             Transform canvas = BuildCanvas();
             Text title = MakeText(canvas, "Title", "No code, just motion", 40, new Vector2(0f, 220f));
             // The title rises in when the scene starts.
@@ -61,15 +62,16 @@ namespace RavenTweenSamples {
             stagger.Preset = MotionPreset.PopIn;
             stagger.Interval = 0.08f;
             Button play = MakeButton(rect, "Play");
-            AddMotion(play.gameObject, MotionPreset.Tada, MotionTrigger.OnClick);
+            AddHitFeedback(play.gameObject);
             Button options = MakeButton(rect, "Options");
             AddMotion(options.gameObject, MotionPreset.Jello, MotionTrigger.OnClick);
             Button about = MakeButton(rect, "About");
-            about.onClick.AddListener(() => dialog.SetActive(true));
+            var panel = dialog.GetComponent<RavenShowHide>();
+            about.onClick.AddListener(panel.Toggle);
             menu.SetActive(true);
         }
 
-        // A dialog that slides in when shown and slides out (then hides) when closed.
+        // A dialog shown and hidden by Raven Show Hide: it slides in, and slides out then deactivates.
         GameObject BuildDialog(Transform canvas) {
             var dialog = new GameObject("About Dialog", typeof(Image), typeof(CanvasGroup));
             var rect = (RectTransform)dialog.transform;
@@ -80,12 +82,37 @@ namespace RavenTweenSamples {
             MakeText(rect, "Text", "Raven Motion · Raven Stagger\nRaven Button Feel", 22, new Vector2(0f, 40f));
             Button close = MakeButton(rect, "Close");
             ((RectTransform)close.transform).anchoredPosition = new Vector2(0f, -70f);
-            AddMotion(dialog, MotionPreset.SlideInUp, MotionTrigger.OnEnable);
-            RavenMotion exit = AddMotion(dialog, MotionPreset.SlideOutDown, MotionTrigger.Manual);
-            exit.WhenFinished = MotionFinish.Deactivate;
-            close.onClick.AddListener(exit.Play);
-            dialog.SetActive(false);
+            var panel = dialog.AddComponent<RavenShowHide>();
+            panel.ShowMotion = MotionPreset.SlideInUp;
+            panel.HideMotion = MotionPreset.SlideOutDown;
+            panel.SetVisible(false);
+            close.onClick.AddListener(panel.Hide);
             return dialog;
+        }
+
+        // A hit: the camera shakes, the button punches and flashes, the game freezes an instant.
+        static void AddHitFeedback(GameObject button) {
+            var feedback = button.AddComponent<RavenFeedback>();
+            feedback.Trigger = MotionTrigger.OnClick;
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.CameraShake, strength = 0.4f, duration = 0.25f });
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.Punch, strength = 1f, duration = 0.35f });
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.ColorFlash, color = Color.white, strength = 0.8f, duration = 0.3f });
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.HitStop, timeScale = 0.05f, duration = 0.06f });
+        }
+
+        // A platform travelling back and forth along a path, like one drawn in the Scene view.
+        static void BuildPlatform() {
+            GameObject platform = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            platform.name = "Moving Platform";
+            platform.transform.position = new Vector3(-4.5f, -2.5f, 0f);
+            platform.transform.localScale = new Vector3(1.6f, 0.25f, 1f);
+            platform.SetActive(false); // Configure before Raven Path plays it.
+            var path = platform.AddComponent<RavenPath>();
+            path.Points.Clear();
+            path.Points.Add(new Vector3(2.5f, 1.2f, 0f));
+            path.Points.Add(new Vector3(5f, 0f, 0f));
+            path.Looping = RavenPath.PathLoop.BackAndForth;
+            platform.SetActive(true);
         }
 
         static RavenMotion AddMotion(GameObject go, MotionPreset preset, MotionTrigger trigger) {

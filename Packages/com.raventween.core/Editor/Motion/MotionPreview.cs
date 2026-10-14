@@ -54,8 +54,9 @@ namespace RavenTween.Editor {
             EditorTweenPreview.Record(target.Transform, PropertyKind.LocalRotation, 0);
             EditorTweenPreview.Record(target.Transform, PropertyKind.LocalScale, 0);
             if (target.Group != null) { EditorTweenPreview.Record(target.Group, PropertyKind.CanvasGroupAlpha, 0); }
-            else if (target.Graphic != null) { EditorTweenPreview.Record(target.Graphic, PropertyKind.GraphicColor, 0); }
-            else if (target.Sprite != null) { EditorTweenPreview.Record(target.Sprite, PropertyKind.SpriteColor, 0); }
+            if (target.Graphic != null) { EditorTweenPreview.Record(target.Graphic, PropertyKind.GraphicColor, 0); }
+            if (target.Sprite != null) { EditorTweenPreview.Record(target.Sprite, PropertyKind.SpriteColor, 0); }
+            if (target.Renderer != null) { EditorTweenPreview.Record(target.Renderer, PropertyKind.PropertyBlockColor, target.ColorId); }
         }
     }
 }

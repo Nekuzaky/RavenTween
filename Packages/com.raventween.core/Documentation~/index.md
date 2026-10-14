@@ -1,6 +1,6 @@
 # RavenTween Documentation
 
-RavenTween is a tweening engine for Unity with zero steady-state GC allocation, struct handles, sequences and async/await, driven from code or from the Inspector. Its no-code layer goes from 43 ready-made motions (**Tools ▸ RavenTween ▸ Motion Library**) to templates and a visual Sequence Editor. The full manual is at https://nekuzaky.com/docs/raventween.
+RavenTween is a tweening engine for Unity with zero steady-state GC allocation, struct handles, sequences and async/await, driven from code or from the Inspector. Its no-code layer goes from 44 ready-made motions (**Tools ▸ RavenTween ▸ Motion Library**) to templates and a visual Sequence Editor. The full manual is at https://nekuzaky.com/docs/raventween.
 
 Start with the [README](../README.md) for installation and the API tour.
 
@@ -16,7 +16,8 @@ Raven (static API)            Public entry: Value, Delay, Sequence, property twe
 Tween / Sequence (structs)    Handles: index + version. Dead handles are safe no-ops.
 Templates                     TweenTemplate (SO), RavenAnimator, RavenSequencePlayer.
 Motions                       MotionPreset → MotionBuilder → an ordinary Sequence.
-                              RavenMotion, RavenStagger, RavenButtonFeel components.
+                              RavenMotion, RavenStagger, RavenButtonFeel, RavenShowHide,
+                              RavenFeedback, RavenPath (+ TMP: RavenTypewriter, RavenCounter).
 ```
 
 Extensions plug into the same slot model without new allocation paths:

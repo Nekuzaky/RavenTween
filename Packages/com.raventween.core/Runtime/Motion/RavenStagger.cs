@@ -20,6 +20,8 @@ namespace RavenTween {
             CenterOut = 2
         }
 
+        [Tooltip("A saved Motion Style. When set, it replaces the motion and settings below.")]
+        [SerializeField] MotionStyle style;
         [SerializeField] MotionPreset preset = MotionPreset.RiseIn;
         [Tooltip("OnEnable, OnStart or Manual. Pointer and physics triggers belong on a Raven Motion.")]
         [SerializeField] MotionTrigger trigger = MotionTrigger.OnEnable;
@@ -36,7 +38,10 @@ namespace RavenTween {
         readonly List<Sequence> _live = new List<Sequence>(16);
         int _pending;
 
+        public MotionStyle Style { get { return style; } set { style = value; } }
         public MotionPreset Preset { get { return preset; } set { preset = value; } }
+        public MotionPreset EffectivePreset { get { return style != null ? style.Preset : preset; } }
+        public MotionSettings EffectiveSettings { get { return style != null ? style.Settings : settings; } }
         public float Interval { get { return interval; } set { interval = Mathf.Max(value, 0f); } }
         public MotionSettings Settings { get { return settings; } set { settings = value; } }
         public UnityEvent OnComplete { get { return onComplete; } }
@@ -56,15 +61,17 @@ namespace RavenTween {
 
         /// <summary>Plays the motion on every active child, one after another.</summary>
         public void Play() {
-            if (!isActiveAndEnabled || preset == MotionPreset.None) { return; }
+            MotionPreset playing = EffectivePreset;
+            if (!isActiveAndEnabled || playing == MotionPreset.None) { return; }
             Stop();
             CollectChildren();
+            MotionSettings shared = EffectiveSettings;
             int count = _targets.Count;
             for (int i = 0; i < count; i++) {
-                MotionSettings child = settings;
-                child.delay = settings.delay + Slot(i, count) * interval;
+                MotionSettings child = shared;
+                child.delay = shared.delay + Slot(i, count) * interval;
                 MotionRest rest = _rests[i];
-                Sequence sequence = MotionBuilder.Build(_targets[i], preset, child, rest, out MotionChannels used);
+                Sequence sequence = MotionBuilder.Build(_targets[i], playing, child, rest, out MotionChannels used);
                 _channels[i] = used;
                 if (!sequence.IsAlive) { continue; }
                 _pending++;

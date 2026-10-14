@@ -12,14 +12,21 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `Raven.Motion(Component target, MotionPreset preset, MotionSettings settings)` | `Sequence` |
 | `Raven.Motion(in MotionTarget, MotionPreset, MotionSettings, in MotionRest rest)` | `Sequence` around a pose captured with `MotionRest.Capture` |
 | `component.PlayMotion(MotionPreset [, MotionSettings])` | Extension form |
+| `Raven.HitStop(float timeScale = 0.05, float duration = 0.08)` | `Tween`; drops `Time.timeScale` for an instant, overlaps and `StopAll` safe |
 
 | Type | Members |
 | :--- | :--- |
-| `MotionPreset` | Entrances `FadeIn`, `PopIn`, `ZoomIn`, `SlideInLeft/Right/Up/Down`, `DropIn`, `RiseIn`, `SpinIn`, `FlipIn`, `ElasticIn` · Exits `FadeOut`, `PopOut`, `ZoomOut`, `SlideOutLeft/Right/Up/Down`, `FallOut`, `SinkOut`, `SpinOut`, `FlipOut` · Attention `Pulse`, `Bounce`, `Shake`, `Wobble`, `Jello`, `Heartbeat`, `Tada`, `Flash`, `Swing`, `Squash`, `Nod`, `HeadShake` · Loops `Float`, `Breathe`, `Spin`, `Sway`, `Rock`, `Blink`, `Throb`, `Wiggle` |
-| `MotionSettings` | `duration` (0 = auto), `intensity`, `delay`, `distance` (0 = auto), `repeat`, `useUnscaledTime`; `MotionSettings.Default` |
-| `MotionLibrary` | `All`, `Category`, `DefaultDuration`, `DisplayName`, `Description`, `NeedsAlpha`, `MovesPosition`, `UsesDistance` |
-| `RavenMotion` (component) | `Play()`, `Stop()` (back to the rest pose), `Complete()`, `CaptureRest()`, `Preset`, `Trigger`, `Settings`, `WhenFinished`, `AnimatedTransform`, `IsPlaying`, `Current`, `OnComplete` |
-| `RavenStagger` (component) | `Play()`, `Stop()`, `Preset`, `Interval`, `Settings`, `IsPlaying`, `OnComplete` |
+| `MotionPreset` | Entrances `FadeIn`, `PopIn`, `ZoomIn`, `SlideInLeft/Right/Up/Down`, `DropIn`, `RiseIn`, `SpinIn`, `FlipIn`, `ElasticIn` · Exits `FadeOut`, `PopOut`, `ZoomOut`, `SlideOutLeft/Right/Up/Down`, `FallOut`, `SinkOut`, `SpinOut`, `FlipOut` · Attention `Pulse`, `Bounce`, `Shake`, `Wobble`, `Jello`, `Heartbeat`, `Tada`, `Flash`, `Swing`, `Squash`, `Nod`, `HeadShake`, `Tint` · Loops `Float`, `Breathe`, `Spin`, `Sway`, `Rock`, `Blink`, `Throb`, `Wiggle` |
+| `MotionSettings` | `duration` (0 = auto), `intensity`, `delay`, `distance` (0 = auto), `repeat`, `useUnscaledTime`, `color` (Tint); `MotionSettings.Default` |
+| `MotionLibrary` | `All`, `Category`, `DefaultDuration`, `DisplayName`, `Description`, `NeedsAlpha`, `NeedsColor`, `MovesPosition`, `UsesDistance` |
+| `MotionStyle` (ScriptableObject) | `Preset`, `Settings`, `Notes`; `Play(Component)` |
+| `RavenMotion` (component) | `Play()`, `Stop()` (back to the rest pose), `Complete()`, `CaptureRest()`, `Style`, `Preset`, `Trigger`, `Settings`, `EffectivePreset`, `EffectiveSettings`, `WhenFinished`, `ThenPlay`, `AnimatedTransform`, `IsPlaying`, `Current`, `OnComplete` |
+| `RavenStagger` (component) | `Play()`, `Stop()`, `Style`, `Preset`, `Interval`, `Settings`, `IsPlaying`, `OnComplete` |
+| `RavenShowHide` (component) | `Show()`, `Hide()`, `Toggle()`, `SetVisible(bool)`, `IsShown`, `IsAnimating`, `ShowMotion`, `HideMotion`, `OnShown`, `OnHidden` |
+| `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event), `Trigger`, `Cooldown` |
+| `RavenPath` (component) | `Play()`, `Stop()`, `ResetToStart()`, `CreateTween()`, `Evaluate(t)`, `Points`, `Closed`, `Smooth`, `Looping`, `Length`, `TripDuration`, `OnComplete` |
+| `RavenTypewriter` (TextMeshPro) | `Play()`, `Play(string)`, `Skip()`, `LettersPerSecond`, `IsTyping`, `OnComplete` |
+| `RavenCounter` (TextMeshPro) | `CountTo(float)`, `Add(float)`, `SetValue(float)`, `Value`, `OnComplete` |
 | `RavenButtonFeel` (component) | `FeelStyle`: `Subtle`, `Bouncy`, `Juicy`, `Custom` |
 
 ---
@@ -232,7 +239,8 @@ DOTween names running on RavenTween, for migrating code: `DOMove`, `DOMoveX/Y/Z`
 | **Tools ▸ RavenTween ▸ Updates ▸ Check Automatically** | Daily check on or off (on by default). |
 | **Tools ▸ RavenTween ▸ Updates ▸ Install Automatically** | Install new releases without asking (off by default). |
 | **Create ▸ RavenTween ▸ Tween Template** | A new template asset. |
-| **Add Component ▸ RavenTween** | Raven Motion, Raven Stagger, Raven Button Feel, Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
+| **Add Component ▸ RavenTween** | Raven Motion, Raven Stagger, Raven Button Feel, Raven Show Hide, Raven Feedback, Raven Path, Raven Typewriter, Raven Counter, Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
+| **Create ▸ RavenTween ▸ Motion Style** | A saved motion with its settings, shared by every component that uses it. |
 
 ---
 
