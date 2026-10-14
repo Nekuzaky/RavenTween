@@ -5,7 +5,7 @@ RavenTween includes a small module for TextMeshPro text. It is a separate assemb
 | Unity version | Where TextMeshPro comes from |
 | :--- | :--- |
 | Unity 6 | Built into **uGUI 2.0** — nothing to install |
-| 2021.3 / 2022.3 | The **TextMeshPro** package (`com.unity.textmeshpro`) |
+| 2022.3 | The **TextMeshPro** package (`com.unity.textmeshpro`) |
 
 ---
 

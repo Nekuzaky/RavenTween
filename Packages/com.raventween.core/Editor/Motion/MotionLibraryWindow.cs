@@ -39,6 +39,9 @@ namespace RavenTween.Editor {
         float _interval = 0.06f;
         string _search = "";
         Vector2 _scroll;
+        // The grid's visible area and the pointer, in window space, to ignore tiles scrolled out of view.
+        Rect _gridArea;
+        Vector2 _pointer;
         double _lastFrame;
         GUIStyle _tile;
         GUIStyle _header;
@@ -57,6 +60,7 @@ namespace RavenTween.Editor {
 
         void OnEnable() {
             wantsMouseMove = true;
+            wantsMouseEnterLeaveWindow = true;
             _stage = new MotionStage();
             Selection.selectionChanged += OnSelectionChanged;
             EditorApplication.update += Animate;
@@ -103,6 +107,7 @@ namespace RavenTween.Editor {
             EnsureStyles();
             CollectTargets();
             if (Event.current.type == EventType.MouseLeaveWindow) { ClearHover(); }
+            _pointer = Event.current.mousePosition;
             DrawHeader();
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             DrawStyles();
@@ -111,6 +116,7 @@ namespace RavenTween.Editor {
             DrawCategory(MotionCategory.Loop, "Loops", "Keep something alive while it is on screen.", LoopColor);
             DrawCategory(MotionCategory.Exit, "Exits", "Make something disappear.", ExitColor);
             EditorGUILayout.EndScrollView();
+            if (Event.current.type == EventType.Repaint) { _gridArea = GUILayoutUtility.GetLastRect(); }
             DrawFooter();
         }
 
@@ -162,7 +168,7 @@ namespace RavenTween.Editor {
             if (style == _selectedStyle) { GUI.backgroundColor = StyleColor; }
             string tip = MotionLibrary.DisplayName(style.Preset) + (string.IsNullOrEmpty(style.Notes) ? "" : " — " + style.Notes);
             if (GUILayout.Button(new GUIContent(style.name, tip), _tile, GUILayout.Height(ButtonHeight), GUILayout.Width(width))) { SelectStyle(style); }
-            if (IsHovered(GUILayoutUtility.GetLastRect())) { _hoveredStyle = style; _hovered = MotionPreset.None; }
+            if (IsTileHovered(GUILayoutUtility.GetLastRect())) { _hoveredStyle = style; _hovered = MotionPreset.None; }
             GUI.backgroundColor = previous;
         }
 
@@ -203,7 +209,7 @@ namespace RavenTween.Editor {
             if (preset == _selected && _selectedStyle == null) { GUI.backgroundColor = color; }
             var content = new GUIContent(MotionLibrary.DisplayName(preset), MotionLibrary.Description(preset));
             if (GUILayout.Button(content, _tile, GUILayout.Height(ButtonHeight), GUILayout.Width(width))) { Select(preset); }
-            if (IsHovered(GUILayoutUtility.GetLastRect())) { _hovered = preset; _hoveredStyle = null; }
+            if (IsTileHovered(GUILayoutUtility.GetLastRect())) { _hovered = preset; _hoveredStyle = null; }
             GUI.backgroundColor = previous;
         }
 
@@ -211,6 +217,10 @@ namespace RavenTween.Editor {
         static bool IsHovered(Rect tile) {
             Event e = Event.current;
             return e.type != EventType.Layout && tile.Contains(e.mousePosition);
+        }
+
+        bool IsTileHovered(Rect tile) {
+            return IsHovered(tile) && _gridArea.Contains(_pointer);
         }
 
         void ClearHover() {

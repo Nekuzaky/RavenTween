@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/Nekuzaky/RavenTween/actions/workflows/tests.yml"><img src="https://github.com/Nekuzaky/RavenTween/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Unity-2021.3%2B-222?logo=unity" alt="Unity 2021.3+">
+  <img src="https://img.shields.io/badge/Unity-2022.3%2B-222?logo=unity" alt="Unity 2022.3+">
   <img src="https://img.shields.io/badge/GC-0%20B%2Fframe-2ea44f" alt="Zero GC">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
 </p>
@@ -43,7 +43,7 @@ Or add it to `Packages/manifest.json`:
 "com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.0"
 ```
 
-Requires Unity 2021.3 or newer. Unity 6 is fully supported.
+Requires Unity 2022.3 LTS or newer. Every release is tested on Unity 6.3 and Unity 6.5.
 
 ## Quick start
 
@@ -325,7 +325,7 @@ Samples work with both the legacy Input Manager and the Input System package.
 
 **Does it work with Enter Play Mode Options (no domain reload)?** Yes. Engine state resets on `SubsystemRegistration`.
 
-**Which platforms?** Everything Unity targets: the runtime is pure managed C# with no platform-specific code. Every release passes the full EditMode and PlayMode suite on Unity 6; the repository's CI workflow is set up to run it on Linux against Unity 2021.3, 2022.3 and 6 once a Unity license secret is configured.
+**Which platforms?** Everything Unity targets: the runtime is pure managed C# with no platform-specific code. Every release passes the full EditMode and PlayMode suite on Unity 6.3 and Unity 6.5; the repository's CI workflow is set up to run it on Linux against Unity 2022.3 and 6 once a Unity license secret is configured.
 
 ## Support
 

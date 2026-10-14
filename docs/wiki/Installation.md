@@ -75,7 +75,7 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 
 | Requirement | Detail |
 | :--- | :--- |
-| **Unity version** | Unity 2021.3 LTS or newer, including Unity 6 |
+| **Unity version** | Unity 2022.3 LTS or newer, including Unity 6. Every release is tested on Unity 6.3 and 6.5. |
 | **Dependencies** | `com.unity.ugui` and the built-in Audio, JSON Serialize and Unity Web Request modules — all installed automatically |
 | **TextMeshPro** | Optional. The TMP module compiles only when TextMeshPro is present |
 | **Animation Rigging** | Optional. The rigging module compiles only when `com.unity.animation.rigging` is present |

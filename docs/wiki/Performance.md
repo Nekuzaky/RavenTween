@@ -21,6 +21,22 @@ Timings were measured with `Throughput_5000Tweens_ReportsFrameCost` and `EffectC
 
 ---
 
+## Compared with PrimeTween
+
+An independent comparison ran both libraries on the same machine (Unity 6.3 Editor, Linux), with the same animations in the same scene and pre-allocated pools for both:
+
+| Measure | RavenTween | PrimeTween 1.4.12 |
+| :--- | :--- | :--- |
+| 5,000 mixed tweens, cost per frame | **3.1–3.5 ms** | 4.8–5.4 ms |
+| 500 looping sequences, cost per frame | **0.5–0.7 ms** | 1.6–2.1 ms |
+| Creating 4,000 tweens | **1.1–1.5 ms** | 9.8–12.7 ms |
+| Creating 500 sequences | **3 ms** | 23 ms |
+| Allocated per frame | 0 B | 0 B |
+
+That run timed the whole frame from the start of `Update` to the end of `PreLateUpdate` (with the empty engine's cost removed) on a different CPU, which is why its per-frame numbers are higher than the engine-only figure above. Compare libraries on the same machine and harness, never across tables.
+
+---
+
 ## How it stays at zero
 
 - **Pooled slots.** Each tween's state lives in a slot object that is created once and recycled forever. Finishing a tween returns its slot; creating one reuses it.

@@ -182,7 +182,9 @@ namespace RavenTween {
             Vector3 position = Origin + SampleAt(clamped * _total);
             transform.localPosition = position;
             // On the way back (Back And Forth, or an ease that turns around) face the other way.
-            if (_lastProgress >= 0f && !Mathf.Approximately(clamped, _lastProgress)) { _reversed = clamped < _lastProgress; }
+            // A jump of more than half the path is a new lap, not a turn-around.
+            float step = clamped - _lastProgress;
+            if (_lastProgress >= 0f && !Mathf.Approximately(step, 0f) && Mathf.Abs(step) < 0.5f) { _reversed = step < 0f; }
             _lastProgress = clamped;
             if (orientation == Orientation.None) { return; }
             Vector3 ahead = SampleAt(Mathf.Min(clamped * _total + 0.05f, _total)) - SampleAt(Mathf.Max(clamped * _total - 0.05f, 0f));

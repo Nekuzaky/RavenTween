@@ -212,6 +212,33 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void CodeMotions_ExitThenEntrance_ComesBack() {
+            Raven.Motion(_go.transform, MotionPreset.PopOut);
+            Step(0.6f);
+            Assert.That(_go.transform.localScale.x, Is.LessThan(0.01f), "Hidden by the exit.");
+            Raven.Motion(_go.transform, MotionPreset.PopIn);
+            Step(0.6f);
+            AssertAtRest(_go.transform, RestPosition, RestRotation, RestScale, "shown again by the entrance");
+        }
+
+        [Test]
+        public void RavenMotion_OnClick_InsideAButton_ListensToTheButton() {
+            _canvas = new GameObject("click-canvas", typeof(Canvas));
+            var button = new GameObject("button", typeof(RectTransform), typeof(Image), typeof(Button));
+            button.transform.SetParent(_canvas.transform, false);
+            var icon = new GameObject("icon", typeof(RectTransform), typeof(Image));
+            icon.transform.SetParent(button.transform, false);
+            icon.SetActive(false);
+            var motion = icon.AddComponent<RavenMotion>();
+            motion.Trigger = MotionTrigger.OnClick;
+            motion.Preset = MotionPreset.Pulse;
+            icon.SetActive(true);
+            Assert.That(icon.GetComponent<RavenClickRelay>(), Is.Null, "No click handler on the icon: the Button keeps its clicks.");
+            button.GetComponent<Button>().onClick.Invoke();
+            Assert.That(motion.IsPlaying, Is.True, "A click on the Button plays the icon's motion.");
+        }
+
+        [Test]
         public void RepeatedCodeMotions_DoNotDrift() {
             for (int i = 0; i < 5; i++) {
                 Raven.Motion(_go.transform, MotionPreset.Pulse);

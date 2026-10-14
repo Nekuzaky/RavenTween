@@ -201,6 +201,10 @@ namespace RavenTween.Editor {
                 if (GUILayout.Button("Create Event System")) { CreateEventSystem(); }
             }
             bool ui = motion.transform is RectTransform;
+            bool pressTrigger = motion.Trigger == MotionTrigger.OnPointerDown || motion.Trigger == MotionTrigger.OnPointerUp;
+            if (pressTrigger && motion.transform.parent != null && motion.transform.parent.GetComponentInParent<Button>() != null) {
+                EditorGUILayout.HelpBox("This object is inside a Button: press and release are taken here, so the Button no longer gets them. Put this Raven Motion on the Button itself, or use On click.", MessageType.Warning);
+            }
             if (ui && motion.GetComponent<Graphic>() == null) {
                 EditorGUILayout.HelpBox("A UI object receives clicks through a Graphic with Raycast Target on (an Image, a Text…).", MessageType.Warning);
             }
@@ -211,11 +215,7 @@ namespace RavenTween.Editor {
         }
 
         static bool SceneHasEventSystem() {
-#if UNITY_2022_2_OR_NEWER
             return Object.FindAnyObjectByType<EventSystem>() != null;
-#else
-            return Object.FindObjectOfType<EventSystem>() != null;
-#endif
         }
 
         static bool HasAnyCollider(GameObject go) {

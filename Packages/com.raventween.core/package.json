@@ -3,7 +3,7 @@
   "version": "1.7.0",
   "displayName": "RavenTween",
   "description": "High-performance, allocation-free tweening engine for Unity, in code or in the Inspector. Fluent API, sequences, async/await, coroutines, and no-code tools for designers: 44 ready-made motions with a Motion Library, Raven Motion, Stagger, Button Feel, Show Hide, Feedback, Path, Typewriter and Counter components, Motion Styles, Tween Templates and a visual Sequence Editor.",
-  "unity": "2021.3",
+  "unity": "2022.3",
   "dependencies": {
     "com.unity.ugui": "1.0.0",
     "com.unity.modules.audio": "1.0.0",

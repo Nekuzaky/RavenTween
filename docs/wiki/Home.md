@@ -117,7 +117,7 @@ The full list is in the **[Changelog](Changelog)**.
 > [!NOTE]
 > - One line per animation: `Raven.Position(transform, target, 0.5f).Ease(Ease.OutBack);`
 > - 0 B per frame, enforced by the test suite.
-> - Unity 2021.3 and newer, including Unity 6.
+> - Unity 2022.3 and newer, including Unity 6 (tested on 6.3 and 6.5).
 
 ---
 

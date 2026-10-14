@@ -82,6 +82,11 @@ namespace RavenTween {
             if (_button != null) { _button.onClick.RemoveListener(Play); }
         }
 
+        // The inspector writes the trigger directly: apply its hooks when it changes in Play Mode.
+        void OnValidate() {
+            if (Application.isPlaying && isActiveAndEnabled) { EnsureTriggerHooks(); }
+        }
+
         /// <summary>Plays the motion from the start, replacing a run that is still going.</summary>
         public void Play() {
             MotionPreset playing = EffectivePreset;
@@ -156,12 +161,12 @@ namespace RavenTween {
         // a pooled enemy re-enabled elsewhere, a text recolored, a panel moved.
         void PrepareRest(bool idle, MotionPreset playing) {
             if (!_hasRest) {
+                _hasRest = true;
                 if (!CopySiblingRest()) {
                     MotionLayout.RebuildParent(_resolved);
                     _rest = MotionRest.Capture(_resolved);
+                    return;
                 }
-                _hasRest = true;
-                return;
             }
             if (!idle || SiblingBusy()) { return; }
             MotionCategory category = MotionLibrary.Category(playing);
@@ -229,7 +234,9 @@ namespace RavenTween {
                 _button = null;
             }
             if (trigger == MotionTrigger.OnClick && _button == null) {
-                _button = GetComponent<Button>();
+                // A click on a Button (or on anything inside one, like its icon) is the Button's:
+                // listen to it rather than adding a handler that would take the click away.
+                _button = GetComponentInParent<Button>();
                 if (_button != null) { _button.onClick.AddListener(Play); }
             }
             // A Button already reports its clicks; other pointer starts need a relay.

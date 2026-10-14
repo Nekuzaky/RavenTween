@@ -39,6 +39,12 @@ namespace RavenTween {
         bool _initialized;
         // Show() was called while a parent was inactive: the entrance plays once it is enabled.
         bool _showPending;
+        // A parent switched it off halfway through hiding: deactivate it as soon as it is back.
+        bool _deactivatePending;
+
+        // Show and hide motions never animate color: a color set by a script (or a material
+        // left without a property block) is left alone.
+        MotionChannels RestoreMask { get { return (MotionChannels.All & ~MotionChannels.Color) | (_channels & MotionChannels.Color); } }
 
         /// <summary>True when shown or showing; false when hidden or hiding.</summary>
         public bool IsShown { get { return _shown; } }
@@ -55,9 +61,18 @@ namespace RavenTween {
         }
 
         void OnEnable() {
+            if (_deactivatePending) {
+                _deactivatePending = false;
+                if (!_shown) { Raven.Delay(0f).UnscaledTime().OnComplete(this, panel => panel.DeactivateIfHidden()); }
+                return;
+            }
             if (!_showPending) { return; }
             _showPending = false;
             PlayShow();
+        }
+
+        void DeactivateIfHidden() {
+            if (!_shown && deactivateWhenHidden) { ApplyHidden(); }
         }
 
         void OnDisable() {
@@ -66,8 +81,12 @@ namespace RavenTween {
             _current = default;
             // Switched off by a parent halfway through hiding: it counts as hidden.
             if (hiding) {
-                _rest.Apply(_resolved, _channels | MotionChannels.All);
-                if (!deactivateWhenHidden) { ApplyInvisible(); }
+                // It can't be deactivated from here: it stays invisible and unclickable, and is
+                // deactivated as soon as the parent comes back.
+                _rest.Apply(_resolved, RestoreMask);
+                SetInteractable(false);
+                ApplyInvisible();
+                _deactivatePending = deactivateWhenHidden;
                 onHidden.Invoke();
                 return;
             }
@@ -83,7 +102,7 @@ namespace RavenTween {
             if (!gameObject.activeSelf) { gameObject.SetActive(true); }
             if (!isActiveAndEnabled) {
                 // A parent is inactive: be ready now, animate when it is shown.
-                _rest.Apply(_resolved, MotionChannels.All);
+                _rest.Apply(_resolved, RestoreMask);
                 SetInteractable(true);
                 _showPending = true;
                 return;
@@ -116,7 +135,7 @@ namespace RavenTween {
             _shown = visible;
             if (visible) {
                 if (!gameObject.activeSelf) { gameObject.SetActive(true); }
-                _rest.Apply(_resolved, MotionChannels.All);
+                _rest.Apply(_resolved, RestoreMask);
                 SetInteractable(true);
             } else {
                 ApplyHidden();
@@ -147,7 +166,7 @@ namespace RavenTween {
         void Play(MotionPreset preset, MotionSettings settings, bool showing) {
             if (_current.IsAlive) { _current.Stop(); }
             // Undo whatever hid it (a half-played exit, a shrink); the entrance then sets its own start.
-            if (showing) { _rest.Apply(_resolved, MotionChannels.All); }
+            if (showing) { _rest.Apply(_resolved, RestoreMask); }
             _current = MotionBuilder.Build(_resolved, preset, settings, _rest, out MotionChannels used);
             _channels |= used;
             if (!_current.IsAlive) {
@@ -168,7 +187,7 @@ namespace RavenTween {
         // invisible and unclickable.
         void ApplyHidden() {
             if (deactivateWhenHidden) {
-                _rest.Apply(_resolved, _channels | MotionChannels.All);
+                _rest.Apply(_resolved, RestoreMask);
                 gameObject.SetActive(false);
                 return;
             }

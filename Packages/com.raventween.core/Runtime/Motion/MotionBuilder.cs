@@ -48,6 +48,7 @@ namespace RavenTween {
             public Sequence Motion;
             public MotionRest Rest;
             public MotionChannels Channels;
+            public bool Exit;
         }
 
         static readonly Dictionary<Transform, Running> ByObject = new Dictionary<Transform, Running>(32);
@@ -62,21 +63,31 @@ namespace RavenTween {
         public static Sequence PlayOn(Transform transform, MotionPreset preset, MotionSettings settings) {
             MotionTarget resolved = MotionTarget.Resolve(transform);
             MotionRest rest;
-            if (ByObject.TryGetValue(transform, out Running running) && running.Motion.IsAlive) {
+            // Still running, or hidden by a finished exit: the object is not at rest, keep the pose.
+            bool known = ByObject.TryGetValue(transform, out Running running);
+            if (known && running.Motion.IsAlive) {
                 running.Motion.Stop();
+                rest = running.Rest;
+            } else if (known && running.Exit) {
                 rest = running.Rest;
             } else {
                 rest = MotionRest.Capture(resolved);
             }
             Sequence motion = Build(resolved, preset, settings, rest, out MotionChannels channels);
             if (ByObject.Count >= 64) { DropFinished(); }
-            ByObject[transform] = new Running { Motion = motion, Rest = rest, Channels = channels };
+            ByObject[transform] = new Running {
+                Motion = motion, Rest = rest, Channels = channels,
+                Exit = MotionLibrary.Category(preset) == MotionCategory.Exit
+            };
             return motion;
         }
 
+        // Finished motions are forgotten, except exits (the next entrance needs their rest pose)
+        // whose object still exists.
         static void DropFinished() {
             foreach (KeyValuePair<Transform, Running> entry in ByObject) {
-                if (!entry.Value.Motion.IsAlive) { Finished.Add(entry.Key); }
+                bool keep = entry.Value.Motion.IsAlive || (entry.Value.Exit && entry.Key != null);
+                if (!keep) { Finished.Add(entry.Key); }
             }
             for (int i = 0; i < Finished.Count; i++) { ByObject.Remove(Finished[i]); }
             Finished.Clear();

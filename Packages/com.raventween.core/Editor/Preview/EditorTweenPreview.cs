@@ -27,6 +27,9 @@ namespace RavenTween.Editor {
             public int PropertyId;
             public TweenValue Value;
             public bool HadBlock;
+            // What the preview last wrote, to tell a user's undo apart from the preview's own pose.
+            public TweenValue Shown;
+            public bool HasShown;
         }
 
         static readonly List<Snapshot> Snapshots = new List<Snapshot>(16);
@@ -49,8 +52,7 @@ namespace RavenTween.Editor {
             EditorApplication.playModeStateChanged += state => {
                 if (state == PlayModeStateChange.ExitingEditMode || state == PlayModeStateChange.ExitingPlayMode) { End(); }
             };
-            // An undo would be overwritten by the next preview frame: the preview stops instead.
-            Undo.undoRedoPerformed += () => { if (HasSnapshots) { End(); } };
+            Undo.undoRedoPerformed += OnUndoRedo;
             AssemblyReloadEvents.beforeAssemblyReload += End;
             EditorApplication.wantsToQuit += () => { End(); return true; };
             EditorSceneManager.sceneClosing += (scene, removing) => End();
@@ -162,7 +164,33 @@ namespace RavenTween.Editor {
             Time = Mathf.Clamp(time, 0f, Length);
             RestoreValues();
             TweenEngine.Seek(_index, _version, Time);
+            RememberShown();
             NotifyChanged();
+        }
+
+        static void RememberShown() {
+            for (int i = 0; i < Snapshots.Count; i++) {
+                Snapshot s = Snapshots[i];
+                if (s.Target == null) { continue; }
+                s.Shown = ReadSnapshot(s);
+                s.HasShown = true;
+                Snapshots[i] = s;
+            }
+        }
+
+        // An undo during a preview changed some recorded values: those keep the undo's result,
+        // everything else goes back to how it was before the preview.
+        static void OnUndoRedo() {
+            if (Snapshots.Count == 0) { return; }
+            for (int i = 0; i < Snapshots.Count; i++) {
+                Snapshot s = Snapshots[i];
+                if (s.Target == null || !s.HasShown) { continue; }
+                TweenValue now = ReadSnapshot(s);
+                if (now.Raw == s.Shown.Raw) { continue; }
+                s.Value = now;
+                Snapshots[i] = s;
+            }
+            End();
         }
 
         public static void Play() {

@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/Nekuzaky/RavenTween/actions/workflows/tests.yml"><img src="https://github.com/Nekuzaky/RavenTween/actions/workflows/tests.yml/badge.svg" alt="Tests"></a>
-  <img src="https://img.shields.io/badge/Unity-2021.3%2B-222?logo=unity" alt="Unity 2021.3+">
+  <img src="https://img.shields.io/badge/Unity-2022.3%2B-222?logo=unity" alt="Unity 2022.3+">
   <img src="https://img.shields.io/badge/GC-0%20B%2Fframe-2ea44f" alt="Zero GC">
   <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
 </p>

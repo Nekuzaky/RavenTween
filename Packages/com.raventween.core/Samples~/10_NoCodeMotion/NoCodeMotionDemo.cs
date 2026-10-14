@@ -173,19 +173,11 @@ namespace RavenTweenSamples {
         }
 
         static EventSystem FindEventSystem() {
-#if UNITY_2022_2_OR_NEWER
             return FindAnyObjectByType<EventSystem>();
-#else
-            return FindObjectOfType<EventSystem>();
-#endif
         }
 
         static string BuiltinFontName() {
-#if UNITY_2022_2_OR_NEWER
             return "LegacyRuntime.ttf";
-#else
-            return "Arial.ttf";
-#endif
         }
     }
 }

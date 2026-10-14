@@ -159,6 +159,7 @@ namespace RavenTween {
         [SerializeField] List<FeedbackAction> actions = new List<FeedbackAction>();
 
         readonly List<Tween> _pending = new List<Tween>(8);
+        UnityEngine.UI.Button _button;
         float _lastPlay = float.NegativeInfinity;
 
         public List<FeedbackAction> Actions { get { return actions; } }
@@ -213,7 +214,9 @@ namespace RavenTween {
         }
 
         public void HandleTrigger(MotionTrigger started) {
-            if (started == trigger) { Play(); }
+            if (started != trigger) { return; }
+            if (started == MotionTrigger.OnClick && _button != null) { return; } // The Button listener plays it.
+            Play();
         }
 
         void PrunePending() {
@@ -223,7 +226,25 @@ namespace RavenTween {
         }
 
         void EnsureTriggerHooks() {
-            MotionTriggers.EnsurePointerRelay(gameObject, trigger);
+            if (trigger != MotionTrigger.OnClick && _button != null) {
+                _button.onClick.RemoveListener(Play);
+                _button = null;
+            }
+            if (trigger == MotionTrigger.OnClick && _button == null) {
+                // A click on a Button (or inside one) is the Button's: listen to it.
+                _button = GetComponentInParent<UnityEngine.UI.Button>();
+                if (_button != null) { _button.onClick.AddListener(Play); return; }
+            }
+            if (!(trigger == MotionTrigger.OnClick && _button != null)) { MotionTriggers.EnsurePointerRelay(gameObject, trigger); }
+        }
+
+        void OnDestroy() {
+            if (_button != null) { _button.onClick.RemoveListener(Play); }
+        }
+
+        // The inspector writes the trigger directly: apply its hooks when it changes in Play Mode.
+        void OnValidate() {
+            if (Application.isPlaying && isActiveAndEnabled) { EnsureTriggerHooks(); }
         }
 
         void HandlePhysics(MotionTrigger started, GameObject other) {

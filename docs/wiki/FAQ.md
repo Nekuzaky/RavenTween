@@ -8,7 +8,7 @@ Yes. It is open source under the MIT license, free for commercial projects. If i
 
 ### Which Unity versions are supported?
 
-Unity 2021.3 LTS and newer, including Unity 6. See **[Installation](Installation)**.
+Unity 2022.3 LTS and newer, including Unity 6. Every release is tested on Unity 6.3 and Unity 6.5, and the code avoids every API Unity has marked obsolete, so newer versions keep working. See **[Installation](Installation)**.
 
 ### How do I update?
 
