@@ -141,6 +141,9 @@ namespace RavenTweenDemo {
                     Capture(EditorWindow.GetWindow<MotionLibraryWindow>(), "designer_motion_library.png");
                     break;
                 case 7:
+                    // Leave the user's layout as it was: Unity saves open windows on exit.
+                    EditorWindow.GetWindow<MotionLibraryWindow>().Close();
+                    RestoreInspector();
                     EditorApplication.update -= DesignerStage;
                     EditorApplication.Exit(0);
                     break;
@@ -197,8 +200,15 @@ namespace RavenTweenDemo {
             player.Steps.Add(new RavenSequencePlayer.Step { mode = mode, insertTime = insertTime, target = target, template = template });
         }
 
+        static Rect _inspectorHome;
+
+        static void RestoreInspector() {
+            if (_inspectorHome.width > 0f) { GetInspector().position = _inspectorHome; }
+        }
+
         static void PlaceInspector(Rect rect) {
             EditorWindow inspector = GetInspector();
+            if (_inspectorHome.width <= 0f) { _inspectorHome = inspector.position; }
             inspector.position = rect;
             inspector.Focus();
         }

@@ -110,23 +110,25 @@ namespace RavenTween.Editor {
             Rect headerRect = EditorGUILayout.GetControlRect(false, 22f);
             EditorGUI.DrawRect(new Rect(headerRect.x, headerRect.y + 3f, 4f, headerRect.height - 6f), color);
             GUI.Label(new Rect(headerRect.x + 10f, headerRect.y, headerRect.width - 10f, headerRect.height), title + "   <size=10><color=#999999>" + subtitle + "</color></size>", _header);
-            int columns = Mathf.Max(2, Mathf.FloorToInt((position.width - 24f) / MinButtonWidth));
+            // Every tile gets the same width, so a short last row lines up with the rows above.
+            float available = position.width - 28f;
+            int columns = Mathf.Max(2, Mathf.FloorToInt(available / MinButtonWidth));
+            float width = Mathf.Floor((available - (columns - 1) * 4f) / columns);
             for (int start = 0; start < presets.Count; start += columns) {
                 EditorGUILayout.BeginHorizontal();
-                for (int i = start; i < start + columns; i++) {
-                    if (i < presets.Count) { DrawTile(presets[i], color); }
-                    else { GUILayout.FlexibleSpace(); }
-                }
+                int end = Mathf.Min(start + columns, presets.Count);
+                for (int i = start; i < end; i++) { DrawTile(presets[i], color, width); }
+                GUILayout.FlexibleSpace();
                 EditorGUILayout.EndHorizontal();
             }
             EditorGUILayout.Space(8f);
         }
 
-        void DrawTile(MotionPreset preset, Color color) {
+        void DrawTile(MotionPreset preset, Color color, float width) {
             Color previous = GUI.backgroundColor;
             if (preset == _selected) { GUI.backgroundColor = color; }
             var content = new GUIContent(MotionLibrary.DisplayName(preset), MotionLibrary.Description(preset));
-            if (GUILayout.Button(content, _tile, GUILayout.Height(ButtonHeight), GUILayout.MinWidth(60f))) { Select(preset); }
+            if (GUILayout.Button(content, _tile, GUILayout.Height(ButtonHeight), GUILayout.Width(width))) { Select(preset); }
             GUI.backgroundColor = previous;
         }
 
