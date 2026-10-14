@@ -25,7 +25,7 @@
 | **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
 | **Fast** | 5,000 simultaneous tweens step in **about 0.6 ms/frame** on a desktop CPU (Editor, Mono, mixed workload). |
 | **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
-| **Designers included** | Animations without code: **Tween Templates** with presets and Edit Mode preview, a **Raven Animator**, and a visual **Sequence Editor** for whole choreographies. See [Designer workflow](#designer-workflow-no-code). |
+| **Designers included** | Animations without code or animation knowledge: 43 ready-made **motions** in a **Motion Library**, **Raven Motion**, **Raven Stagger**, **Raven Button Feel**, plus **Tween Templates** and a visual **Sequence Editor**. See [Designer workflow](#designer-workflow-no-code). |
 | **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
 | **Portable** | Pure managed C#: no threads, reflection, native plugins or runtime codegen. IL2CPP, WebGL, mobile and consoles are all fine. |
 
@@ -200,6 +200,15 @@ transform.DOMoveY(2f, 0.4f).SetEase(Ease.OutQuad).SetLoops(2, LoopType.Yoyo);   
 
 Everything the code API does, designers can do in the Inspector, on the same zero-garbage engine.
 
+**Motions, for anyone.** Select an object, open **Tools → RavenTween → Motion Library**, click a motion to watch it play on the object (nothing is changed), then add it. 43 motions in four families — entrances (*Pop In*, *Slide In*, *Drop In*…), attention (*Tada*, *Jello*, *Heartbeat*, *Shake*…), loops (*Float*, *Breathe*, *Spin*…) and exits — adapt to UI and scene objects and always return to the rest pose.
+
+- **Raven Motion** plays one motion when the object is enabled, clicked, hovered, pressed, entered (trigger), hit (collision), or from any UnityEvent; it can deactivate the object after an exit.
+- **Raven Stagger** plays a motion on each child, one after another.
+- **Raven Button Feel** grows a button under the pointer and sinks it when pressed (*Subtle*, *Bouncy*, *Juicy*).
+- From code: `Raven.Motion(panel, MotionPreset.SlideInUp)`.
+
+**Your own animations, for full control:**
+
 <img src="Documentation~/images/sequence-editor.png" width="820" alt="Raven Sequence Editor">
 
 1. **Create → RavenTween → Tween Template** — pick the property, end value, duration, ease and cycles.
@@ -297,6 +306,7 @@ Import from **Package Manager → RavenTween → Samples**. Each sample builds i
 | 07 - TextMeshPro | Typewriter, number counter, punch feedback |
 | 08 - Procedural | Head look-at and antenna spring, blended with weight tweens |
 | 09 - Time and Physics | Rigidbody platform, Incremental clock, timeline callbacks, property-block flash, hit stop |
+| 10 - No-Code Motion | A menu, a dialog and a collectible animated by Raven Motion, Raven Stagger and Raven Button Feel |
 
 Samples work with both the legacy Input Manager and the Input System package.
 

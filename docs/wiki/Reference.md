@@ -4,6 +4,26 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 
 ---
 
+## Motions — ready-made animations
+
+| Member | Returns |
+| :--- | :--- |
+| `Raven.Motion(Component target, MotionPreset preset)` | `Sequence` around the object's current pose |
+| `Raven.Motion(Component target, MotionPreset preset, MotionSettings settings)` | `Sequence` |
+| `Raven.Motion(in MotionTarget, MotionPreset, MotionSettings, in MotionRest rest)` | `Sequence` around a pose captured with `MotionRest.Capture` |
+| `component.PlayMotion(MotionPreset [, MotionSettings])` | Extension form |
+
+| Type | Members |
+| :--- | :--- |
+| `MotionPreset` | Entrances `FadeIn`, `PopIn`, `ZoomIn`, `SlideInLeft/Right/Up/Down`, `DropIn`, `RiseIn`, `SpinIn`, `FlipIn`, `ElasticIn` · Exits `FadeOut`, `PopOut`, `ZoomOut`, `SlideOutLeft/Right/Up/Down`, `FallOut`, `SinkOut`, `SpinOut`, `FlipOut` · Attention `Pulse`, `Bounce`, `Shake`, `Wobble`, `Jello`, `Heartbeat`, `Tada`, `Flash`, `Swing`, `Squash`, `Nod`, `HeadShake` · Loops `Float`, `Breathe`, `Spin`, `Sway`, `Rock`, `Blink`, `Throb`, `Wiggle` |
+| `MotionSettings` | `duration` (0 = auto), `intensity`, `delay`, `distance` (0 = auto), `repeat`, `useUnscaledTime`; `MotionSettings.Default` |
+| `MotionLibrary` | `All`, `Category`, `DefaultDuration`, `DisplayName`, `Description`, `NeedsAlpha`, `MovesPosition`, `UsesDistance` |
+| `RavenMotion` (component) | `Play()`, `Stop()` (back to the rest pose), `Complete()`, `CaptureRest()`, `Preset`, `Trigger`, `Settings`, `WhenFinished`, `AnimatedTransform`, `IsPlaying`, `Current`, `OnComplete` |
+| `RavenStagger` (component) | `Play()`, `Stop()`, `Preset`, `Interval`, `Settings`, `IsPlaying`, `OnComplete` |
+| `RavenButtonFeel` (component) | `FeelStyle`: `Subtle`, `Bouncy`, `Juicy`, `Custom` |
+
+---
+
 ## `Raven` — factories and global settings
 
 ### Values and timers
@@ -50,14 +70,15 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | :--- | :--- |
 | `ShakePosition`, `ShakeRotation`, `ShakeScale(Transform, Vector3 strength, float duration, float frequency)` | frequency `12` |
 | `PunchPosition`, `PunchRotation`, `PunchScale(Transform, Vector3 punch, float duration, float frequency)` | frequency `5` |
-| `ShakeCamera(Camera, float strength = 1, float duration = 0.5, float frequency = 15)` | Position jitter + tilt |
+| `ShakeCamera(Camera, float strength = 1, float duration = 0.5, float frequency = 15, bool tilt = true)` | Position jitter + tilt (`tilt: false`: position only) |
+| `ShakeLocalPosition`, `ShakeLocalRotation`, `PunchLocalPosition`, `PunchLocalRotation` | Explicit names for the same local-space effects |
 
 ### Time
 
 | Member | Description |
 | :--- | :--- |
 | `TimeScale` | Multiplier for all tweens, independent of `Time.timeScale`. Default `1`. |
-| `UpdatePhase` | Default phase: `Update` (default), `LateUpdate` or `FixedUpdate`. |
+| `UpdatePhase` | Default phase: `Update` (default), `LateUpdate`, `FixedUpdate` or `Manual`. |
 | `GlobalTimeScale(float to, float duration)` | Tweens `Time.timeScale`, in unscaled time. |
 | `TweenTimeScale(Tween \| Sequence, float to, float duration)` | Tweens the `TimeScale` of another tween or sequence. |
 
@@ -189,7 +210,7 @@ Compiled only when `com.unity.animation.rigging` is installed.
 
 ## Extension methods
 
-Every property tween has an extension form on its target type: `TweenPosition`, `TweenLocalPosition`, `TweenPositionX/Y/Z`, `TweenLocalPositionX/Y/Z`, `TweenRotation`, `TweenLocalRotation`, `TweenEulerAngles`, `TweenLocalEulerAngles`, `TweenScale`, `TweenScaleX/Y/Z`, `TweenPositionAtSpeed`, `TweenLocalPositionAtSpeed`, `TweenRotationAtSpeed`, `TweenLocalRotationAtSpeed` (Transform); `TweenAnchoredPosition`, `TweenAnchoredPositionX/Y`, `TweenAnchoredPositionAtSpeed`, `TweenSizeDelta` (RectTransform); `TweenAlpha` (CanvasGroup, Graphic, SpriteRenderer); `TweenColor` (Graphic, SpriteRenderer, Light, Material); `TweenFloat` (Material); `TweenPropertyBlockFloat`, `TweenPropertyBlockColor` (Renderer); `TweenFieldOfView`, `TweenOrthographicSize`, `TweenBackgroundColor`, `Shake` (Camera); `TweenVolume`, `TweenPitch` (AudioSource); `TweenIntensity` (Light). Effects too: `transform.ShakePosition(...)`, `transform.PunchScale(...)`, and so on.
+Every property tween has an extension form on its target type: `TweenPosition`, `TweenLocalPosition`, `TweenPositionX/Y/Z`, `TweenLocalPositionX/Y/Z`, `TweenRotation`, `TweenLocalRotation`, `TweenEulerAngles`, `TweenLocalEulerAngles`, `TweenScale`, `TweenScaleX/Y/Z`, `TweenPositionAtSpeed`, `TweenLocalPositionAtSpeed`, `TweenRotationAtSpeed`, `TweenLocalRotationAtSpeed` (Transform); `TweenAnchoredPosition`, `TweenAnchoredPositionX/Y`, `TweenAnchoredPositionAtSpeed`, `TweenSizeDelta` (RectTransform); `TweenAlpha` (CanvasGroup, Graphic, SpriteRenderer); `TweenColor` (Graphic, SpriteRenderer, Light, Material); `TweenFloat` (Material); `TweenPropertyBlockFloat`, `TweenPropertyBlockColor` (Renderer); `TweenFieldOfView`, `TweenOrthographicSize`, `TweenBackgroundColor`, `Shake` (Camera); `TweenVolume`, `TweenPitch` (AudioSource); `TweenIntensity` (Light). Effects too: `transform.ShakePosition(...)`, `transform.PunchScale(...)`, and so on. Motions: `component.PlayMotion(MotionPreset.PopIn)`.
 
 ---
 
@@ -203,6 +224,7 @@ DOTween names running on RavenTween, for migrating code: `DOMove`, `DOMoveX/Y/Z`
 
 | Menu | Opens |
 | :--- | :--- |
+| **Tools ▸ RavenTween ▸ Motion Library** | Every ready-made motion, previewed on the selection, added in one click. Also **GameObject ▸ RavenTween ▸ Add Motion…** in the Hierarchy's right-click menu. |
 | **Tools ▸ RavenTween ▸ Monitor** | The live **[Monitor](Monitor)** window. |
 | **Tools ▸ RavenTween ▸ Sequence Editor** | The visual timeline for a Raven Sequence Player. |
 | **Tools ▸ RavenTween ▸ Documentation** | This manual. |
@@ -210,7 +232,7 @@ DOTween names running on RavenTween, for migrating code: `DOMove`, `DOMoveX/Y/Z`
 | **Tools ▸ RavenTween ▸ Updates ▸ Check Automatically** | Daily check on or off (on by default). |
 | **Tools ▸ RavenTween ▸ Updates ▸ Install Automatically** | Install new releases without asking (off by default). |
 | **Create ▸ RavenTween ▸ Tween Template** | A new template asset. |
-| **Add Component ▸ RavenTween** | Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
+| **Add Component ▸ RavenTween** | Raven Motion, Raven Stagger, Raven Button Feel, Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
 
 ---
 

@@ -97,6 +97,18 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void RunningMotions_AllocateZeroBytes() {
+            for (int i = 0; i < _objects.Length; i++) {
+                Transform t = _objects[i].transform;
+                Raven.Motion(t, i % 2 == 0 ? MotionPreset.Float : MotionPreset.Tada).Cycles(-1);
+            }
+            for (int frame = 0; frame < 200; frame++) { TweenEngine.Process(0.016f, 0.016f); }
+            Assert.That(() => {
+                for (int frame = 0; frame < 120; frame++) { TweenEngine.Process(0.016f, 0.016f); }
+            }, Is.Not.AllocatingGCMemory(), "Motions are ordinary sequences: playing them must not allocate.");
+        }
+
+        [Test]
         public void TweenCreation_FromWarmPool_AllocatesZeroBytes() {
             Transform t = _objects[0].transform;
             for (int i = 0; i < 1000; i++) { Raven.Position(t, Vector3.one, 1f); }

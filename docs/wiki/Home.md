@@ -12,7 +12,7 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 Raven.Position(transform, target, 0.6f).Ease(Ease.OutBack);
 ```
 
-**In the Inspector** — no code at all. Designers build animations as reusable **Tween Templates** (with presets and a live preview in Edit Mode), play them with a **Raven Animator**, and lay out whole choreographies in the visual **Sequence Editor**:
+**In the Inspector** — no code, and no animation knowledge needed. Pick one of 43 ready-made **motions** (*Pop In*, *Slide In*, *Tada*, *Heartbeat*, *Float*…) from the **Motion Library**, watch it play on your object, and choose what starts it: showing up, a click, a hover, a trigger zone. **Raven Stagger** cascades a menu in, **Raven Button Feel** makes every button springy. For full control, build your own **Tween Templates** and lay out whole choreographies in the visual **Sequence Editor**:
 
 ![The Sequence Editor](images/sequence-editor.png)
 
@@ -36,7 +36,7 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 | **[TextMeshPro](TextMeshPro)** | Typewriter reveal, score counters, font size and spacing. |
 | **[Control and Lifecycle](Control-and-Lifecycle)** | Callbacks, pause, stop, complete, time scale, destroyed targets, async/await and coroutines. |
 | **[Procedural Animation](Procedural-Animation)** | Look-at, spring chains for ponytails and antennae, and Animation Rigging integration. |
-| **[Designer Workflow](Designer-Workflow)** | Animate without code: Tween Templates with presets and preview, Raven Animator, Raven Sequence Player, the visual Sequence Editor, and `TweenParams`. |
+| **[Designer Workflow](Designer-Workflow)** | Animate without code: the Motion Library and 43 ready-made motions, Raven Motion, Raven Stagger, Raven Button Feel, Tween Templates, Raven Animator, Raven Sequence Player, the visual Sequence Editor, and `TweenParams`. |
 | **[Monitor](Monitor)** | The live debugging window under **Tools ▸ RavenTween**. |
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
 | **[Migrating](Migrating)** | Side-by-side equivalents for DOTween and PrimeTween. |
@@ -54,6 +54,7 @@ Tooling, debugging and the last performance gap:
 - **Effects at any scale**: thousands of shakes and punches start in under a millisecond.
 - **Safer debugging**: a Monitor warning when `Time.timeScale` freezes tweens, `Raven.Diagnostics`, and an engine that recovers if another system replaces the player loop.
 - **Camera shake without tilt** for cameras driven by `LookAt` or Cinemachine, explicit `ShakeLocalPosition`-style names, and a **[Known Pitfalls](Known-Pitfalls)** page.
+- **Animate without knowing animation**: 43 ready-made motions in a **Motion Library** you preview on the selection, **Raven Motion** with click, hover, trigger and collision starts, **Raven Stagger** for cascades and **Raven Button Feel** for springy buttons. See **[Designer Workflow](Designer-Workflow)**.
 
 ## What's new in 1.6.0
 

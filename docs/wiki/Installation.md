@@ -64,6 +64,7 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | **07 - TextMeshPro** | Typewriter reveal, score counter, punch feedback (needs TextMeshPro) |
 | **08 - Procedural** | A head tracking an orbiting target, a swinging antenna, a look-away driven by weight tweens |
 | **09 - Time and Physics** | A platform carrying a crate through the physics engine, a ticking clock, timeline callbacks, a hit stop on Space (needs the Physics module) |
+| **10 - No-Code Motion** | A menu that cascades in, springy buttons, click reactions, a dialog that slides in and out, a floating coin — all from Raven Motion, Raven Stagger and Raven Button Feel |
 
 > [!NOTE]
 > The samples work with both the legacy Input Manager and the Input System package.

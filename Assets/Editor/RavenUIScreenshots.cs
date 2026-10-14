@@ -128,14 +128,41 @@ namespace RavenTweenDemo {
                     break;
                 case 4:
                     Capture(EditorWindow.GetWindow<RavenSequenceEditorWindow>(), "designer_sequence_editor.png");
+                    EditorWindow.GetWindow<RavenSequenceEditorWindow>().Close();
+                    _motionObject = BuildMotionObject();
+                    Selection.activeObject = _motionObject;
                     break;
                 case 5:
+                    Capture(GetInspector(), "designer_motion_inspector.png");
+                    MotionLibraryWindow.Open();
+                    EditorWindow.GetWindow<MotionLibraryWindow>().position = new Rect(600f, 60f, 560f, 760f);
+                    break;
+                case 6:
+                    Capture(EditorWindow.GetWindow<MotionLibraryWindow>(), "designer_motion_library.png");
+                    break;
+                case 7:
                     EditorApplication.update -= DesignerStage;
                     EditorApplication.Exit(0);
                     break;
                 default:
                     break;
             }
+        }
+
+        static GameObject _motionObject;
+
+        // A collectible with an idle float: what the Raven Motion inspector looks like in use.
+        static GameObject BuildMotionObject() {
+            GameObject coin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            coin.name = "Gold Coin";
+            coin.transform.position = new Vector3(0f, 1.5f, 0f);
+            Object.DestroyImmediate(coin.GetComponent<Collider>());
+            // Folded so the Raven Motion inspector is in view.
+            InternalEditorUtility.SetIsInspectorExpanded(coin.GetComponent<MeshFilter>(), false);
+            InternalEditorUtility.SetIsInspectorExpanded(coin.GetComponent<MeshRenderer>(), false);
+            var motion = coin.AddComponent<RavenMotion>();
+            motion.Preset = MotionPreset.Float;
+            return coin;
         }
 
         // A five-step choreography built in memory (never saved), so the timeline has something to show.

@@ -33,7 +33,7 @@ Raven.Sequence()
 await Raven.Delay(1.2f);
 ```
 
-**Or without a line of code.** Designers build animations as **Tween Templates** (presets, live easing curve, preview in Edit Mode), play them with a **Raven Animator**, and arrange whole choreographies in the visual **Sequence Editor**: drag steps in time, scrub, and preview in the scene. Same engine, same zero garbage.
+**Or without a line of code — and without knowing animation.** Open the **Motion Library**, click *Pop In*, *Tada* or *Float* to watch it on the selected object, pick what starts it (showing up, a click, a hover, a trigger zone) and add it. **Raven Stagger** cascades menus in, **Raven Button Feel** makes buttons springy, and for full control there are **Tween Templates** and a visual **Sequence Editor**. Same engine, same zero garbage.
 
 <p align="center">
   <img src="Packages/com.raventween.core/Documentation~/images/sequence-editor.png" width="820" alt="Raven Sequence Editor">
@@ -45,7 +45,7 @@ await Raven.Delay(1.2f);
 - Full time control: elapsed time and progress you can read and set, per-tween time scale, `FixedUpdate` and Rigidbody tweens.
 - Single-axis, speed-based and per-renderer property-block tweens; Incremental and PingPong cycles; tunable Overshoot / Bounce / Elastic eases.
 - Procedural look-at and spring chains, plus optional Animation Rigging integration.
-- No-code tools for designers: Tween Templates with presets and Edit Mode preview, Raven Animator, Raven Sequence Player and the visual Sequence Editor.
+- No-code tools for designers: 43 ready-made motions with a Motion Library, Raven Motion (click, hover, trigger and collision starts), Raven Stagger, Raven Button Feel, Tween Templates with presets and Edit Mode preview, Raven Animator, Raven Sequence Player and the visual Sequence Editor.
 - A live **Tools → RavenTween → Monitor** window.
 - A DOTween adapter: swap one `using` and most DOTween code runs on RavenTween.
 

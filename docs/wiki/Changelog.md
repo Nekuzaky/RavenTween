@@ -6,6 +6,12 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [1.7.0] - 2026-10-14
 
 ### Added
+- **Motions — animation without animation knowledge.** 43 ready-made motions in four families (entrances, exits, attention, loops) that adapt to UI and scene objects, fade Canvas Groups, Graphics and Sprite Renderers, and always return exactly to the rest pose. From code: `Raven.Motion(target, MotionPreset.PopIn)`.
+- **Raven Motion** component: a motion plus what starts it — enable, scene start, click, hover, pointer leave, press, release, trigger enter / exit, collision, or a UnityEvent — with intensity, duration, delay, distance and repeat, and *Deactivate* / *Destroy* when finished. Its inspector previews in the scene and fixes common setup mistakes in one click.
+- **Raven Stagger** component: plays a motion on each child, one after another (first to last, last to first, or from the center).
+- **Raven Button Feel** component: hover grow, press sink and spring back, in *Subtle*, *Bouncy*, *Juicy* or custom styles.
+- **Motion Library** window (**Tools ▸ RavenTween ▸ Motion Library**, or **GameObject ▸ RavenTween ▸ Add Motion…**): every motion on one page, previewed on the selection, added in one click, with quick setups.
+- Sample *10 - No-Code Motion*.
 - `Raven.Step(deltaTime)`: advances every tween and sequence right away, whatever their update phase, also outside Play Mode — for editor tools, frame-by-frame recording and tests. `Raven.Step(deltaTime, phase)` advances one phase only.
 - `UpdatePhase.Manual`: tweens the player loop never steps, advanced only by `Raven.Step(deltaTime, UpdatePhase.Manual)` (replays, offline rendering). The DOTween adapter maps `UpdateType.Manual` and `DOTween.ManualUpdate` to it.
 - `ShakeLocalPosition`, `ShakeLocalRotation`, `PunchLocalPosition`, `PunchLocalRotation`: explicit names for the existing effects, which always worked in local space.

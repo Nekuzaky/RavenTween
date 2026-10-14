@@ -1,14 +1,92 @@
 # Designer Workflow
 
-Not every animation should live in code. RavenTween gives designers three tools that need no programming: **Tween Templates**, the **Raven Animator** and the **Raven Sequence Player**, with a visual **Sequence Editor** to lay out timelines. Programmers get a fourth: `TweenParams`, a serializable struct that exposes timing to the Inspector.
+Not every animation should live in code — and not everyone who animates should need to know what an easing curve is. RavenTween has two levels of no-code tools:
+
+- **Motions** — for anyone. Pick a ready-made motion like *Pop In*, *Tada* or *Float* from a library, watch it play on your object, done. No animation knowledge needed.
+- **Templates and timelines** — for when you want full control: your own **Tween Templates**, the **Raven Animator**, the **Raven Sequence Player** and the visual **Sequence Editor**.
 
 Everything here runs on the same engine as the code API: the same zero-garbage tweens, the same easing, the same sequences.
 
-![The Sequence Editor: five steps laid out on a timeline](images/sequence-editor.png)
+---
+
+## Your first animation — thirty seconds
+
+1. Select an object in the Hierarchy (a UI panel, a button, a 3D object, a sprite).
+2. Open **Tools ▸ RavenTween ▸ Motion Library** (or right-click the object ▸ **RavenTween ▸ Add Motion…**).
+3. Click motions: each one plays on your object right away, in the scene, without changing anything.
+4. When one feels right, choose when it **Starts** and press **Add to selected object**.
+5. Press Play.
 
 ---
 
-## Your first animation without code — two minutes
+## Motions
+
+A motion is a complete, tuned animation with a name you can guess: *Slide In Left*, *Heartbeat*, *Breathe*. Each one adapts to what it is put on — it moves UI in canvas pixels and scene objects in world units, fades Canvas Groups, Images, Texts and Sprite Renderers, and turns flat objects in the screen plane and 3D objects around their vertical axis. Every motion returns exactly to where the object started, so nothing ever drifts.
+
+| Family | What it's for | Motions |
+| :--- | :--- | :--- |
+| **Entrances** | Make something appear. It is hidden at once, then revealed. | Fade In, Pop In, Zoom In, Slide In Left / Right / Up / Down, Drop In, Rise In, Spin In, Flip In, Elastic In |
+| **Attention** | Make something noticed, then settle back. | Pulse, Bounce, Shake, Wobble, Jello, Heartbeat, Tada, Flash, Swing, Squash, Nod, Head Shake |
+| **Loops** | Keep something alive while it is on screen. | Float, Breathe, Spin, Sway, Rock, Blink, Throb, Wiggle |
+| **Exits** | Make something disappear. | Fade Out, Pop Out, Zoom Out, Slide Out Left / Right / Up / Down, Fall Out, Sink Out, Spin Out, Flip Out |
+
+### Motion Library
+
+**Tools ▸ RavenTween ▸ Motion Library** shows every motion on one page, grouped by family, with a search field. Select objects in the Hierarchy and click a motion to watch it on them — select several to see them cascade. **Intensity** and **Duration** sliders tune it live. Then:
+
+- **Add to selected object** adds a **Raven Motion** with these settings and the chosen start.
+- **Cascade children** adds a **Raven Stagger**: the motion plays on each child, one after another.
+- **Quick add** has one-click setups: **Button Feel**, **Idle Float** and **Pop In On Show**.
+
+Nothing is changed until you add something: previews always put the objects back.
+
+### Raven Motion
+
+**Add Component ▸ RavenTween ▸ Raven Motion** plays one motion on its object (or on the object in **Animate**).
+
+| Setting | Meaning |
+| :--- | :--- |
+| **Motion** | Pick from the grouped menu; a sentence under it says what it looks like. **Browse all motions…** opens the library. |
+| **When** | What starts it: *When enabled*, *When the scene starts*, *On click*, *On hover*, *When the pointer leaves*, *On press*, *On release*, *When something enters / leaves (trigger)*, *On collision*, or *Manually* (from any UnityEvent, such as another button's **On Click** → `RavenMotion.Play`). |
+| **Only Tag** | For triggers and collisions: only objects with this tag count. |
+| **Duration** | *Auto* uses the motion's own timing. |
+| **Intensity** | 0.5 = subtle, 1 = as designed, 2 = exaggerated. |
+| **Delay** | Seconds before it starts. An entrance hides the object during the delay. |
+| **Distance** | Slides and drops only. *Auto* derives it from the object's size. |
+| **Repeat** | Attention motions only: how many times in a row. |
+| **Play While Paused** | Keep playing when `Time.timeScale` is 0 (pause menus). |
+| **When Finished** | *Deactivate* or *Destroy* the object afterwards — typical after an exit. |
+| **On Complete** | A UnityEvent fired when the motion ends. |
+
+Press **Preview** to see it in the scene outside Play Mode; **Reset** puts the object back. The inspector also catches the usual mistakes and fixes them in one click: a fade on something that can't fade (**Add Canvas Group**), a click trigger without an Event System (**Create Event System**) or without a collider (**Add Box Collider**), a trigger collider that isn't set as a trigger, or a moving motion inside a Layout Group.
+
+Several Raven Motions can share an object: an entrance plus a hover pulse plus an idle float is a common combination. A panel with **Slide In Up** *When enabled* and **Slide Out Down** *Manually*, *When Finished: Deactivate*, shows and hides itself properly with `SetActive(true)` and a Close button wired to the exit's `Play`.
+
+### Raven Stagger
+
+**Add Component ▸ RavenTween ▸ Raven Stagger** on a parent plays one motion on each child, **Interval** seconds apart — menus that cascade in, list rows, inventory slots, a row of coins. **Order** can run first-to-last, last-to-first, or from the center outwards. It works with Layout Groups: the layout is settled before the children's places are read.
+
+### Raven Button Feel
+
+**Add Component ▸ RavenTween ▸ Raven Button Feel** makes any button feel alive: it grows a little under the pointer, sinks when pressed and springs back when released. Pick a **Style** — *Subtle*, *Bouncy* (default) or *Juicy* — or *Custom* sizes and timing. It respects the Button's **Interactable** flag and keeps working in pause menus.
+
+### From code
+
+The same motions are one line away for programmers:
+
+```csharp
+Raven.Motion(panel, MotionPreset.SlideInUp);
+coin.PlayMotion(MotionPreset.Float);
+Raven.Motion(icon, MotionPreset.Tada, new MotionSettings { intensity = 1.5f, repeat = 2 });
+```
+
+`Raven.Motion` returns an ordinary `Sequence`: await it, chain it, stop it.
+
+---
+
+## Your own animations — two minutes
+
+When no motion fits, build exactly what you want:
 
 1. **Create ▸ RavenTween ▸ Tween Template**. In the new asset, open **Presets** and pick *Pop In*.
 2. Select an object in the scene, then press **Preview** in the template: it plays right there, in Edit Mode. Adjust **Ease** and **Duration** until it feels right; **Reset** puts the object back.
@@ -16,7 +94,9 @@ Everything here runs on the same engine as the code API: the same zero-garbage t
 4. Tick **Play On Enable**, or call **Play()** from a button's **On Click**.
 5. Press Play.
 
-For several animations in a row, use a **Raven Sequence Player** instead and press **Open Timeline** to arrange the steps visually.
+For several animations in a row, use a **Raven Sequence Player** instead and press **Open Timeline** to arrange the steps visually:
+
+![The Sequence Editor: five steps laid out on a timeline](images/sequence-editor.png)
 
 ---
 
