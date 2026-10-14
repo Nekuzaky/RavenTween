@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel;
 using UnityEngine;
 using UnityEngine.Playables;
@@ -16,6 +17,15 @@ namespace RavenTween {
     [TrackBindingType(typeof(Transform))]
     [DisplayName("RavenTween/Raven Motion Track")]
     public sealed class RavenMotionTrack : TrackAsset {
+        public override Playable CreateTrackMixer(PlayableGraph graph, GameObject go, int inputCount) {
+            var mixer = ScriptPlayable<RavenMotionMixer>.Create(graph, inputCount);
+            RavenMotionMixer behaviour = mixer.GetBehaviour();
+            foreach (TimelineClip clip in GetClips()) {
+                if (clip.asset is RavenMotionClip motion) { behaviour.AddClip(clip.start, clip.end, clip.clipIn, clip.timeScale, motion); }
+            }
+            return mixer;
+        }
+
         // Tells Timeline which properties the clips animate, so its editor preview puts them back.
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver) {
             var bound = director.GetGenericBinding(this) as Transform;
@@ -25,22 +35,22 @@ namespace RavenTween {
                 driver.AddFromName<RectTransform>(go, "m_AnchoredPosition.x");
                 driver.AddFromName<RectTransform>(go, "m_AnchoredPosition.y");
             }
-            Add(driver, go, "m_LocalPosition", true);
+            AddVector(driver, go, "m_LocalPosition");
             driver.AddFromName<Transform>(go, "m_LocalRotation.x");
             driver.AddFromName<Transform>(go, "m_LocalRotation.y");
             driver.AddFromName<Transform>(go, "m_LocalRotation.z");
             driver.AddFromName<Transform>(go, "m_LocalRotation.w");
-            Add(driver, go, "m_LocalScale", true);
+            AddVector(driver, go, "m_LocalScale");
             if (go.GetComponent<CanvasGroup>() != null) { driver.AddFromName<CanvasGroup>(go, "m_Alpha"); }
             if (go.GetComponent<Graphic>() != null) { AddColor<Graphic>(driver, go); }
             if (go.GetComponent<SpriteRenderer>() != null) { AddColor<SpriteRenderer>(driver, go); }
             base.GatherProperties(director, driver);
         }
 
-        static void Add(IPropertyCollector driver, GameObject go, string vector, bool xyz) {
+        static void AddVector(IPropertyCollector driver, GameObject go, string vector) {
             driver.AddFromName<Transform>(go, vector + ".x");
             driver.AddFromName<Transform>(go, vector + ".y");
-            if (xyz) { driver.AddFromName<Transform>(go, vector + ".z"); }
+            driver.AddFromName<Transform>(go, vector + ".z");
         }
 
         static void AddColor<T>(IPropertyCollector driver, GameObject go) where T : UnityEngine.Component {
@@ -59,7 +69,7 @@ namespace RavenTween {
         public MotionPreset preset = MotionPreset.PopIn;
         public MotionSettings settings = MotionSettings.Default;
 
-        public ClipCaps clipCaps { get { return ClipCaps.None; } }
+        public ClipCaps clipCaps { get { return ClipCaps.SpeedMultiplier | ClipCaps.ClipIn; } }
 
         public MotionPreset EffectivePreset { get { return style != null ? style.Preset : preset; } }
         public MotionSettings EffectiveSettings { get { return style != null ? style.Settings : settings; } }
@@ -73,71 +83,119 @@ namespace RavenTween {
             }
         }
 
+        // The track's mixer does the work; a clip only carries its settings.
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner) {
-            var playable = ScriptPlayable<RavenMotionBehaviour>.Create(graph);
-            playable.GetBehaviour().Clip = this;
-            return playable;
+            return Playable.Create(graph);
         }
     }
 
-    /// <summary>Samples a motion at the playhead. The motion is an ordinary sequence, paused and sought.</summary>
-    public sealed class RavenMotionBehaviour : PlayableBehaviour {
-        public RavenMotionClip Clip;
+    /// <summary>
+    /// Drives a Raven Motion Track: at every frame it shows the clip under the playhead, the end of
+    /// the last clip already passed, or, before the first clip, the object as designed. The
+    /// designed pose is read once for the whole track, before any clip moves the object.
+    /// </summary>
+    public sealed class RavenMotionMixer : PlayableBehaviour {
+        struct Entry {
+            public double Start;
+            public double End;
+            public double ClipIn;
+            public double Speed;
+            public RavenMotionClip Clip;
+            public Sequence Motion;
+            public MotionChannels Channels;
+            public float Cycle;
+            public bool Repeats;
+        }
 
-        Sequence _motion;
+        readonly List<Entry> _clips = new List<Entry>(4);
         MotionTarget _target;
         MotionRest _rest;
-        MotionChannels _channels;
-        float _cycle;
-        bool _repeats;
+        bool _hasRest;
+        MotionChannels _used;
+
+        internal void AddClip(double start, double end, double clipIn, double speed, RavenMotionClip clip) {
+            var entry = new Entry { Start = start, End = end, ClipIn = clipIn, Speed = speed > 0.0 ? speed : 1.0, Clip = clip };
+            int at = 0;
+            while (at < _clips.Count && _clips[at].Start <= start) { at++; }
+            _clips.Insert(at, entry);
+        }
 
         public override void ProcessFrame(Playable playable, FrameData info, object playerData) {
             var bound = playerData as Transform;
-            if (bound == null || Clip == null) { return; }
-            if (!_motion.IsAlive || _target.Transform != bound) { Build(bound); }
-            if (!_motion.IsAlive) { return; }
-            Sample((float)playable.GetTime());
-        }
-
-        // Leaving the clip: show its last frame, as a Timeline animation clip would.
-        public override void OnBehaviourPause(Playable playable, FrameData info) {
-            if (!_motion.IsAlive) { return; }
+            if (bound == null || _clips.Count == 0) { return; }
+            if (!_hasRest || _target.Transform != bound) { Bind(bound); }
             double time = playable.GetTime();
-            if (time >= playable.GetDuration() - 1e-4) { Sample((float)playable.GetDuration()); }
+            // The clip under the playhead; otherwise the clip that ended last, held on its end.
+            int active = -1;
+            int passed = -1;
+            for (int i = 0; i < _clips.Count; i++) {
+                Entry clip = _clips[i];
+                if (time >= clip.Start && time < clip.End) { active = i; }
+                else if (time >= clip.End && (passed < 0 || clip.End >= _clips[passed].End)) { passed = i; }
+            }
+            int shown = active >= 0 ? active : passed;
+            bool hold = active < 0;
+            if (shown < 0) { _rest.Apply(_target, _used); return; }
+            Entry entry = _clips[shown];
+            double local = hold ? entry.End - entry.Start : time - entry.Start;
+            Sample(shown, (float)(entry.ClipIn + local * entry.Speed));
         }
 
         public override void OnPlayableDestroy(Playable playable) {
-            if (_motion.IsAlive) { _motion.Stop(); }
-            _motion = default;
-            // Outside Play Mode nothing of a preview may stay: a mesh tint lives in a property
-            // block Timeline does not track, so it is put back here.
-            if (!Application.isPlaying && _target.IsValid && (_channels & MotionChannels.Color) != 0) {
-                _rest.Apply(_target, MotionChannels.Color);
+            for (int i = 0; i < _clips.Count; i++) {
+                Entry entry = _clips[i];
+                if (entry.Motion.IsAlive) { entry.Motion.Stop(); }
+                entry.Motion = default;
+                _clips[i] = entry;
             }
+            // Outside Play Mode nothing of a preview may stay (a mesh tint lives in a property
+            // block Timeline does not track): everything the motions touched is put back.
+            if (!Application.isPlaying && _hasRest && _target.IsValid) { _rest.Apply(_target, _used); }
+            _hasRest = false;
         }
 
-        void Build(Transform bound) {
-            if (_motion.IsAlive) { _motion.Stop(); }
+        void Bind(Transform bound) {
+            for (int i = 0; i < _clips.Count; i++) {
+                Entry entry = _clips[i];
+                if (entry.Motion.IsAlive) { entry.Motion.Stop(); }
+                entry.Motion = default;
+                _clips[i] = entry;
+            }
             _target = MotionTarget.Resolve(bound);
             _rest = MotionRest.Capture(_target);
-            MotionSettings settings = Clip.EffectiveSettings;
-            settings.delay = 0f;
-            MotionPreset preset = Clip.EffectivePreset;
-            _motion = MotionBuilder.Build(_target, preset, settings, _rest, out _channels);
-            if (!_motion.IsAlive) { return; }
-            // The playhead drives it: the engine must never step it.
-            _motion.Pause();
-            _cycle = Mathf.Max(_motion.Duration, 0.0001f);
-            MotionCategory category = MotionLibrary.Category(preset);
-            _repeats = category == MotionCategory.Loop || category == MotionCategory.Attention;
+            _hasRest = true;
+            _used = MotionChannels.None;
         }
 
-        // Loops and attention motions repeat over a longer clip; the rest hold their end.
-        void Sample(float time) {
-            float local = _repeats ? Mathf.Repeat(time, _cycle) : Mathf.Min(time, _cycle);
-            if (_repeats && time > 0f && local <= 0f) { local = _cycle; }
-            _rest.Apply(_target, _channels);
-            TweenEngine.Seek(_motion.Index, _motion.Version, local);
+        // The motion of a clip is an ordinary sequence, built once, paused (the playhead drives
+        // it, never the engine) and sought. Loops and attention motions repeat over a longer clip.
+        void Sample(int index, float time) {
+            Entry entry = _clips[index];
+            if (!entry.Motion.IsAlive) {
+                entry = Build(entry);
+                _clips[index] = entry;
+                if (!entry.Motion.IsAlive) { return; }
+            }
+            float local = entry.Repeats ? Mathf.Repeat(time, entry.Cycle) : Mathf.Min(time, entry.Cycle);
+            if (entry.Repeats && time > 0f && local <= 0f) { local = entry.Cycle; }
+            _rest.Apply(_target, _used);
+            TweenEngine.Seek(entry.Motion.Index, entry.Motion.Version, local);
+        }
+
+        Entry Build(Entry entry) {
+            MotionSettings settings = entry.Clip.EffectiveSettings;
+            settings.delay = 0f;
+            MotionPreset preset = entry.Clip.EffectivePreset;
+            // Built from the designed pose, so clips don't depend on the order they are reached.
+            _rest.Apply(_target, _used);
+            entry.Motion = MotionBuilder.Build(_target, preset, settings, _rest, out entry.Channels);
+            if (!entry.Motion.IsAlive) { return entry; }
+            entry.Motion.Pause();
+            _used |= entry.Channels;
+            entry.Cycle = Mathf.Max(entry.Motion.Duration, 0.0001f);
+            MotionCategory category = MotionLibrary.Category(preset);
+            entry.Repeats = category == MotionCategory.Loop || category == MotionCategory.Attention;
+            return entry;
         }
     }
 }

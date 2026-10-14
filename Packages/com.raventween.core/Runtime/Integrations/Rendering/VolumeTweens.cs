@@ -38,9 +38,20 @@ namespace RavenTween {
             }
             Tween flash = Raven.CustomTo(target, v => v.weight, Mathf.Clamp01(Mathf.Max(peak, rest)), duration * 0.5f, (v, w) => v.weight = w)
                 .From(rest).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
-            if (Flashes.Count > 16) { Flashes.Clear(); }
+            if (Flashes.Count > 16) { DropFinished(); }
             Flashes[target] = new Flashing { Tween = flash, Rest = rest };
             return flash;
+        }
+
+        static readonly List<Volume> Finished = new List<Volume>(8);
+
+        // Forgets volumes that are no longer flashing or were destroyed; running flashes keep their rest.
+        static void DropFinished() {
+            foreach (KeyValuePair<Volume, Flashing> entry in Flashes) {
+                if (entry.Key == null || !entry.Value.Tween.IsAlive) { Finished.Add(entry.Key); }
+            }
+            for (int i = 0; i < Finished.Count; i++) { Flashes.Remove(Finished[i]); }
+            Finished.Clear();
         }
 
         static void Flash(FeedbackAction action, float power) {

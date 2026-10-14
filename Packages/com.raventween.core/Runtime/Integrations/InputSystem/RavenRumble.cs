@@ -9,16 +9,20 @@ namespace RavenTween {
     /// hit stop does not stretch it. Also serves the Rumble action of Raven Feedback.
     /// </summary>
     public static class RavenRumble {
-        static readonly Action StopAction = Stop;
+        static readonly Action TimerEndAction = TimerEnd;
         static Tween _timer;
+        static Gamepad _pad;
         static float _low;
         static float _high;
+        static bool _replacing;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Register() {
             _timer = default;
+            _pad = null;
             _low = 0f;
             _high = 0f;
+            _replacing = false;
             FeedbackHooks.Rumble = (action, power) => Play(action.lowMotor * power, action.highMotor * power, action.duration);
         }
 
@@ -26,21 +30,43 @@ namespace RavenTween {
         public static void Play(float lowFrequency, float highFrequency, float duration) {
             Gamepad pad = Gamepad.current;
             if (pad == null || duration <= 0f) { return; }
-            bool running = _timer.IsAlive;
+            bool running = _timer.IsAlive && _pad == pad;
+            float remaining = duration;
+            if (_timer.IsAlive) {
+                if (running) { remaining = Mathf.Max(_timer.DurationTotal - _timer.ElapsedTimeTotal, duration); }
+                // Replacing the timer must not stop the vibration it is about to extend.
+                _replacing = true;
+                _timer.Stop();
+                _replacing = false;
+            }
+            // The player switched controllers: the previous one must not keep vibrating.
+            if (_pad != null && _pad != pad) { _pad.ResetHaptics(); }
+            _pad = pad;
             _low = Mathf.Clamp01(running ? Mathf.Max(_low, lowFrequency) : lowFrequency);
             _high = Mathf.Clamp01(running ? Mathf.Max(_high, highFrequency) : highFrequency);
             pad.SetMotorSpeeds(_low, _high);
-            float remaining = running ? Mathf.Max(_timer.DurationTotal - _timer.ElapsedTimeTotal, duration) : duration;
-            _timer.Stop();
-            _timer = Raven.Delay(remaining).UnscaledTime().OnComplete(StopAction).OnKill(StopAction);
+            _timer = Raven.Delay(remaining).UnscaledTime().OnComplete(TimerEndAction).OnKill(TimerEndAction);
         }
 
         /// <summary>Stops any vibration at once.</summary>
         public static void Stop() {
+            if (_timer.IsAlive) {
+                _replacing = true;
+                _timer.Stop();
+                _replacing = false;
+            }
+            Silence();
+        }
+
+        static void TimerEnd() {
+            if (!_replacing) { Silence(); }
+        }
+
+        static void Silence() {
             _low = 0f;
             _high = 0f;
-            Gamepad pad = Gamepad.current;
-            if (pad != null) { pad.ResetHaptics(); }
+            if (_pad != null) { _pad.ResetHaptics(); }
+            _pad = null;
         }
     }
 }

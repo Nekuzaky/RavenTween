@@ -57,6 +57,44 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void ScrubbingBeforeTheClip_ShowsTheDesignedPose() {
+            PlayableDirector director = Director(MotionPreset.PopIn, 1.0, 0.4);
+            At(director, 1.2);
+            Assert.That(_go.transform.localScale.x, Is.Not.EqualTo(2f).Within(1e-3f), "Mid Pop In.");
+            At(director, 0.5);
+            Assert.That(_go.transform.localScale.x, Is.EqualTo(2f).Within(1e-4f), "Before the clip: as designed, not the last pose shown.");
+        }
+
+        [Test]
+        public void ExitThenEntrance_OnOneTrack_EndsAtTheDesignedPose() {
+            var track = _timeline.CreateTrack<RavenMotionTrack>(null, "Motion");
+            TimelineClip exit = track.CreateClip<RavenMotionClip>();
+            ((RavenMotionClip)exit.asset).preset = MotionPreset.SlideOutLeft;
+            exit.start = 0.0;
+            exit.duration = 0.5;
+            TimelineClip entrance = track.CreateClip<RavenMotionClip>();
+            ((RavenMotionClip)entrance.asset).preset = MotionPreset.SlideInLeft;
+            entrance.start = 1.0;
+            entrance.duration = 0.5;
+            _go.transform.localPosition = new Vector3(3f, 1f, 0f);
+            var director = _go.AddComponent<PlayableDirector>();
+            director.playableAsset = _timeline;
+            director.SetGenericBinding(track, _go.transform);
+            director.RebuildGraph();
+            for (double t = 0.0; t <= 1.6; t += 0.05) { At(director, t); }
+            Assert.That(_go.transform.localPosition, Is.EqualTo(new Vector3(3f, 1f, 0f)), "The entrance comes back to where the object was designed, not to where the exit left it.");
+        }
+
+        [Test]
+        public void StopAll_DuringACutscene_DoesNotShiftTheRestPose() {
+            PlayableDirector director = Director(MotionPreset.PopIn, 0.0, 0.4);
+            At(director, 0.1);
+            Raven.StopAll();
+            At(director, 0.4);
+            Assert.That(_go.transform.localScale.x, Is.EqualTo(2f).Within(1e-3f));
+        }
+
+        [Test]
         public void Loop_RepeatsOverALongerClip() {
             PlayableDirector director = Director(MotionPreset.Breathe, 0.0, 9.0);
             float cycle = MotionLibrary.DefaultDuration(MotionPreset.Breathe);

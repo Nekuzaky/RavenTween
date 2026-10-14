@@ -6,6 +6,8 @@ namespace RavenTween {
     /// UniTask support: <c>await tween.ToUniTask(token)</c>. It ends when the tween ends (completed
     /// or stopped); cancelling the token stops the tween and throws OperationCanceledException.
     /// UniTask pools its async state machines, so awaiting does not allocate once warmed up.
+    /// The token is attached with WithCancellation, which replaces a token set earlier and only
+    /// applies to root tweens and sequences (a tween inside a sequence follows its sequence).
     /// </summary>
     public static class UniTaskTweens {
         public static async UniTask ToUniTask(this Tween tween, CancellationToken cancellationToken = default) {

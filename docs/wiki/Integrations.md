@@ -17,7 +17,7 @@ RavenTween works with the packages a project already uses. Each integration is a
 
 ## Unity Timeline
 
-Add a **RavenTween ▸ Raven Motion Track** to a Timeline, bind it to an object, and add **Raven Motion** clips. Each clip plays one of the ready-made motions (or a Motion Style); its length defaults to the motion's own timing. Stretch a loop or an attention motion to repeat it; entrances and exits hold their last frame after the clip.
+Add a **RavenTween ▸ Raven Motion Track** to a Timeline, bind it to an object, and add **Raven Motion** clips. Each clip plays one of the ready-made motions (or a Motion Style); its length defaults to the motion's own timing. Stretch a loop or an attention motion to repeat it; entrances and exits hold their last frame after the clip, and before the first clip the object shows as designed. Several clips on one track (an exit, later an entrance) always work from the object's designed pose, whatever order you scrub them in. Clip speed and clip-in are supported.
 
 The motion is **sampled at the playhead**: scrubbing forwards or backwards shows exactly the right pose, and previewing in the editor puts everything back afterwards, as Timeline's own tracks do.
 
