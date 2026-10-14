@@ -29,6 +29,8 @@ namespace RavenTween.Editor {
         MotionStage _stage;
         MotionPreset _selected = MotionPreset.PopIn;
         MotionStyle _selectedStyle;
+        // The tile under the pointer, kept while the pointer crosses the gaps between tiles or
+        // its tooltip opens, so the card does not flip back and forth; cleared when it leaves.
         MotionPreset _hovered;
         MotionStyle _hoveredStyle;
         MotionTrigger _trigger = MotionTrigger.OnEnable;
@@ -100,7 +102,7 @@ namespace RavenTween.Editor {
         void OnGUI() {
             EnsureStyles();
             CollectTargets();
-            if (Event.current.type == EventType.Layout) { _hovered = MotionPreset.None; _hoveredStyle = null; }
+            if (Event.current.type == EventType.MouseLeaveWindow) { ClearHover(); }
             DrawHeader();
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
             DrawStyles();
@@ -160,7 +162,7 @@ namespace RavenTween.Editor {
             if (style == _selectedStyle) { GUI.backgroundColor = StyleColor; }
             string tip = MotionLibrary.DisplayName(style.Preset) + (string.IsNullOrEmpty(style.Notes) ? "" : " — " + style.Notes);
             if (GUILayout.Button(new GUIContent(style.name, tip), _tile, GUILayout.Height(ButtonHeight), GUILayout.Width(width))) { SelectStyle(style); }
-            if (GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition)) { _hoveredStyle = style; }
+            if (IsHovered(GUILayoutUtility.GetLastRect())) { _hoveredStyle = style; _hovered = MotionPreset.None; }
             GUI.backgroundColor = previous;
         }
 
@@ -201,8 +203,19 @@ namespace RavenTween.Editor {
             if (preset == _selected && _selectedStyle == null) { GUI.backgroundColor = color; }
             var content = new GUIContent(MotionLibrary.DisplayName(preset), MotionLibrary.Description(preset));
             if (GUILayout.Button(content, _tile, GUILayout.Height(ButtonHeight), GUILayout.Width(width))) { Select(preset); }
-            if (GUILayoutUtility.GetLastRect().Contains(Event.current.mousePosition)) { _hovered = preset; }
+            if (IsHovered(GUILayoutUtility.GetLastRect())) { _hovered = preset; _hoveredStyle = null; }
             GUI.backgroundColor = previous;
+        }
+
+        // Rects are only real outside the Layout pass.
+        static bool IsHovered(Rect tile) {
+            Event e = Event.current;
+            return e.type != EventType.Layout && tile.Contains(e.mousePosition);
+        }
+
+        void ClearHover() {
+            _hovered = MotionPreset.None;
+            _hoveredStyle = null;
         }
 
         bool Matches(MotionPreset preset) {
@@ -234,7 +247,9 @@ namespace RavenTween.Editor {
         // ----- Footer -----
 
         void DrawFooter() {
-            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            Rect footer = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+            // Pointing at the settings shows the motion being tuned, not the last tile hovered.
+            if (IsHovered(footer)) { ClearHover(); }
             DrawStage();
             MotionPreset current = CurrentPreset();
             string title = _selectedStyle != null ? _selectedStyle.name + "  ·  " + MotionLibrary.DisplayName(current) : MotionLibrary.DisplayName(current) + "  ·  " + MotionLibrary.Category(current);
@@ -251,7 +266,6 @@ namespace RavenTween.Editor {
             MotionPreset shownPreset;
             MotionSettings shownSettings;
             Color color;
-            if (mouseOverWindow != this) { _hovered = MotionPreset.None; _hoveredStyle = null; }
             if (_hoveredStyle != null) { shownPreset = _hoveredStyle.Preset; shownSettings = _hoveredStyle.Settings; color = StyleColor; }
             else if (_hovered != MotionPreset.None) { shownPreset = _hovered; shownSettings = Settings(); color = CategoryColor(_hovered); }
             else if (_selectedStyle != null) { shownPreset = _selectedStyle.Preset; shownSettings = _selectedStyle.Settings; color = StyleColor; }
