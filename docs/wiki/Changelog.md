@@ -17,7 +17,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Raven Typewriter** and **Raven Counter** components for TextMeshPro: letter-by-letter reveal with a typing sound and Skip; animated numbers with prefix, suffix, decimals, `CountTo` and `Add`.
 - **Raven Text Effect** for TextMeshPro: per-letter Wave, Shake, Wobble, Pulse and Rainbow, and letters that Fade, Pop or Rise in as they appear (pairs with Raven Typewriter); limited to a range of letters if needed; mesh only, no allocation while playing.
 - **Motion Styles**: a motion and its settings saved as an asset (**Create ▸ RavenTween ▸ Motion Style** or **Save as style…**), shared by Raven Motion, Raven Stagger and Raven Show Hide.
-- **Tint** motion (flashes a color: Graphics, Sprite Renderers and mesh materials), **Then Play** chaining on Raven Motion, and `Raven.HitStop(timeScale, duration)`.
+- **Tint** motion (flashes a color: Graphics, Sprite Renderers and mesh materials), **Then Play** chaining on Raven Motion, `Raven.HitStop(timeScale, duration)` and `Raven.SlowMotion(timeScale, duration)`.
 - Sample *10 - No-Code Motion*.
 - `Raven.Step(deltaTime)`: advances every tween and sequence right away, whatever their update phase, also outside Play Mode — for editor tools, frame-by-frame recording and tests. `Raven.Step(deltaTime, phase)` advances one phase only.
 - `UpdatePhase.Manual`: tweens the player loop never steps, advanced only by `Raven.Step(deltaTime, UpdatePhase.Manual)` (replays, offline rendering). The DOTween adapter maps `UpdateType.Manual` and `DOTween.ManualUpdate` to it.

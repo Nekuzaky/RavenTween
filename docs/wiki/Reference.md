@@ -13,6 +13,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `Raven.Motion(in MotionTarget, MotionPreset, MotionSettings, in MotionRest rest)` | `Sequence` around a pose captured with `MotionRest.Capture` |
 | `component.PlayMotion(MotionPreset [, MotionSettings])` | Extension form |
 | `Raven.HitStop(float timeScale = 0.05, float duration = 0.08)` | Drops `Time.timeScale` for `duration` real seconds; overlapping calls extend it. Always ends (counted by the engine in real time, whatever the phase, `Raven.TimeScale` or `StopAll`) and keeps a time scale the game changed meanwhile. `Raven.IsHitStopping`, `Raven.EndHitStop()`. |
+| `Raven.SlowMotion(float timeScale = 0.3, float duration = 1)` | Slows the game down smoothly, holds, speeds back up, in real seconds. A new one replaces a running one; a time scale the game sets meanwhile (a pause) is kept. `Raven.IsInSlowMotion`. |
 
 | Type | Members |
 | :--- | :--- |
@@ -26,7 +27,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event, LightFlash, FieldOfView, Nudge, Twist, SlowMotion, AnimatorTrigger, Spawn; each with `delay`, `chance`, `variation`), `Trigger`, `Cooldown` |
 | `RavenPath` (component) | `Play()`, `Stop()`, `ResetToStart()`, `CreateTween()`, `Evaluate(t)`, `Points`, `Closed`, `Smooth`, `Looping`, `Length`, `TripDuration`, `OnComplete` |
 | `RavenTypewriter` (TextMeshPro) | `Play()`, `Play(string)`, `Skip()`, `LettersPerSecond`, `IsTyping`, `OnComplete` |
-| `RavenTextEffect` (TextMeshPro) | `TextEffect` (None, Wave, Shake, Wobble, Pulse, Rainbow), `AppearStyle` (Instant, Fade, Pop, Rise), `Strength`, `Replay()` |
+| `RavenTextEffect` (TextMeshPro) | `TextEffect` (None, Wave, Shake, Wobble, Pulse, Rainbow), `AppearStyle` (Instant, Fade, Pop, Rise), `Strength`, `IsShaping`, `Replay()` |
 | `RavenCounter` (TextMeshPro) | `CountTo(float)`, `Add(float)`, `SetValue(float)`, `Value`, `OnComplete` |
 | `RavenButtonFeel` (component) | `FeelStyle`: `Subtle`, `Bouncy`, `Juicy`, `Custom` |
 

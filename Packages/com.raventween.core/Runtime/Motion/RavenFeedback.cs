@@ -88,8 +88,12 @@ namespace RavenTween {
         [NonSerialized] bool _hasRest;
         [NonSerialized] Sequence _running;
         [NonSerialized] MotionChannels _channels;
-        [NonSerialized] float _restIntensity = -1f;
-        [NonSerialized] float _restFieldOfView = -1f;
+        [NonSerialized] float _restIntensity;
+        [NonSerialized] float _restLens;
+        [NonSerialized] UnityEngine.Object _lensOwner;
+        [NonSerialized] UnityEngine.Object _lightOwner;
+        [NonSerialized] Tween _lightFlash;
+        [NonSerialized] Tween _lensKick;
 
         internal void RunIfOwnerActive() {
             if (Owner != null && Owner.isActiveAndEnabled) { Run(); }
@@ -120,32 +124,36 @@ namespace RavenTween {
             }
         }
 
-        // Light and field of view flash from the value they had the first time, so repeats never drift.
+        // The rest value is read when no flash is running, so it follows the game (day and night,
+        // a zoom) while rapid repeats never drift. A light resting at 0 (a muzzle flash) still flashes.
         void FlashLight(float power) {
             if (light == null) { return; }
-            if (_restIntensity < 0f) { _restIntensity = light.intensity; }
-            float peak = _restIntensity * (1f + power);
-            Raven.Intensity(light, peak, duration * 0.5f).From(_restIntensity).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
+            if (!_lightFlash.IsAlive || _lightOwner != light) {
+                _restIntensity = light.intensity;
+                _lightOwner = light;
+            }
+            if (_lightFlash.IsAlive) { _lightFlash.Stop(); }
+            float peak = _restIntensity + Mathf.Max(_restIntensity, 1f) * power;
+            _lightFlash = Raven.Intensity(light, peak, duration * 0.5f).From(_restIntensity).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
         }
 
+        // Perspective cameras widen their field of view; orthographic ones their size.
         void KickFieldOfView(float power) {
             Camera kicked = camera != null ? camera : Camera.main;
             if (kicked == null) { return; }
-            if (_restFieldOfView < 0f) { _restFieldOfView = kicked.fieldOfView; }
-            float peak = _restFieldOfView + 10f * power;
-            Raven.FieldOfView(kicked, peak, duration * 0.5f).From(_restFieldOfView).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
+            bool ortho = kicked.orthographic;
+            if (!_lensKick.IsAlive || _lensOwner != kicked) {
+                _restLens = ortho ? kicked.orthographicSize : kicked.fieldOfView;
+                _lensOwner = kicked;
+            }
+            if (_lensKick.IsAlive) { _lensKick.Stop(); }
+            float peak = ortho ? _restLens * (1f + 0.15f * power) : _restLens + 10f * power;
+            Tween kick = ortho ? Raven.OrthographicSize(kicked, peak, duration * 0.5f) : Raven.FieldOfView(kicked, peak, duration * 0.5f);
+            _lensKick = kick.From(_restLens).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
         }
 
-        // Down quickly, hold, back up: in real time, so the slow motion doesn't slow itself.
         void SlowDown() {
-            float restore = Raven.IsHitStopping ? 1f : Time.timeScale;
-            float down = duration * 0.2f;
-            float back = duration * 0.3f;
-            Raven.Sequence()
-                .Chain(Raven.GlobalTimeScale(timeScale, down))
-                .ChainDelay(Mathf.Max(duration - down - back, 0f))
-                .Chain(Raven.GlobalTimeScale(restore, back))
-                .UnscaledTime();
+            Raven.SlowMotion(timeScale, duration);
         }
 
         void SetAnimatorTrigger(Transform on) {

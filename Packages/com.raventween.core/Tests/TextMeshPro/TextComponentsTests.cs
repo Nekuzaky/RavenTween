@@ -88,6 +88,38 @@ namespace RavenTween.Tests {
             Assert.That(late, Is.EqualTo(255), "Then it is fully shown.");
         }
 
+        [UnityTest]
+        public IEnumerator TextEffect_WithTypewriter_LettersAppearAsTyped() {
+            var effect = _go.AddComponent<RavenTextEffect>();
+            effect.TextEffect = RavenTextEffect.Effect.None;
+            effect.AppearStyle = RavenTextEffect.Appear.Fade;
+            var writer = _go.AddComponent<RavenTypewriter>();
+            writer.LettersPerSecond = 4f;
+            _go.SetActive(true); // Types from the start; the text was fully visible before.
+            var text = _go.GetComponent<TMP_Text>();
+            float end = Time.realtimeSinceStartup + 0.6f;
+            while (Time.realtimeSinceStartup < end) { yield return null; }
+            int shown = text.maxVisibleCharacters;
+            Assert.That(shown, Is.InRange(1, 4));
+            TMP_CharacterInfo newest = text.textInfo.characterInfo[shown - 1];
+            byte alpha = text.textInfo.meshInfo[newest.materialReferenceIndex].colors32[newest.vertexIndex].a;
+            Assert.That(alpha, Is.LessThan(255), "The letter just typed is still fading in.");
+        }
+
+        [UnityTest]
+        public IEnumerator TextEffect_ClearingTheText_ShowsNothing() {
+            _go.SetActive(true);
+            var effect = _go.AddComponent<RavenTextEffect>();
+            yield return null;
+            Assert.That(effect.IsShaping, Is.True);
+            var text = _go.GetComponent<TMP_Text>();
+            text.text = "";
+            yield return null;
+            yield return null;
+            Assert.That(text.textInfo.characterCount, Is.EqualTo(0));
+            Assert.That(effect.IsShaping, Is.False, "TextMeshPro keeps the old vertices of an empty text: they must never be uploaded again.");
+        }
+
         [Test]
         public void Counter_ValueSetBeforeFirstActivation_IsKept() {
             var counter = _go.AddComponent<RavenCounter>(); // Inactive: Awake has not run yet.

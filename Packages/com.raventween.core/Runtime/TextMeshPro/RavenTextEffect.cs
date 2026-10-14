@@ -64,10 +64,15 @@ namespace RavenTween {
         int _lastChecksum = -1;
         bool _hasSnapshot;
         bool _applying;
+        bool _wasAnimating;
+        bool _warnedSorting;
 
         public Effect TextEffect { get { return effect; } set { effect = value; } }
         public Appear AppearStyle { get { return appear; } set { appear = value; } }
         public float Strength { get { return strength; } set { strength = Mathf.Max(value, 0f); } }
+
+        /// <summary>True while it has a laid-out text to shape (false for an empty text).</summary>
+        public bool IsShaping { get { return _hasSnapshot; } }
 
         void Awake() {
             _text = GetComponent<TMP_Text>();
@@ -91,14 +96,26 @@ namespace RavenTween {
         // TextMeshPro rebuilt the mesh (new text, layout, visible count) and is about to upload
         // it: that is the new original, shaped in place before the upload.
         void OnTextRebuilt(TMP_TextInfo info) {
-            if (_applying) { return; }
+            if (_applying || !Supported() || info.characterCount == 0) { _hasSnapshot = false; return; }
             Snapshot(info);
             Apply(info, false);
         }
 
         void LateUpdate() {
-            if (!_hasSnapshot) { return; }
+            if (!_hasSnapshot || !_text.isActiveAndEnabled) { return; }
+            // An empty text keeps its old vertex arrays: never upload them again.
+            if (_text.textInfo.characterCount == 0) { _hasSnapshot = false; return; }
             Apply(_text.textInfo, true);
+        }
+
+        // Reverse geometry sorting reorders the quads after this component reads them.
+        bool Supported() {
+            if (_text.geometrySortingOrder == VertexSortingOrder.Normal) { return true; }
+            if (!_warnedSorting) {
+                _warnedSorting = true;
+                Debug.LogWarning("RavenTween: Raven Text Effect needs Geometry Sorting set to Normal on '" + name + "'.", this);
+            }
+            return false;
         }
 
         void Snapshot(TMP_TextInfo info) {
@@ -148,9 +165,15 @@ namespace RavenTween {
             float now = useUnscaledTime ? Time.unscaledTime : Time.time;
             int visible = Mathf.Min(info.characterCount, _text.maxVisibleCharacters);
             int last = letterCount < 0 ? info.characterCount : Mathf.Min(info.characterCount, fromLetter + letterCount);
+            bool appearing = false;
             for (int i = 0; i < info.characterCount; i++) {
                 TMP_CharacterInfo character = info.characterInfo[i];
-                if (!character.isVisible) { continue; }
+                // A hidden letter (not typed yet) starts its appear animation again when shown.
+                if (!character.isVisible || i >= visible) {
+                    if (i < _appeared.Length) { _appeared[i] = -1f; }
+                    continue;
+                }
+                if (appear != Appear.Instant && i < _appeared.Length && (_appeared[i] < 0f || now - _appeared[i] < appearDuration)) { appearing = true; }
                 int m = character.materialReferenceIndex;
                 if (m >= _vertices.Length) { continue; }
                 int v = character.vertexIndex;
@@ -158,7 +181,12 @@ namespace RavenTween {
                 bool affected = i >= fromLetter && i < last;
                 ShapeLetter(info.meshInfo[m].vertices, info.meshInfo[m].colors32, m, v, i, now, i < visible, affected);
             }
-            if (!upload) { return; }
+            // Nothing moves any more (no effect, every letter in place): one last upload of the
+            // resting text, then no work at all until something changes.
+            bool animating = effect != Effect.None || appearing;
+            bool needed = animating || _wasAnimating;
+            _wasAnimating = animating;
+            if (!upload || !needed) { return; }
             _applying = true;
             _text.UpdateVertexData(TMP_VertexDataUpdateFlags.Vertices | TMP_VertexDataUpdateFlags.Colors32);
             _applying = false;
@@ -219,6 +247,7 @@ namespace RavenTween {
 
         void Restore() {
             TMP_TextInfo info = _text.textInfo;
+            if (info.characterCount == 0) { return; }
             for (int m = 0; m < info.meshInfo.Length && m < _vertices.Length; m++) {
                 Vector3[] target = info.meshInfo[m].vertices;
                 Color32[] colors = info.meshInfo[m].colors32;
