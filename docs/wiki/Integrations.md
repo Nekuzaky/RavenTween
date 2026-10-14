@@ -13,6 +13,9 @@ RavenTween works with the packages a project already uses. Each integration is a
 | **TextMeshPro** | See **[TextMeshPro](TextMeshPro)** |
 | **Animation Rigging** | See **[Procedural Animation](Procedural-Animation)** |
 
+> [!NOTE]
+> On Unity 6.5 and newer, use **UniTask 2.5.11+** and **Cinemachine 3.1.7+**: older versions of those packages use APIs Unity 6.5 no longer compiles (RavenTween itself is not affected).
+
 ---
 
 ## Unity Timeline
