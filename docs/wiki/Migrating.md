@@ -21,7 +21,7 @@ Coming from DOTween or PrimeTween? Most of your knowledge transfers directly. Th
 | `DOVirtual.Float(a, b, d, cb)` | `Tween.Custom(a, b, d, cb)` | `Raven.Value(a, b, d).OnUpdate(cb)` |
 | `DOTween.To(getter, setter, …)` | `Tween.Custom(target, a, b, d, setter)` | `Raven.Custom(target, a, b, d, setter)` or `Raven.CustomTo(target, getter, b, d, setter)` |
 | `DOVirtual.DelayedCall(d, cb)` | `Tween.Delay(d, cb)` | `Raven.Delay(d, cb)` |
-| `transform.DOShakePosition(d, s)` | `Tween.ShakeLocalPosition(t, s, d)` | `Raven.ShakePosition(t, s, d)` |
+| `transform.DOShakePosition(d, s)` | `Tween.ShakeLocalPosition(t, s, d)` | `Raven.ShakeLocalPosition(t, s, d)` |
 | `camera.DOShakePosition(d, s)` | `Tween.ShakeCamera(cam, s)` | `Raven.ShakeCamera(cam, s)` |
 | `transform.DOPunchScale(p, d)` | `Tween.PunchScale(t, p, d)` | `Raven.PunchScale(t, p, d)` |
 | `DOTween.Sequence()` | `Sequence.Create()` | `Raven.Sequence()` |
@@ -54,8 +54,11 @@ Coming from DOTween or PrimeTween? Most of your knowledge transfers directly. Th
 | `transform.DOKill()` | `Tween.StopAll(onTarget: t)` | `Raven.StopAll(t)` |
 | `DOTween.timeScale` | `Tween.globalTimeScale` | `Raven.TimeScale` |
 | `DOTween.SetTweensCapacity(n, m)` | `PrimeTweenConfig.SetTweensCapacity(n)` | `Raven.SetCapacity(n)` |
+| `.SetUpdate(UpdateType.Manual)` + `DOTween.ManualUpdate(dt, udt)` | — | `.UpdateIn(UpdatePhase.Manual)` + `Raven.Step(dt, UpdatePhase.Manual)` |
 
 > [!NOTE]
+> **Options are chained, not passed as parameters.** PrimeTween's `Tween.Position(t, p, d, Ease.OutQuad, cycles: 2, CycleMode.Yoyo)` is `Raven.Position(t, p, d).Ease(Ease.OutQuad).Cycles(2, CycleMode.PingPong)` (see the Yoyo note below). To keep a whole configuration in one value, use `TweenSettings<T>` or `TweenParams`.
+
 > **Yoyo naming.** RavenTween's `Yoyo` replays the cycle backwards in time, like DOTween's `LoopType.Yoyo` and PrimeTween's `CycleMode.Rewind`. PrimeTween's `CycleMode.Yoyo` (same ease on the way back) is RavenTween's `CycleMode.PingPong`.
 
 ---

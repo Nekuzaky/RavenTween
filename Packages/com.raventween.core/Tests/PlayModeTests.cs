@@ -1,6 +1,7 @@
 using System.Collections;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.LowLevel;
 using UnityEngine.TestTools;
 
 namespace RavenTween.Tests {
@@ -17,6 +18,40 @@ namespace RavenTween.Tests {
         public void TearDown() {
             Raven.StopAll();
             Time.timeScale = 1f;
+        }
+
+        [UnityTest]
+        public IEnumerator ReplacedPlayerLoop_EngineReinstallsItself() {
+            PlayerLoopSystem original = PlayerLoop.GetCurrentPlayerLoop();
+            var go = new GameObject("loop-target");
+            try {
+                PlayerLoop.SetPlayerLoop(WithoutEngine(original));
+                for (int i = 0; i < 4; i++) { yield return null; }
+                LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("player loop was replaced"));
+                Raven.Position(go.transform, new Vector3(5f, 0f, 0f), 0.1f);
+                float deadline = Time.realtimeSinceStartup + 2f;
+                while (go.transform.position.x < 5f && Time.realtimeSinceStartup < deadline) { yield return null; }
+                Assert.That(go.transform.position.x, Is.EqualTo(5f).Within(1e-3f), "Tweens advance again once the engine is back.");
+            } finally {
+                PlayerLoop.SetPlayerLoop(original);
+                Object.Destroy(go);
+            }
+        }
+
+        // A copy of the loop with the engine's systems taken out, like a third-party loop would be.
+        static PlayerLoopSystem WithoutEngine(PlayerLoopSystem root) {
+            var phases = (PlayerLoopSystem[])root.subSystemList.Clone();
+            for (int i = 0; i < phases.Length; i++) {
+                PlayerLoopSystem[] children = phases[i].subSystemList;
+                if (children == null) { continue; }
+                var kept = new System.Collections.Generic.List<PlayerLoopSystem>(children.Length);
+                for (int j = 0; j < children.Length; j++) {
+                    if (children[j].type != typeof(TweenEngine)) { kept.Add(children[j]); }
+                }
+                phases[i].subSystemList = kept.ToArray();
+            }
+            root.subSystemList = phases;
+            return root;
         }
 
         [UnityTest]

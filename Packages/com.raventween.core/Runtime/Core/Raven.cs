@@ -28,6 +28,15 @@ namespace RavenTween {
             get { return TweenEngine.AliveCount; }
         }
 
+        /// <summary>
+        /// When true, logs every tween that stops because its target was destroyed (normally
+        /// silent). A debugging aid for development; resets to false when Play Mode starts.
+        /// </summary>
+        public static bool Diagnostics {
+            get { return TweenEngine.Diagnostics; }
+            set { TweenEngine.Diagnostics = value; }
+        }
+
         // ----- Value tweens -----
 
         /// <summary>Tweens a float. Read the value in OnUpdate.</summary>
@@ -123,6 +132,20 @@ namespace RavenTween {
         public static void Step(float deltaTime) {
             Debug.Assert(deltaTime >= 0f, "Step needs a non-negative delta time.");
             TweenEngine.Process(deltaTime, deltaTime);
+        }
+
+        /// <summary>
+        /// Advances only the tweens and sequences that run in <paramref name="phase"/>, typically
+        /// <see cref="RavenTween.UpdatePhase.Manual"/> for tweens your own code drives.
+        /// </summary>
+        public static void Step(float deltaTime, UpdatePhase phase) {
+            Step(deltaTime, deltaTime, phase);
+        }
+
+        /// <summary>Like <see cref="Step(float, UpdatePhase)"/>, with a separate delta for tweens that use unscaled time.</summary>
+        public static void Step(float deltaTime, float unscaledDeltaTime, UpdatePhase phase) {
+            Debug.Assert(deltaTime >= 0f && unscaledDeltaTime >= 0f, "Step needs non-negative delta times.");
+            TweenEngine.ProcessPhase(phase, deltaTime, unscaledDeltaTime);
         }
 
         // ----- Time scale tweens -----

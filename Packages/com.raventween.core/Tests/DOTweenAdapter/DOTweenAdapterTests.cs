@@ -62,6 +62,15 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void ManualUpdateType_AdvancesWithManualUpdate() {
+            _go.transform.DOMoveX(2f, 1f).SetEase(Ease.Linear).SetUpdate(UpdateType.Manual);
+            TweenEngine.ProcessPhase(UpdatePhase.Update, 0.5f, 0.5f);
+            Assert.That(_go.transform.position.x, Is.EqualTo(0f).Within(1e-4f), "The Update phase leaves manual tweens alone.");
+            DOTween.ManualUpdate(0.5f, 0.5f);
+            Assert.That(_go.transform.position.x, Is.EqualTo(1f).Within(1e-4f));
+        }
+
+        [Test]
         public void DOKill_StopsTheTargetsTweens() {
             _go.transform.DOMove(Vector3.one, 1f);
             _go.transform.DOScale(2f, 1f);

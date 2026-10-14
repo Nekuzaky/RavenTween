@@ -36,7 +36,19 @@ Raven.ShakeCamera(Camera.main, 0.6f);              // explosion nearby
 Camera.main.Shake(1f, duration: 0.8f);             // extension form
 ```
 
-It shakes the camera's own transform. If a script moves the camera every frame (a follow camera), shake a child or a parent of the camera instead, with `ShakePosition` / `ShakeRotation`.
+It shakes the camera's own transform. If something else owns the camera's **rotation** (`LookAt`, a mouse-look controller, Cinemachine), pass `tilt: false` to shake only the position:
+
+```csharp
+Raven.ShakeCamera(Camera.main, 0.6f, tilt: false);
+```
+
+If a script moves the camera every frame (a follow camera), shake a **pivot** instead: an empty child between the rig and the camera, which nothing else touches.
+
+```
+CameraRig      ← your follow / look script moves this
+ └ ShakePivot  ← Raven.ShakePosition(shakePivot, …) / ShakeRotation(…)
+    └ Camera
+```
 
 ---
 
@@ -66,7 +78,7 @@ Raven.PunchRotation(head, new Vector3(12f, 0f, 0f), 0.5f, frequency: 3f);
 ## Good to know
 
 > [!NOTE]
-> - Effects work on **local** position, local euler angles and local scale, so they compose with a parent's motion.
+> - Effects work on **local** position, local euler angles and local scale, so they compose with a parent's motion. `ShakeLocalPosition`, `ShakeLocalRotation`, `PunchLocalPosition` and `PunchLocalRotation` are the same effects under explicit names (and the names PrimeTween uses).
 > - They are regular tweens: they accept `Delay`, `OnComplete`, `UnscaledTime`, can go in a **[sequence](Sequences)**, and can be awaited.
 > - `Complete()` on an effect puts the object straight back to its starting value.
 > - Each shake gets its own noise seed, so two shakes started on the same frame don't move in lockstep.

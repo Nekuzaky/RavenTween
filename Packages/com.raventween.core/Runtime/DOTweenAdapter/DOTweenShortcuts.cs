@@ -169,6 +169,7 @@ namespace RavenTween.DOTweenAdapter {
             switch (updateType) {
                 case UpdateType.Late: return UpdatePhase.LateUpdate;
                 case UpdateType.Fixed: return UpdatePhase.FixedUpdate;
+                case UpdateType.Manual: return UpdatePhase.Manual;
                 default: return UpdatePhase.Update;
             }
         }

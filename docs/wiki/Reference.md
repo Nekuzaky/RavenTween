@@ -72,6 +72,8 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `CountTweens(object target)` | Live tweens animating `target`. |
 | `SetCapacity(int)` | Pre-create pooled slots. |
 | `Step(float deltaTime)` | Advance every tween now, in any phase, also outside Play Mode. |
+| `Step(float deltaTime, UpdatePhase phase)` | Advance only the tweens of one phase, e.g. `UpdatePhase.Manual`. |
+| `Diagnostics` | Log tweens stopped by a destroyed target. |
 
 ---
 
@@ -212,4 +214,4 @@ DOTween names running on RavenTween, for migrating code: `DOMove`, `DOMoveX/Y/Z`
 
 ---
 
-#### ◀ **[Migrating](Migrating)**  ·  Next: **[FAQ ▶](FAQ)**
+#### ◀ **[Migrating](Migrating)**  ·  Next: **[Known Pitfalls ▶](Known-Pitfalls)**

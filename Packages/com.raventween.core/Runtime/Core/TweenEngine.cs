@@ -11,7 +11,9 @@ namespace RavenTween {
         Update = 0,
         LateUpdate = 1,
         /// <summary>Physics rate, with Time.fixedDeltaTime. Use it for Rigidbody tweens.</summary>
-        FixedUpdate = 2
+        FixedUpdate = 2,
+        /// <summary>Never stepped by the player loop: only <see cref="Raven.Step(float)"/> advances it (replays, frame-by-frame rendering).</summary>
+        Manual = 3
     }
 
     /// <summary>
@@ -45,6 +47,9 @@ namespace RavenTween {
         /// <summary>Phase of the player loop in which tweens are stepped.</summary>
         public static UpdatePhase Phase = UpdatePhase.Update;
 
+        /// <summary>Logs the tweens stopped because their target was destroyed. Off by default.</summary>
+        public static bool Diagnostics;
+
         /// <summary>Number of live tweens and sequences (including paused ones); sequence callbacks are not counted.</summary>
         public static int AliveCount {
             get {
@@ -63,11 +68,13 @@ namespace RavenTween {
             Effects.Clear();
             TimeScale = 1f;
             Phase = UpdatePhase.Update;
+            Diagnostics = false;
             _processing = false;
             _sequenceDepth = 0;
             _pass = 0;
             _lastUpdateFrame = -1;
             _lastLateUpdateFrame = -1;
+            _lastLoopCheckFrame = -1;
             _evaluatedRoot = null;
             _evaluatedRootRevision = 0;
             Install();
@@ -125,6 +132,20 @@ namespace RavenTween {
 
         static int _lastUpdateFrame = -1;
         static int _lastLateUpdateFrame = -1;
+        static int _lastLoopCheckFrame = -1;
+
+        // Another system (a package, an SDK) may replace the player loop after the engine
+        // installed itself, and then nothing advances. A tween created while the engine has not
+        // ticked for a few frames triggers a check, at most once per frame: never in a healthy game.
+        static void EnsurePlayerLoop() {
+            if (_lastUpdateFrame < 0) { return; }
+            int frame = Time.frameCount;
+            if (frame - _lastUpdateFrame <= 2 || frame == _lastLoopCheckFrame) { return; }
+            _lastLoopCheckFrame = frame;
+            if (!Application.isPlaying || ContainsEngine(PlayerLoop.GetCurrentPlayerLoop())) { return; }
+            Install();
+            Debug.LogWarning("RavenTween: the player loop was replaced without RavenTween, so tweens had stopped advancing. RavenTween installed itself again.");
+        }
 
         static void OnFixedUpdate() {
             if (!Application.isPlaying) { return; }
@@ -208,6 +229,12 @@ namespace RavenTween {
                     KillInternal(slot, index, false);
                 }
             }
+        }
+
+        static void LogTargetDestroyed(TweenSlot slot) {
+            string what = slot.IsSequence ? "A sequence" : slot.Property != PropertyKind.None ? "A " + slot.Property + " tween" : "A tween";
+            string why = slot.LinkIndex >= 0 ? "the tween it controls ended" : "its target was destroyed";
+            Debug.Log("RavenTween: " + what + " stopped at " + slot.Elapsed.ToString("0.00") + " s because " + why + ".");
         }
 
         static bool IsLive(TweenSlot slot, uint version) {
@@ -828,6 +855,7 @@ namespace RavenTween {
             slot.Reset();
             slot.Index = index;
             slot.State = SlotState.Running;
+            EnsurePlayerLoop();
             slot.BornPass = _pass; // Not stepped by the pass that is running right now.
             return index;
         }
@@ -862,6 +890,7 @@ namespace RavenTween {
         // handle is already dead, so Stop/Complete on it (or StopAll) can never re-enter.
 
         static void HandleTargetDestroyed(TweenSlot slot, int index) {
+            if (Diagnostics) { LogTargetDestroyed(slot); }
             Action callback = slot.OnTargetDestroyed;
             Action continuations = ReleaseCollect(index);
             InvokeSafe(callback);
@@ -1235,6 +1264,7 @@ namespace RavenTween {
             public float TimeScale;
             public UpdatePhase Phase;
             public bool IsCallback;
+            public bool UnscaledTime;
         }
 
         /// <summary>Fills <paramref name="buffer"/> with a snapshot of every live slot.</summary>
@@ -1261,7 +1291,8 @@ namespace RavenTween {
                     Mode = slot.Mode,
                     TimeScale = slot.TimeScale,
                     Phase = EffectivePhase(slot),
-                    IsCallback = slot.IsCallback
+                    IsCallback = slot.IsCallback,
+                    UnscaledTime = slot.UseUnscaledTime
                 });
             }
         }

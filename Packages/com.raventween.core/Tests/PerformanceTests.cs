@@ -107,6 +107,37 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void EffectCreation_ScalesLinearly() {
+            const int Small = 1000;
+            const int Large = 4000;
+            var targets = new GameObject[Large];
+            try {
+                for (int i = 0; i < Large; i++) { targets[i] = new GameObject("fx-" + i); }
+                Raven.SetCapacity(Large);
+                double small = BestShakeCreation(targets, Small);
+                double large = BestShakeCreation(targets, Large);
+                UnityEngine.Debug.Log("RavenTween: " + Small + " shakes " + small.ToString("F2") + " ms, " + Large + " shakes " + large.ToString("F2") + " ms");
+                // Linear growth gives a ratio near 4; scanning every live effect gave about 16.
+                Assert.That(large / System.Math.Max(small, 0.05), Is.LessThan(9.0), "Starting an effect must not cost more with many effects alive.");
+            } finally {
+                TweenEngine.KillAll(false);
+                for (int i = 0; i < Large; i++) { Object.DestroyImmediate(targets[i]); }
+            }
+        }
+
+        static double BestShakeCreation(GameObject[] targets, int count) {
+            double best = double.MaxValue;
+            for (int run = 0; run < 3; run++) {
+                TweenEngine.KillAll(false);
+                var watch = Stopwatch.StartNew();
+                for (int i = 0; i < count; i++) { Raven.ShakePosition(targets[i].transform, Vector3.one, 1f); }
+                watch.Stop();
+                best = System.Math.Min(best, watch.Elapsed.TotalMilliseconds);
+            }
+            return best;
+        }
+
+        [Test]
         public void Throughput_5000Tweens_ReportsFrameCost() {
             SpawnMixedTweens(TweenCount);
             TweenEngine.Process(0.016f, 0.016f);

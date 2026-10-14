@@ -23,7 +23,7 @@
 | | |
 | --- | --- |
 | **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
-| **Fast** | 5,000 simultaneous tweens step in **under 1 ms/frame** (Editor, Mono, mixed workload). |
+| **Fast** | 5,000 simultaneous tweens step in **about 0.6 ms/frame** on a desktop CPU (Editor, Mono, mixed workload). |
 | **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
 | **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
 | **Portable** | Pure managed C#: no threads, reflection, native plugins or runtime codegen. IL2CPP, WebGL, mobile and consoles are all fine. |
@@ -33,13 +33,13 @@
 **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.2
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.0
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.2"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.0"
 ```
 
 Requires Unity 2021.3 or newer. Unity 6 is fully supported.
@@ -248,7 +248,8 @@ Measured by the package's own test suite (`Tests/PerformanceTests.cs`). The allo
 | 5,000 mixed tweens (position, scale, rotation, shake, custom), steady state | **0 B** allocated per frame |
 | 200 infinite sequences, including cycle wraps | **0 B** allocated per frame |
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
-| 5,000 mixed tweens, engine step cost | **0.6–0.8 ms/frame** (Editor, Mono, desktop CPU) |
+| 5,000 mixed tweens, engine step cost | **about 0.6 ms/frame** (Intel Core i7-14700KF, Unity 6.3 Editor, Mono; expect 2–3× on a laptop CPU) |
+| Starting 4,000 shakes | **under 1 ms** in total |
 
 What does allocate, by design: a lambda that **captures** a local (once, at creation — standard C#), `ToYieldInstruction()` (one small object per call) and `async` state machines. Use them for flow control, not per-frame work.
 

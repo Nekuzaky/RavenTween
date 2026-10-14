@@ -14,9 +14,10 @@ These figures come from the package's own test suite (`Tests/PerformanceTests.cs
 | 200 infinite sequences, including the moment they loop | **0 B** allocated per frame |
 | Axis, property-block, Incremental / PingPong, parametric-ease, time-scaled tweens, target callbacks and sequence callbacks | **0 B** allocated per frame |
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
-| 5,000 mixed tweens, engine cost | **0.6–0.8 ms per frame** |
+| 5,000 mixed tweens, engine cost | **about 0.6 ms per frame** |
+| Starting 4,000 shakes on 4,000 objects | **under 1 ms** in total |
 
-The timing was measured in the Unity Editor (Mono) on a desktop CPU, which is slower than a built player with IL2CPP.
+Timings were measured with `Throughput_5000Tweens_ReportsFrameCost` and `EffectCreation_ScalesLinearly` on an Intel Core i7-14700KF, in the Unity 6.3 Editor (Mono). Expect two to three times more on a laptop CPU, and less in a built player with IL2CPP. Run the same tests on your machine (**Window ▸ General ▸ Test Runner**, with the package listed under `testables`) to get your own numbers.
 
 ---
 

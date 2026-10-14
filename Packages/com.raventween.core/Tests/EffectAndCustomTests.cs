@@ -125,6 +125,60 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void ManualPhase_AdvancesOnlyWhenSteppedByHand() {
+            Raven.Position(_go.transform, new Vector3(2f, 0f, 0f), 1f).Ease(Ease.Linear).UpdateIn(UpdatePhase.Manual);
+            TweenEngine.ProcessPhase(UpdatePhase.Update, 0.5f, 0.5f);
+            TweenEngine.ProcessPhase(UpdatePhase.LateUpdate, 0.5f, 0.5f);
+            TweenEngine.ProcessPhase(UpdatePhase.FixedUpdate, 0.5f, 0.5f);
+            Assert.That(_go.transform.position.x, Is.EqualTo(0f).Within(1e-4f), "The player loop phases leave manual tweens alone.");
+            Raven.Step(0.5f, UpdatePhase.Manual);
+            Assert.That(_go.transform.position.x, Is.EqualTo(1f).Within(1e-4f));
+        }
+
+        [Test]
+        public void ShakeCamera_WithoutTilt_LeavesRotationAlone() {
+            var cameraObject = new GameObject("shake-camera", typeof(Camera));
+            try {
+                Transform t = cameraObject.transform;
+                t.rotation = Quaternion.Euler(10f, 20f, 0f);
+                Quaternion rest = t.rotation;
+                Raven.ShakeCamera(cameraObject.GetComponent<Camera>(), 1f, 0.5f, 15f, tilt: false);
+                Step(0.05f, 3);
+                Assert.That(Quaternion.Angle(t.rotation, rest), Is.LessThan(1e-3f), "Only the position shakes.");
+                Assert.That(t.localPosition.sqrMagnitude, Is.GreaterThan(1e-8f));
+                Assert.That(Raven.CountTweens(t), Is.EqualTo(1));
+            } finally {
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [Test]
+        public void ExplicitLocalNames_ReplaceTheSameEffect() {
+            Tween first = _go.transform.ShakeLocalPosition(Vector3.one, 1f);
+            Tween second = Raven.ShakePosition(_go.transform, Vector3.one, 1f);
+            Assert.That(first.IsAlive, Is.False, "ShakeLocalPosition and ShakePosition animate the same property.");
+            Assert.That(second.IsAlive, Is.True);
+            Tween punch = _go.transform.PunchLocalRotation(Vector3.one * 10f, 1f);
+            Assert.That(Raven.PunchRotation(_go.transform, Vector3.one * 10f, 1f).IsAlive, Is.True);
+            Assert.That(punch.IsAlive, Is.False);
+        }
+
+        [Test]
+        public void Diagnostics_LogsATweenStoppedByADestroyedTarget() {
+            var doomed = new GameObject("doomed-diagnostics");
+            Raven.Diagnostics = true;
+            try {
+                Raven.Position(doomed.transform, Vector3.one, 1f);
+                Step(0.1f);
+                Object.DestroyImmediate(doomed);
+                UnityEngine.TestTools.LogAssert.Expect(LogType.Log, new System.Text.RegularExpressions.Regex("its target was destroyed"));
+                Step(0.1f);
+            } finally {
+                Raven.Diagnostics = false;
+            }
+        }
+
+        [Test]
         public void Complete_OnEffect_RestoresOrigin() {
             _go.transform.localPosition = Vector3.zero;
             Tween tween = Raven.ShakePosition(_go.transform, Vector3.one * 2f, 1f);

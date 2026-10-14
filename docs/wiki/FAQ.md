@@ -76,4 +76,4 @@ On [GitHub Issues](https://github.com/Nekuzaky/RavenTween/issues). Please includ
 
 ---
 
-#### ◀ **[Reference](Reference)**  ·  Next: **[Changelog ▶](Changelog)**
+#### ◀ **[Known Pitfalls](Known-Pitfalls)**  ·  Next: **[Changelog ▶](Changelog)**

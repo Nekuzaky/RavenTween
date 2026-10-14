@@ -6,7 +6,7 @@ using UnityEngine;
 namespace RavenTween.DOTweenAdapter {
     public enum LoopType { Restart = 0, Yoyo = 1, Incremental = 2 }
 
-    public enum UpdateType { Normal = 0, Late = 1, Fixed = 2 }
+    public enum UpdateType { Normal = 0, Late = 1, Fixed = 2, Manual = 3 }
 
     public delegate void TweenCallback();
     public delegate void TweenCallback<in T>(T value);
@@ -15,6 +15,11 @@ namespace RavenTween.DOTweenAdapter {
 
     /// <summary>DOTween's static entry points.</summary>
     public static class DOTween {
+        /// <summary>Advances the tweens set to <see cref="UpdateType.Manual"/>.</summary>
+        public static void ManualUpdate(float deltaTime, float unscaledDeltaTime) {
+            Raven.Step(deltaTime, unscaledDeltaTime, UpdatePhase.Manual);
+        }
+
         public static float timeScale {
             get { return Raven.TimeScale; }
             set { Raven.TimeScale = value; }

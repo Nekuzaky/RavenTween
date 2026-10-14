@@ -117,6 +117,24 @@ for (int frame = 0; frame < 120; frame++) {
 
 `Time.timeScale` is not applied (`Raven.TimeScale` and per-tween time scales are). In Play Mode tweens keep advancing on their own as well.
 
+For tweens that **only** your code should drive — a replay system, a cutscene rendered frame by frame — put them in the `Manual` phase. The player loop never touches them:
+
+```csharp
+Raven.Position(ghost, path[0], 1f).UpdateIn(UpdatePhase.Manual);
+// ...each replay tick:
+Raven.Step(replayDelta, UpdatePhase.Manual);
+```
+
+Set `Raven.UpdatePhase = UpdatePhase.Manual` to make it the default for every new tween.
+
+### Diagnostics
+
+A tween whose target is destroyed stops silently. While debugging, `Raven.Diagnostics = true` logs each of them (it resets to `false` when Play Mode starts):
+
+```
+RavenTween: A LocalPosition tween stopped at 0.42 s because its target was destroyed.
+```
+
 ### Dead handles are safe
 
 A `Tween` handle is a 2-number struct: a slot index and a version. When the tween ends, the version moves on, so an old handle can never touch a tween that later reuses the same slot. Every method on a dead handle does nothing.

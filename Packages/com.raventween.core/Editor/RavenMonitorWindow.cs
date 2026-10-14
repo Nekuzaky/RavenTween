@@ -81,6 +81,7 @@ namespace RavenTween.Editor {
             TweenEngine.CollectDebugInfo(_snapshot);
             ForgetDeadExpansions();
             DrawStats();
+            DrawFrozenTimeWarning();
             BuildVisibleList();
             DrawHeader();
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
@@ -107,6 +108,22 @@ namespace RavenTween.Editor {
                 if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.Stop, "Stop All", "Kill everything where it is"), EditorStyles.toolbarButton, GUILayout.Width(80f))) { Raven.StopAll(); }
             }
             EditorGUILayout.EndHorizontal();
+        }
+
+        // Time.timeScale = 0 (a pause menu, a tutorial popup) freezes every scaled tween, which
+        // otherwise looks like the engine stopped working.
+        void DrawFrozenTimeWarning() {
+            bool globalFrozen = Raven.TimeScale <= 0f;
+            if (Time.timeScale > 0f && !globalFrozen) { return; }
+            int frozen = 0;
+            for (int i = 0; i < _snapshot.Count; i++) {
+                TweenEngine.DebugInfo info = _snapshot[i];
+                if (info.IsCallback || info.OwnedBySequence || info.Paused) { continue; }
+                if (globalFrozen || !info.UnscaledTime) { frozen++; }
+            }
+            if (frozen == 0) { return; }
+            string cause = globalFrozen ? "Raven.TimeScale is 0" : "Time.timeScale is 0";
+            EditorGUILayout.HelpBox(frozen + (frozen == 1 ? " tween is" : " tweens are") + " alive but not moving: " + cause + ". Use .UnscaledTime() for tweens that must play while the game is paused.", MessageType.Warning);
         }
 
         void DrawStats() {
@@ -224,6 +241,7 @@ namespace RavenTween.Editor {
             if (!Mathf.Approximately(info.TimeScale, 1f)) { text += "  ×" + info.TimeScale.ToString("0.##"); }
             if (info.Phase == UpdatePhase.FixedUpdate) { text += "  fixed"; }
             else if (info.Phase == UpdatePhase.LateUpdate) { text += "  late"; }
+            else if (info.Phase == UpdatePhase.Manual) { text += "  manual"; }
             return text;
         }
 

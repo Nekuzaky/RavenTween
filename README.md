@@ -34,7 +34,7 @@ await Raven.Delay(1.2f);
 ```
 
 - **0 B per frame** for property, effect, sequence and custom tweens — enforced by the test suite.
-- **Under 1 ms/frame** for 5,000 simultaneous tweens (Editor, Mono).
+- **About 0.6 ms/frame** for 5,000 simultaneous tweens (desktop CPU, Editor, Mono).
 - Sequences with timeline callbacks, shake & punch, TextMeshPro, async/await, coroutines, cancellation tokens.
 - Full time control: elapsed time and progress you can read and set, per-tween time scale, `FixedUpdate` and Rigidbody tweens.
 - Single-axis, speed-based and per-renderer property-block tweens; Incremental and PingPong cycles; tunable Overshoot / Bounce / Elastic eases.
@@ -51,7 +51,7 @@ await Raven.Delay(1.2f);
 Package Manager → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.6.2
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.0
 ```
 
 **Updates are built in.** Once a day RavenTween checks for a newer release and offers to install it in one click — or installs it for you if you enable **Tools → RavenTween → Updates → Install Automatically**. The version tag in the URL keeps every teammate on the same release until someone updates on purpose.

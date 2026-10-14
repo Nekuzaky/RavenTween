@@ -3,13 +3,20 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.7.0] - 2026-10-14
 
 ### Added
-- `Raven.Step(deltaTime)`: advances every tween and sequence right away, whatever their update phase, also outside Play Mode — for editor tools, frame-by-frame recording and tests.
+- `Raven.Step(deltaTime)`: advances every tween and sequence right away, whatever their update phase, also outside Play Mode — for editor tools, frame-by-frame recording and tests. `Raven.Step(deltaTime, phase)` advances one phase only.
+- `UpdatePhase.Manual`: tweens the player loop never steps, advanced only by `Raven.Step(deltaTime, UpdatePhase.Manual)` (replays, offline rendering). The DOTween adapter maps `UpdateType.Manual` and `DOTween.ManualUpdate` to it.
+- `ShakeLocalPosition`, `ShakeLocalRotation`, `PunchLocalPosition`, `PunchLocalRotation`: explicit names for the existing effects, which always worked in local space.
+- `ShakeCamera(..., tilt: false)` and `camera.Shake(..., tilt: false)` shake the position only, for cameras whose rotation belongs to a `LookAt`, a mouse-look controller or Cinemachine.
+- `Raven.Diagnostics`: logs every tween stopped because its target was destroyed (off by default, reset on entering Play Mode).
+- The engine reinstalls itself, with a warning, if another system replaces the player loop without it — tweens used to stop advancing silently.
+- Monitor: a warning when tweens are alive but frozen by `Time.timeScale` (or `Raven.TimeScale`) at 0.
+- Documentation: a **Known Pitfalls** page, the camera pivot pattern, manual stepping, and reproducible benchmark figures (CPU, Unity version and test names).
 
 ### Changed
-- Starting a shake or punch no longer scans every live tween to find the effect it replaces: thousands of effects now start in linear time (4,000 shakes: 33 ms → 1.4 ms).
+- Starting a shake or punch no longer scans every live tween to find the effect it replaces: standalone effects are indexed by target and property. 4,000 shakes start in 0.9 ms instead of 33 ms, and creation cost no longer grows with the number of live effects. A test now guards this.
 
 ## [1.6.2] - 2026-10-12
 

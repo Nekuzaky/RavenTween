@@ -29,9 +29,19 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
 | **[Migrating](Migrating)** | Side-by-side equivalents for DOTween and PrimeTween. |
 | **[Reference](Reference)** | The complete API, tables only. |
+| **[Known Pitfalls](Known-Pitfalls)** | Five behaviors that surprise newcomers, and what to do about them. |
 | **[FAQ](FAQ)** | Short answers to the questions that come up most. |
 
 ---
+
+## What's new in 1.7.0
+
+Tooling, debugging and the last performance gap:
+
+- **Manual stepping**: `Raven.Step(deltaTime)` advances tweens outside Play Mode (editor tools, frame-by-frame recording), and `UpdatePhase.Manual` holds tweens only your code drives.
+- **Effects at any scale**: thousands of shakes and punches start in under a millisecond.
+- **Safer debugging**: a Monitor warning when `Time.timeScale` freezes tweens, `Raven.Diagnostics`, and an engine that recovers if another system replaces the player loop.
+- **Camera shake without tilt** for cameras driven by `LookAt` or Cinemachine, explicit `ShakeLocalPosition`-style names, and a **[Known Pitfalls](Known-Pitfalls)** page.
 
 ## What's new in 1.6.0
 
@@ -81,7 +91,7 @@ The full list is in the **[Changelog](Changelog)**.
 ## Why RavenTween?
 
 - **Zero garbage while playing** — property, effect, sequence and custom tweens allocate 0 B per frame, enforced by tests.
-- **Fast** — 5,000 simultaneous tweens step in under 1 ms per frame.
+- **Fast** — 5,000 simultaneous tweens step in about 0.6 ms per frame on a desktop CPU.
 - **Safe by construction** — handles are small structs; a handle to a finished tween is simply dead, and every call on it does nothing. Destroying a target mid-tween never throws.
 - **No hidden state** — tweens are single-use. Reusable configurations live in Tween Template assets instead.
 - **Runs everywhere** — pure managed C#: no threads, reflection, native plugins or runtime code generation. IL2CPP, WebGL, mobile and consoles are all fine.
