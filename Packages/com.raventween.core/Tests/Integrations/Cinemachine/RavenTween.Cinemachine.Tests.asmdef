@@ -1,0 +1,37 @@
+{
+    "name": "RavenTween.Cinemachine.Tests",
+    "rootNamespace": "RavenTween.Tests",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.Cinemachine",
+        "Cinemachine",
+        "Unity.Cinemachine",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "RAVEN_CINEMACHINE2 || RAVEN_CINEMACHINE3"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "[2.0.0,3.0.0)",
+            "define": "RAVEN_CINEMACHINE2"
+        },
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "3.0.0",
+            "define": "RAVEN_CINEMACHINE3"
+        }
+    ],
+    "noEngineReferences": false
+}

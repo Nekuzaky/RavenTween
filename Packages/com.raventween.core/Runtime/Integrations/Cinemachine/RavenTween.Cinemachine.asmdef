@@ -1,0 +1,31 @@
+{
+    "name": "RavenTween.Cinemachine",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime",
+        "Cinemachine",
+        "Unity.Cinemachine"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_CINEMACHINE2 || RAVEN_CINEMACHINE3"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "[2.0.0,3.0.0)",
+            "define": "RAVEN_CINEMACHINE2"
+        },
+        {
+            "name": "com.unity.cinemachine",
+            "expression": "3.0.0",
+            "define": "RAVEN_CINEMACHINE3"
+        }
+    ],
+    "noEngineReferences": false
+}

@@ -7,3 +7,7 @@ using System.Runtime.CompilerServices;
 [assembly: InternalsVisibleTo("RavenTween.AnimationRigging.Tests")]
 [assembly: InternalsVisibleTo("RavenTween.Physics.Tests")]
 [assembly: InternalsVisibleTo("RavenTween.DOTweenAdapter.Tests")]
+[assembly: InternalsVisibleTo("RavenTween.UIToolkit.Tests")]
+[assembly: InternalsVisibleTo("RavenTween.Timeline")]
+[assembly: InternalsVisibleTo("RavenTween.Timeline.Tests")]
+[assembly: InternalsVisibleTo("RavenTween.Integrations.Tests")]

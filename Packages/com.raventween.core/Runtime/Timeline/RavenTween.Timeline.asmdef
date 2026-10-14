@@ -1,0 +1,26 @@
+{
+    "name": "RavenTween.Timeline",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime",
+        "Unity.Timeline",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_TIMELINE"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.0.0",
+            "define": "RAVEN_TIMELINE"
+        }
+    ],
+    "noEngineReferences": false
+}

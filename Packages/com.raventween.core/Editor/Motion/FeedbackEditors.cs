@@ -88,6 +88,11 @@ namespace RavenTween.Editor {
                 case "parameter": return new GUIContent("Trigger", "Name of the Animator trigger parameter.");
                 case "lifetime": return new GUIContent("Destroy After (s)", "0 = keep the spawned object.");
                 case "chance": return new GUIContent("Chance", "1 = always, 0.3 = three times in ten.");
+                case "effect": return kind == FeedbackAction.Kind.VolumeFlash
+                    ? new GUIContent("Volume", "A post-processing Volume (URP or HDRP). Its weight flashes up to the strength, then back.")
+                    : new GUIContent("Impulse Source", "A Cinemachine Impulse Source on this or another object.");
+                case "lowMotor": return new GUIContent("Heavy Motor", "Low-frequency gamepad motor, 0 to 1.");
+                case "highMotor": return new GUIContent("Buzz Motor", "High-frequency gamepad motor, 0 to 1.");
                 case "variation": return new GUIContent("Variation", "Random change of the strength each time, up to this fraction more or less.");
                 case "active": return new GUIContent("Turn On", "Ticked: turn the object on. Unticked: off.");
                 case "onPlay": return new GUIContent("On Play");
@@ -113,6 +118,9 @@ namespace RavenTween.Editor {
                 case FeedbackAction.Kind.SlowMotion: Fields.Add("timeScale"); Fields.Add("duration"); break;
                 case FeedbackAction.Kind.AnimatorTrigger: Fields.Add("target"); Fields.Add("parameter"); break;
                 case FeedbackAction.Kind.Spawn: Fields.Add("target"); Fields.Add("prefab"); Fields.Add("lifetime"); break;
+                case FeedbackAction.Kind.Rumble: Fields.Add("lowMotor"); Fields.Add("highMotor"); Fields.Add("strength"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.VolumeFlash: Fields.Add("effect"); Fields.Add("strength"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.CameraImpulse: Fields.Add("effect"); Fields.Add("strength"); break;
                 default: Fields.Add("onPlay"); break;
             }
             Fields.Add("chance");
@@ -226,6 +234,9 @@ namespace RavenTween.Editor {
             action.FindPropertyRelative("lifetime").floatValue = 2f;
             action.FindPropertyRelative("chance").floatValue = 1f;
             action.FindPropertyRelative("variation").floatValue = 0f;
+            action.FindPropertyRelative("lowMotor").floatValue = 0.6f;
+            action.FindPropertyRelative("highMotor").floatValue = 0.3f;
+            action.FindPropertyRelative("effect").objectReferenceValue = null;
             SerializedProperty calls = action.FindPropertyRelative("onPlay.m_PersistentCalls.m_Calls");
             if (calls != null) { calls.arraySize = 0; }
             SerializedProperty settings = action.FindPropertyRelative("settings");

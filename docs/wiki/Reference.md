@@ -24,7 +24,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `RavenMotion` (component) | `Play()`, `Stop()` (back to the rest pose), `Complete()`, `CaptureRest()`, `Style`, `Preset`, `Trigger`, `Settings`, `EffectivePreset`, `EffectiveSettings`, `WhenFinished`, `ThenPlay`, `AnimatedTransform`, `IsPlaying`, `Current`, `OnComplete` |
 | `RavenStagger` (component) | `Play()`, `Stop()`, `Style`, `Preset`, `Interval`, `Settings`, `IsPlaying`, `OnComplete` |
 | `RavenShowHide` (component) | `Show()`, `Hide()`, `Toggle()`, `SetVisible(bool)`, `IsShown`, `IsAnimating`, `ShowMotion`, `HideMotion`, `DeactivateWhenHidden`, `OnShown`, `OnHidden` |
-| `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event, LightFlash, FieldOfView, Nudge, Twist, SlowMotion, AnimatorTrigger, Spawn; each with `delay`, `chance`, `variation`), `Trigger`, `Cooldown` |
+| `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event, LightFlash, FieldOfView, Nudge, Twist, SlowMotion, AnimatorTrigger, Spawn, Rumble, VolumeFlash, CameraImpulse; each with `delay`, `chance`, `variation`), `Trigger`, `Cooldown` |
 | `RavenPath` (component) | `Play()`, `Stop()`, `ResetToStart()`, `CreateTween()`, `Evaluate(t)`, `Points`, `Closed`, `Smooth`, `Looping`, `Length`, `TripDuration`, `OnComplete` |
 | `RavenTypewriter` (TextMeshPro) | `Play()`, `Play(string)`, `Skip()`, `LettersPerSecond`, `IsTyping`, `OnComplete` |
 | `RavenTextEffect` (TextMeshPro) | `TextEffect` (None, Wave, Shake, Wobble, Pulse, Rainbow), `AppearStyle` (Instant, Fade, Pop, Rise), `Strength`, `IsShaping`, `Replay()` |
@@ -215,6 +215,21 @@ Compiled only when `com.unity.animation.rigging` is installed.
 | `TweenTemplate` (ScriptableObject) | `property`, `materialProperty`, `endValue`, `useExplicitFrom`, `fromValue`, `settings`; `Play(Object target)` — the target may be the exact object or any GameObject / component carrying it |
 | `RavenAnimator` | `Entries`, `OnAllComplete`; `Play()`, `Stop()`, `CompleteNow()` |
 | `RavenSequencePlayer` | `Steps`, `OnComplete`, `Current`; `Play()`, `Stop()`, `CompleteNow()` |
+
+---
+
+## Optional integrations
+
+Each compiles only when its package is in the project. See **[Integrations](Integrations)**.
+
+| Package | API |
+| :--- | :--- |
+| Unity Timeline | `RavenMotionTrack` (binds a Transform), `RavenMotionClip` (`style`, `preset`, `settings`) |
+| UI Toolkit | `VisualElement.TweenOpacity`, `TweenTranslate`, `TweenScale`, `TweenRotate`, `TweenBackgroundColor`, `TweenColor`, `TweenWidth`, `TweenHeight` |
+| UniTask | `Tween.ToUniTask(CancellationToken)`, `Sequence.ToUniTask(CancellationToken)` |
+| Input System | `RavenRumble.Play(low, high, duration)`, `RavenRumble.Stop()`; feedback `Rumble` |
+| URP / HDRP | `Volume.TweenWeight(to, duration)`, `Volume.FlashWeight(peak, duration)`; feedback `VolumeFlash` |
+| Cinemachine 2 / 3 | feedback `CameraImpulse` |
 
 ---
 

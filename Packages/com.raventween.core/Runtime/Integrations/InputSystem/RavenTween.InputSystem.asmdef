@@ -1,0 +1,25 @@
+{
+    "name": "RavenTween.InputSystem",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_INPUTSYSTEM"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "RAVEN_INPUTSYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}

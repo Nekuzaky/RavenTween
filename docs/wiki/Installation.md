@@ -78,6 +78,7 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | **Unity version** | Unity 2022.3 LTS or newer, including Unity 6. Every release is tested on Unity 6.3 and 6.5. |
 | **Dependencies** | `com.unity.ugui` and the built-in Audio, JSON Serialize and Unity Web Request modules — all installed automatically |
 | **TextMeshPro** | Optional. The TMP module compiles only when TextMeshPro is present |
+| **Timeline, UI Toolkit, UniTask, Input System, URP/HDRP, Cinemachine** | Optional. Each integration compiles only when its package is present; see [Integrations](Integrations) |
 | **Animation Rigging** | Optional. The rigging module compiles only when `com.unity.animation.rigging` is present |
 | **Physics / Physics 2D** | Optional. The Rigidbody tweens compile only when the built-in Physics or Physics 2D module is enabled (it is by default) |
 | **Platforms** | Every platform Unity targets: Windows, macOS, Linux, Android, iOS, WebGL, consoles |

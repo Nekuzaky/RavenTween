@@ -1,0 +1,31 @@
+{
+    "name": "RavenTween.Timeline.Tests",
+    "rootNamespace": "RavenTween.Tests",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.Timeline",
+        "Unity.Timeline",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "RAVEN_TIMELINE"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.timeline",
+            "expression": "1.0.0",
+            "define": "RAVEN_TIMELINE"
+        }
+    ],
+    "noEngineReferences": false
+}

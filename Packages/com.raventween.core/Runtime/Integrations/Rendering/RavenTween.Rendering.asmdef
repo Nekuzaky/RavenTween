@@ -1,0 +1,25 @@
+{
+    "name": "RavenTween.Rendering",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_SRP"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.render-pipelines.core",
+            "expression": "10.0.0",
+            "define": "RAVEN_SRP"
+        }
+    ],
+    "noEngineReferences": false
+}

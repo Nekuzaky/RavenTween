@@ -39,7 +39,13 @@ namespace RavenTween {
             /// <summary>Sets a trigger on an Animator.</summary>
             AnimatorTrigger = 14,
             /// <summary>Spawns a prefab at the object (a puff, sparks, a popup).</summary>
-            Spawn = 15
+            Spawn = 15,
+            /// <summary>Vibrates the gamepad (needs the Input System package).</summary>
+            Rumble = 16,
+            /// <summary>Flashes a post-processing Volume in and out (needs URP or HDRP).</summary>
+            VolumeFlash = 17,
+            /// <summary>Sends a Cinemachine impulse (needs Cinemachine).</summary>
+            CameraImpulse = 18
         }
 
         public Kind kind = Kind.Punch;
@@ -81,6 +87,12 @@ namespace RavenTween {
         [Range(0f, 1f)] public float chance = 1f;
         [Tooltip("Random change of the strength each time (0 = always the same, 0.3 = up to 30% more or less).")]
         [Range(0f, 1f)] public float variation;
+        [Tooltip("Gamepad low-frequency motor (heavy rumble), 0 to 1.")]
+        [Range(0f, 1f)] public float lowMotor = 0.6f;
+        [Tooltip("Gamepad high-frequency motor (buzz), 0 to 1.")]
+        [Range(0f, 1f)] public float highMotor = 0.3f;
+        [Tooltip("A post-processing Volume (URP or HDRP) for Volume Flash, or a Cinemachine Impulse Source for Camera Impulse.")]
+        public Component effect;
 
         [NonSerialized] internal RavenFeedback Owner;
         [NonSerialized] MotionTarget _resolved;
@@ -94,6 +106,7 @@ namespace RavenTween {
         [NonSerialized] UnityEngine.Object _lightOwner;
         [NonSerialized] Tween _lightFlash;
         [NonSerialized] Tween _lensKick;
+        [NonSerialized] bool _warnedMissing;
 
         internal void RunIfOwnerActive() {
             if (Owner != null && Owner.isActiveAndEnabled) { Run(); }
@@ -120,8 +133,19 @@ namespace RavenTween {
                 case Kind.SlowMotion: SlowDown(); break;
                 case Kind.AnimatorTrigger: SetAnimatorTrigger(on); break;
                 case Kind.Spawn: Spawn(on); break;
+                case Kind.Rumble: RunHook(FeedbackHooks.Rumble, power, "the Input System package"); break;
+                case Kind.VolumeFlash: RunHook(FeedbackHooks.VolumeFlash, power, "URP or HDRP"); break;
+                case Kind.CameraImpulse: RunHook(FeedbackHooks.CameraImpulse, power, "the Cinemachine package"); break;
                 default: onPlay.Invoke(); break;
             }
+        }
+
+        // Kinds served by optional assemblies, which register themselves when their package exists.
+        void RunHook(Action<FeedbackAction, float> hook, float power, string needs) {
+            if (hook != null) { hook(this, power); return; }
+            if (_warnedMissing) { return; }
+            _warnedMissing = true;
+            Debug.LogWarning("RavenTween: the " + kind + " feedback needs " + needs + " in the project.", Owner);
         }
 
         // The rest value is read when no flash is running, so it follows the game (day and night,
@@ -230,6 +254,16 @@ namespace RavenTween {
             if (system != null) { system.Play(true); }
 #endif
         }
+    }
+
+    /// <summary>
+    /// Where the optional integrations plug their feedback actions in (Input System rumble,
+    /// SRP volumes, Cinemachine impulses). Each is set by its assembly when its package is present.
+    /// </summary>
+    public static class FeedbackHooks {
+        public static Action<FeedbackAction, float> Rumble;
+        public static Action<FeedbackAction, float> VolumeFlash;
+        public static Action<FeedbackAction, float> CameraImpulse;
     }
 
     /// <summary>

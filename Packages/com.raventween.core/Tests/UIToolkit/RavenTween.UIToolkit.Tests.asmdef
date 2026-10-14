@@ -1,0 +1,30 @@
+{
+    "name": "RavenTween.UIToolkit.Tests",
+    "rootNamespace": "RavenTween.Tests",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.UIToolkit",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "RAVEN_UITOOLKIT"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "RAVEN_UITOOLKIT"
+        }
+    ],
+    "noEngineReferences": false
+}

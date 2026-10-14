@@ -210,6 +210,8 @@ Everything the code API does, designers can do in the Inspector, on the same zer
 - **Raven Path** moves an object along points drawn in the Scene view.
 - **Raven Typewriter**, **Raven Text Effect** (per-letter wave, shake, rainbow, pop-in) and **Raven Counter** animate TextMeshPro text and numbers.
 - **Motion Styles** save a tuned motion as an asset the whole team reuses.
+
+**Integrations** (each compiled only when its package is present): a Raven Motion Track for **Unity Timeline**, **UI Toolkit** element tweens, **UniTask** awaits, gamepad **rumble**, **URP/HDRP** volume flashes and **Cinemachine** impulses.
 - From code: `Raven.Motion(panel, MotionPreset.SlideInUp)`.
 
 **Your own animations, for full control:**

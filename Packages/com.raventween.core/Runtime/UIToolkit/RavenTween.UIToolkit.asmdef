@@ -1,0 +1,24 @@
+{
+    "name": "RavenTween.UIToolkit",
+    "rootNamespace": "RavenTween",
+    "references": [
+        "RavenTween.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "RAVEN_UITOOLKIT"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.modules.uielements",
+            "expression": "1.0.0",
+            "define": "RAVEN_UITOOLKIT"
+        }
+    ],
+    "noEngineReferences": false
+}

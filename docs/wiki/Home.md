@@ -37,6 +37,7 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 | **[Control and Lifecycle](Control-and-Lifecycle)** | Callbacks, pause, stop, complete, time scale, destroyed targets, async/await and coroutines. |
 | **[Procedural Animation](Procedural-Animation)** | Look-at, spring chains for ponytails and antennae, and Animation Rigging integration. |
 | **[Designer Workflow](Designer-Workflow)** | Animate without code: the Motion Library and 44 ready-made motions, Raven Motion, Raven Stagger, Raven Button Feel, Raven Show Hide, Raven Feedback, Raven Path, Raven Typewriter, Raven Counter, Motion Styles, Tween Templates, Raven Animator, Raven Sequence Player, the visual Sequence Editor, and `TweenParams`. |
+| **[Integrations](Integrations)** | Unity Timeline track, UI Toolkit, UniTask, gamepad rumble, URP/HDRP volumes, Cinemachine impulses. |
 | **[Monitor](Monitor)** | The live debugging window under **Tools ▸ RavenTween**. |
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
 | **[Migrating](Migrating)** | Side-by-side equivalents for DOTween and PrimeTween. |

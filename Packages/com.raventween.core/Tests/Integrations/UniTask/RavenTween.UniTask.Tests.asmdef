@@ -1,0 +1,31 @@
+{
+    "name": "RavenTween.UniTask.Tests",
+    "rootNamespace": "RavenTween.Tests",
+    "references": [
+        "RavenTween.Runtime",
+        "RavenTween.UniTask",
+        "UniTask",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "RAVEN_UNITASK"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.cysharp.unitask",
+            "expression": "2.0.0",
+            "define": "RAVEN_UNITASK"
+        }
+    ],
+    "noEngineReferences": false
+}
