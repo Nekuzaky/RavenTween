@@ -2,7 +2,7 @@
   "name": "com.raventween.core",
   "version": "1.7.0",
   "displayName": "RavenTween",
-  "description": "High-performance, allocation-free tweening engine for Unity. Fluent code-first API, sequences, async/await, coroutines, and optional inspector-driven templates.",
+  "description": "High-performance, allocation-free tweening engine for Unity, in code or in the Inspector. Fluent API, sequences, async/await, coroutines, and no-code tools for designers: Tween Templates with presets and preview, Raven Animator, and a visual Sequence Editor.",
   "unity": "2021.3",
   "dependencies": {
     "com.unity.ugui": "1.0.0",

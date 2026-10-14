@@ -5,7 +5,7 @@
 <h1 align="center">RavenTween</h1>
 
 <p align="center">
-  High-performance, allocation-free tweening for Unity.
+  High-performance, allocation-free tweening for Unity — in code or in the Inspector.
 </p>
 
 <p align="center">
@@ -33,13 +33,20 @@ Raven.Sequence()
 await Raven.Delay(1.2f);
 ```
 
+**Or without a line of code.** Designers build animations as **Tween Templates** (presets, live easing curve, preview in Edit Mode), play them with a **Raven Animator**, and arrange whole choreographies in the visual **Sequence Editor**: drag steps in time, scrub, and preview in the scene. Same engine, same zero garbage.
+
+<p align="center">
+  <img src="Packages/com.raventween.core/Documentation~/images/sequence-editor.png" width="820" alt="Raven Sequence Editor">
+</p>
+
 - **0 B per frame** for property, effect, sequence and custom tweens — enforced by the test suite.
 - **About 0.6 ms/frame** for 5,000 simultaneous tweens (desktop CPU, Editor, Mono).
 - Sequences with timeline callbacks, shake & punch, TextMeshPro, async/await, coroutines, cancellation tokens.
 - Full time control: elapsed time and progress you can read and set, per-tween time scale, `FixedUpdate` and Rigidbody tweens.
 - Single-axis, speed-based and per-renderer property-block tweens; Incremental and PingPong cycles; tunable Overshoot / Bounce / Elastic eases.
 - Procedural look-at and spring chains, plus optional Animation Rigging integration.
-- Designer templates, a visual Sequence Editor and a live **Tools → RavenTween → Monitor** window.
+- No-code tools for designers: Tween Templates with presets and Edit Mode preview, Raven Animator, Raven Sequence Player and the visual Sequence Editor.
+- A live **Tools → RavenTween → Monitor** window.
 - A DOTween adapter: swap one `using` and most DOTween code runs on RavenTween.
 
 <p align="center">

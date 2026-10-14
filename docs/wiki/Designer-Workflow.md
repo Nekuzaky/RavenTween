@@ -1,6 +1,22 @@
 # Designer Workflow
 
-Not every animation should live in code. RavenTween gives designers three tools that need no programming: **Tween Templates**, the **Raven Animator** and the **Raven Sequence Player**. Programmers get a fourth: `TweenParams`, a serializable struct that exposes timing to the Inspector.
+Not every animation should live in code. RavenTween gives designers three tools that need no programming: **Tween Templates**, the **Raven Animator** and the **Raven Sequence Player**, with a visual **Sequence Editor** to lay out timelines. Programmers get a fourth: `TweenParams`, a serializable struct that exposes timing to the Inspector.
+
+Everything here runs on the same engine as the code API: the same zero-garbage tweens, the same easing, the same sequences.
+
+![The Sequence Editor: five steps laid out on a timeline](images/sequence-editor.png)
+
+---
+
+## Your first animation without code — two minutes
+
+1. **Create ▸ RavenTween ▸ Tween Template**. In the new asset, open **Presets** and pick *Pop In*.
+2. Select an object in the scene, then press **Preview** in the template: it plays right there, in Edit Mode. Adjust **Ease** and **Duration** until it feels right; **Reset** puts the object back.
+3. On the object, **Add Component ▸ RavenTween ▸ Raven Animator**, add an entry, and drag the object and the template in.
+4. Tick **Play On Enable**, or call **Play()** from a button's **On Click**.
+5. Press Play.
+
+For several animations in a row, use a **Raven Sequence Player** instead and press **Open Timeline** to arrange the steps visually.
 
 ---
 
@@ -8,7 +24,7 @@ Not every animation should live in code. RavenTween gives designers three tools 
 
 A template is a reusable animation recipe saved as an asset. Create one with **Create ▸ RavenTween ▸ Tween Template**.
 
-![A Tween Template asset in the Inspector](images/inspector-tween-template.png)
+![A Tween Template: presets, value fields, a live easing curve and an Edit Mode preview](images/designer-template.png)
 
 | Field | Meaning |
 | :--- | :--- |

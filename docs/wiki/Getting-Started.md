@@ -2,6 +2,9 @@
 
 Everything starts from one static class, `Raven`, in the `RavenTween` namespace.
 
+> [!TIP]
+> Prefer to work in the Inspector? **[Designer Workflow](Designer-Workflow)** builds the same animations with no code.
+
 ```csharp
 using RavenTween;
 ```

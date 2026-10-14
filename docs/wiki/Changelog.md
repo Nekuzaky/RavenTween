@@ -13,7 +13,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `Raven.Diagnostics`: logs every tween stopped because its target was destroyed (off by default, reset on entering Play Mode).
 - The engine reinstalls itself, with a warning, if another system replaces the player loop without it — tweens used to stop advancing silently.
 - Monitor: a warning when tweens are alive but frozen by `Time.timeScale` (or `Raven.TimeScale`) at 0.
-- Documentation: a **Known Pitfalls** page, the camera pivot pattern, manual stepping, and reproducible benchmark figures (CPU, Unity version and test names).
+- Documentation: a **Known Pitfalls** page, the camera pivot pattern, manual stepping, and reproducible benchmark figures (CPU, Unity version and test names). The no-code designer workflow is now presented up front, with a two-minute walkthrough and screenshots of the Sequence Editor and the Tween Template inspector.
 
 ### Changed
 - Starting a shake or punch no longer scans every live tween to find the effect it replaces: standalone effects are indexed by target and property. 4,000 shakes start in 0.9 ms instead of 33 ms, and creation cost no longer grows with the number of live effects. A test now guards this.

@@ -5,7 +5,7 @@
 <h1 align="center">RavenTween</h1>
 
 <p align="center">
-  High-performance, allocation-free tweening for Unity.<br>
+  High-performance, allocation-free tweening for Unity — in code or in the Inspector.<br>
   Fluent code-first API · sequences with callbacks · full time control · physics · async/await · shake &amp; punch · TextMeshPro · designer templates · visual timeline · live monitor · DOTween adapter
 </p>
 
@@ -25,6 +25,7 @@
 | **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
 | **Fast** | 5,000 simultaneous tweens step in **about 0.6 ms/frame** on a desktop CPU (Editor, Mono, mixed workload). |
 | **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
+| **Designers included** | Animations without code: **Tween Templates** with presets and Edit Mode preview, a **Raven Animator**, and a visual **Sequence Editor** for whole choreographies. See [Designer workflow](#designer-workflow-no-code). |
 | **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
 | **Portable** | Pure managed C#: no threads, reflection, native plugins or runtime codegen. IL2CPP, WebGL, mobile and consoles are all fine. |
 
@@ -197,11 +198,15 @@ transform.DOMoveY(2f, 0.4f).SetEase(Ease.OutQuad).SetLoops(2, LoopType.Yoyo);   
 
 ## Designer workflow (no code)
 
-<img src="Documentation~/images/inspector-animator.png" width="560" alt="Raven Animator inspector">
+Everything the code API does, designers can do in the Inspector, on the same zero-garbage engine.
+
+<img src="Documentation~/images/sequence-editor.png" width="820" alt="Raven Sequence Editor">
 
 1. **Create → RavenTween → Tween Template** — pick the property, end value, duration, ease and cycles.
 2. Add a **Raven Animator** to a GameObject, reference targets and templates, then enable *Play On Enable* or wire `Play()` to any UnityEvent.
 3. For timelines, use **Raven Sequence Player**: each step chains, groups or inserts a template.
+
+<img src="Documentation~/images/designer-template.png" width="360" alt="Tween Template inspector">
 
 Template assets come with **presets**, value fields that match the property, a **live easing curve**, and **Preview** on a scene object outside Play Mode. Sequences get a visual **Sequence Editor** (*Open Timeline*): drag steps in time, reorder them, and scrub the whole sequence in the scene. Previews always restore your objects afterwards.
 

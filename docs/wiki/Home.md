@@ -1,13 +1,25 @@
 # RavenTween
 
-> **High-performance, allocation-free tweening for Unity — a fluent code-first API, sequences, shake & punch, TextMeshPro, async/await, and designer templates, with 0 bytes of garbage per frame.**
+> **High-performance, allocation-free tweening for Unity — in code or in the Inspector. A fluent API, sequences, shake & punch, TextMeshPro, async/await, and no-code tools for designers, with 0 bytes of garbage per frame.**
 
 RavenTween animates anything in Unity — transforms, UI, cameras, audio, materials, text, or your own fields — through one short, readable API. Every tween lives in a pooled slot that is recycled forever, so animations generate **no garbage while they play**. That is not a promise in prose: the package's own test suite fails if a single byte is allocated per frame.
 
-![The live Monitor window listing running tweens and sequences](images/monitor.png)
+## Two ways to animate
+
+**In code** — one readable line per animation:
+
+```csharp
+Raven.Position(transform, target, 0.6f).Ease(Ease.OutBack);
+```
+
+**In the Inspector** — no code at all. Designers build animations as reusable **Tween Templates** (with presets and a live preview in Edit Mode), play them with a **Raven Animator**, and lay out whole choreographies in the visual **Sequence Editor**:
+
+![The Sequence Editor](images/sequence-editor.png)
+
+Both run on the same engine, so a designer's timeline is exactly as fast and garbage-free as a programmer's code. See **[Designer Workflow](Designer-Workflow)**.
 
 > [!TIP]
-> New here? Go straight to **[Installation](Installation)**, then **[Getting Started](Getting-Started)** — your first tween is one line of code.
+> New here? Go straight to **[Installation](Installation)**, then **[Getting Started](Getting-Started)** — your first tween is one line of code. Not a programmer? Start with **[Designer Workflow](Designer-Workflow)**.
 
 ---
 
@@ -24,7 +36,7 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 | **[TextMeshPro](TextMeshPro)** | Typewriter reveal, score counters, font size and spacing. |
 | **[Control and Lifecycle](Control-and-Lifecycle)** | Callbacks, pause, stop, complete, time scale, destroyed targets, async/await and coroutines. |
 | **[Procedural Animation](Procedural-Animation)** | Look-at, spring chains for ponytails and antennae, and Animation Rigging integration. |
-| **[Designer Workflow](Designer-Workflow)** | Tween Templates, Raven Animator, Raven Sequence Player and `TweenParams`. |
+| **[Designer Workflow](Designer-Workflow)** | Animate without code: Tween Templates with presets and preview, Raven Animator, Raven Sequence Player, the visual Sequence Editor, and `TweenParams`. |
 | **[Monitor](Monitor)** | The live debugging window under **Tools ▸ RavenTween**. |
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
 | **[Migrating](Migrating)** | Side-by-side equivalents for DOTween and PrimeTween. |

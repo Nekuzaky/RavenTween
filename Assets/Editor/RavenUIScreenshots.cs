@@ -94,6 +94,88 @@ namespace RavenTweenDemo {
             }
         }
 
+        // ----- Designer workflow captures (no Play Mode) -----
+        // Launched via -executeMethod RavenTweenDemo.RavenUIScreenshots.RunDesigner.
+
+        static RavenSequencePlayer _showcase;
+
+        public static void RunDesigner() {
+            Directory.CreateDirectory(Dir);
+            EditorSceneManager.OpenScene("Assets/Demo/RavenDemo.unity");
+            _showcase = BuildShowcase();
+            _next = EditorApplication.timeSinceStartup + 4.0;
+            _step = 0;
+            EditorApplication.update += DesignerStage;
+        }
+
+        static void DesignerStage() {
+            if (EditorApplication.timeSinceStartup < _next) { return; }
+            _next = EditorApplication.timeSinceStartup + 1.5;
+            _step++;
+            switch (_step) {
+                case 1:
+                    PlaceInspector(new Rect(80f, 80f, 470f, 640f));
+                    Selection.activeObject = AssetDatabase.LoadAssetAtPath<TweenTemplate>("Assets/Demo/PulseScale.asset");
+                    break;
+                case 2:
+                    Capture(GetInspector(), "designer_template.png");
+                    Selection.activeObject = _showcase.gameObject;
+                    break;
+                case 3:
+                    Capture(GetInspector(), "designer_sequence_player.png");
+                    RavenSequenceEditorWindow.Open(_showcase);
+                    EditorWindow.GetWindow<RavenSequenceEditorWindow>().position = new Rect(120f, 160f, 1000f, 330f);
+                    break;
+                case 4:
+                    Capture(EditorWindow.GetWindow<RavenSequenceEditorWindow>(), "designer_sequence_editor.png");
+                    break;
+                case 5:
+                    EditorApplication.update -= DesignerStage;
+                    EditorApplication.Exit(0);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        // A five-step choreography built in memory (never saved), so the timeline has something to show.
+        static RavenSequencePlayer BuildShowcase() {
+            GameObject crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            crate.name = "Reward Chest";
+            crate.transform.position = new Vector3(-2.5f, 0f, 0f);
+            var player = crate.AddComponent<RavenSequencePlayer>();
+            Transform t = crate.transform;
+            AddStep(player, RavenSequencePlayer.StepMode.Chain, 0f, t, Template("Rise", PropertyKind.LocalPositionY, new Vector4(1.2f, 0f, 0f, 0f), 0.6f, Ease.OutBack));
+            AddStep(player, RavenSequencePlayer.StepMode.Group, 0f, t, Template("Spin", PropertyKind.LocalEulerAngles, new Vector4(0f, 360f, 0f, 0f), 0.9f, Ease.InOutCubic));
+            AddStep(player, RavenSequencePlayer.StepMode.Insert, 0.35f, t, Template("Pop", PropertyKind.LocalScale, new Vector4(1.4f, 1.4f, 1.4f, 0f), 0.3f, Ease.OutQuad, 2, CycleMode.Yoyo));
+            AddStep(player, RavenSequencePlayer.StepMode.Chain, 0f, t, Template("Hover", PropertyKind.LocalPositionY, new Vector4(1.5f, 0f, 0f, 0f), 0.5f, Ease.InOutSine, 2, CycleMode.Yoyo));
+            AddStep(player, RavenSequencePlayer.StepMode.Chain, 0f, t, Template("Land", PropertyKind.LocalPositionY, Vector4.zero, 0.45f, Ease.OutBounce));
+            return player;
+        }
+
+        static TweenTemplate Template(string name, PropertyKind property, Vector4 end, float duration, Ease ease, int cycles = 1, CycleMode mode = CycleMode.Restart) {
+            TweenTemplate template = ScriptableObject.CreateInstance<TweenTemplate>();
+            template.name = name;
+            template.property = property;
+            template.endValue = end;
+            template.settings = TweenParams.Default;
+            template.settings.duration = duration;
+            template.settings.ease = ease;
+            template.settings.cycles = cycles;
+            template.settings.cycleMode = mode;
+            return template;
+        }
+
+        static void AddStep(RavenSequencePlayer player, RavenSequencePlayer.StepMode mode, float insertTime, Object target, TweenTemplate template) {
+            player.Steps.Add(new RavenSequencePlayer.Step { mode = mode, insertTime = insertTime, target = target, template = template });
+        }
+
+        static void PlaceInspector(Rect rect) {
+            EditorWindow inspector = GetInspector();
+            inspector.position = rect;
+            inspector.Focus();
+        }
+
         static void PositionMonitor() {
             var window = EditorWindow.GetWindow<RavenMonitorWindow>();
             window.position = new Rect(300f, 240f, 900f, 360f);
