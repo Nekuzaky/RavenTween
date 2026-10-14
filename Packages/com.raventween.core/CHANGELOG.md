@@ -12,9 +12,10 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - **Raven Button Feel** component: hover grow, press sink and spring back, in *Subtle*, *Bouncy*, *Juicy* or custom styles.
 - **Motion Library** window (**Tools ▸ RavenTween ▸ Motion Library**, or **GameObject ▸ RavenTween ▸ Add Motion…**): every motion on one page with an animated preview card, previewed on the selection, added in one click, with quick setups.
 - **Raven Show Hide** component: Show / Hide / Toggle for panels and popups, with an entrance, an exit, deactivation (or blocked input) while hidden, and On Shown / On Hidden events.
-- **Raven Feedback** component: "juice" for an event — camera shake, punch, color flash, any motion, sound with random pitch, hit stop, particles, set active, UnityEvent — each with its own delay, a cooldown, and Hit / Pickup / Damage recipes.
+- **Raven Feedback** component: "juice" for an event — camera shake, punch, color flash, any motion, sound with random pitch, hit stop, particles, set active, UnityEvent — each with its own delay, a cooldown, and Hit / Pickup / Damage recipes. Also light flash, field-of-view kick, nudge, twist, slow motion, Animator trigger and prefab spawn, with a chance and a random strength variation per action.
 - **Raven Path** component: moves an object along points drawn in the Scene view, at constant speed, smooth or straight, open or closed, once / loop / back and forth, optionally facing the path; Edit Mode preview.
 - **Raven Typewriter** and **Raven Counter** components for TextMeshPro: letter-by-letter reveal with a typing sound and Skip; animated numbers with prefix, suffix, decimals, `CountTo` and `Add`.
+- **Raven Text Effect** for TextMeshPro: per-letter Wave, Shake, Wobble, Pulse and Rainbow, and letters that Fade, Pop or Rise in as they appear (pairs with Raven Typewriter); limited to a range of letters if needed; mesh only, no allocation while playing.
 - **Motion Styles**: a motion and its settings saved as an asset (**Create ▸ RavenTween ▸ Motion Style** or **Save as style…**), shared by Raven Motion, Raven Stagger and Raven Show Hide.
 - **Tint** motion (flashes a color: Graphics, Sprite Renderers and mesh materials), **Then Play** chaining on Raven Motion, and `Raven.HitStop(timeScale, duration)`.
 - Sample *10 - No-Code Motion*.

@@ -10,7 +10,7 @@ RavenTween includes a small module for TextMeshPro text. It is a separate assemb
 ---
 
 > [!TIP]
-> For dialogue and scores without code, add **Raven Typewriter** or **Raven Counter** to the text: see **[Designer Workflow](Designer-Workflow)**.
+> For dialogue and scores without code, add **Raven Typewriter**, **Raven Text Effect** (per-letter wave, shake, rainbow, letters popping in) or **Raven Counter** to the text: see **[Designer Workflow](Designer-Workflow)**.
 
 ## Color and alpha
 

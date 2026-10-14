@@ -1,6 +1,8 @@
+using System.Collections;
 using NUnit.Framework;
 using TMPro;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace RavenTween.Tests {
     /// <summary>Raven Typewriter and Raven Counter.</summary>
@@ -46,6 +48,44 @@ namespace RavenTween.Tests {
             writer.Skip();
             Assert.That(text.maxVisibleCharacters, Is.GreaterThanOrEqualTo(text.textInfo.characterCount));
             Assert.That(done, Is.EqualTo(1));
+        }
+
+        [UnityTest]
+        public IEnumerator TextEffect_MovesLetters_AndPutsTheTextBackWhenDisabled() {
+            _go.SetActive(true);
+            var text = _go.GetComponent<TMP_Text>();
+            text.ForceMeshUpdate();
+            Vector3 before = text.textInfo.meshInfo[0].vertices[0];
+            var effect = _go.AddComponent<RavenTextEffect>(); // Wave.
+            effect.Strength = 1f;
+            bool moved = false;
+            for (int frame = 0; frame < 30 && !moved; frame++) {
+                yield return null;
+                moved = (text.textInfo.meshInfo[0].vertices[0] - before).sqrMagnitude > 1e-4f;
+            }
+            Assert.That(moved, Is.True, "The first letter waves.");
+            effect.enabled = false;
+            Assert.That(text.textInfo.meshInfo[0].vertices[0], Is.EqualTo(before), "Disabled: the text is exactly as TextMeshPro laid it out.");
+        }
+
+        [UnityTest]
+        public IEnumerator TextEffect_FadesLettersInAsTheyAppear() {
+            _go.SetActive(true);
+            var text = _go.GetComponent<TMP_Text>();
+            text.maxVisibleCharacters = 0;
+            var effect = _go.AddComponent<RavenTextEffect>();
+            effect.TextEffect = RavenTextEffect.Effect.None;
+            effect.AppearStyle = RavenTextEffect.Appear.Fade;
+            yield return null;
+            text.maxVisibleCharacters = 1;
+            yield return null;
+            yield return null;
+            byte early = text.textInfo.meshInfo[0].colors32[0].a;
+            float end = Time.realtimeSinceStartup + 0.5f;
+            while (Time.realtimeSinceStartup < end) { yield return null; }
+            byte late = text.textInfo.meshInfo[0].colors32[0].a;
+            Assert.That(early, Is.LessThan(255), "The first letter starts transparent.");
+            Assert.That(late, Is.EqualTo(255), "Then it is fully shown.");
         }
 
         [Test]

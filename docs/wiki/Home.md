@@ -54,7 +54,7 @@ Animation for everyone, tooling, debugging and the last performance gap:
 - **Effects at any scale**: thousands of shakes and punches start in under a millisecond.
 - **Safer debugging**: a Monitor warning when `Time.timeScale` freezes tweens, `Raven.Diagnostics`, and an engine that recovers if another system replaces the player loop.
 - **Camera shake without tilt** for cameras driven by `LookAt` or Cinemachine, explicit `ShakeLocalPosition`-style names, and a **[Known Pitfalls](Known-Pitfalls)** page.
-- **Animate without knowing animation**: 44 ready-made motions in a **Motion Library** with an animated preview, **Raven Motion** with click, hover, trigger and collision starts and chaining, **Raven Stagger**, **Raven Button Feel**, **Raven Show Hide**, **Raven Feedback** (shake, flash, sound, hit stop), **Raven Path**, **Raven Typewriter**, **Raven Counter**, and shareable **Motion Styles**. See **[Designer Workflow](Designer-Workflow)**.
+- **Animate without knowing animation**: 44 ready-made motions in a **Motion Library** with an animated preview, **Raven Motion** with click, hover, trigger and collision starts and chaining, **Raven Stagger**, **Raven Button Feel**, **Raven Show Hide**, **Raven Feedback** (shake, flash, sound, hit stop), **Raven Path**, **Raven Typewriter**, **Raven Text Effect** (per-letter), **Raven Counter**, and shareable **Motion Styles**. See **[Designer Workflow](Designer-Workflow)**.
 
 ## What's new in 1.6.0
 

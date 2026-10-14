@@ -78,7 +78,12 @@ namespace RavenTween.Editor {
                 case "target": return new GUIContent(kind == FeedbackAction.Kind.SetActive ? "Object" : "Animate", "Empty = this object.");
                 case "strength": return new GUIContent(kind == FeedbackAction.Kind.ColorFlash ? "Strength (0-1)" : "Strength", "1 = a solid hit, 0.3 = light, 2 = huge.");
                 case "duration": return new GUIContent("Duration (s)");
-                case "timeScale": return new GUIContent("Slow Down To", "Time.timeScale during the hit stop (0.05 = almost frozen).");
+                case "timeScale": return new GUIContent("Slow Down To", "Time.timeScale while it lasts (0.05 = almost frozen, 0.3 = slow motion).");
+                case "direction": return new GUIContent(kind == FeedbackAction.Kind.Twist ? "Axis (degrees)" : "Direction", kind == FeedbackAction.Kind.Twist ? "Degrees around each axis, times the strength." : "Local offset of the kick, times the strength.");
+                case "parameter": return new GUIContent("Trigger", "Name of the Animator trigger parameter.");
+                case "lifetime": return new GUIContent("Destroy After (s)", "0 = keep the spawned object.");
+                case "chance": return new GUIContent("Chance", "1 = always, 0.3 = three times in ten.");
+                case "variation": return new GUIContent("Variation", "Random change of the strength each time, up to this fraction more or less.");
                 case "active": return new GUIContent("Turn On", "Ticked: turn the object on. Unticked: off.");
                 case "onPlay": return new GUIContent("On Play");
                 default: return new GUIContent(ObjectNames.NicifyVariableName(field));
@@ -96,8 +101,17 @@ namespace RavenTween.Editor {
                 case FeedbackAction.Kind.HitStop: Fields.Add("timeScale"); Fields.Add("duration"); break;
                 case FeedbackAction.Kind.Particles: Fields.Add("particles"); break;
                 case FeedbackAction.Kind.SetActive: Fields.Add("target"); Fields.Add("active"); break;
+                case FeedbackAction.Kind.LightFlash: Fields.Add("light"); Fields.Add("strength"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.FieldOfView: Fields.Add("camera"); Fields.Add("strength"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.Nudge: Fields.Add("target"); Fields.Add("direction"); Fields.Add("strength"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.Twist: Fields.Add("target"); Fields.Add("direction"); Fields.Add("strength"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.SlowMotion: Fields.Add("timeScale"); Fields.Add("duration"); break;
+                case FeedbackAction.Kind.AnimatorTrigger: Fields.Add("target"); Fields.Add("parameter"); break;
+                case FeedbackAction.Kind.Spawn: Fields.Add("target"); Fields.Add("prefab"); Fields.Add("lifetime"); break;
                 default: Fields.Add("onPlay"); break;
             }
+            Fields.Add("chance");
+            if (Fields.Contains("strength")) { Fields.Add("variation"); }
         }
     }
 
@@ -183,6 +197,13 @@ namespace RavenTween.Editor {
             action.FindPropertyRelative("timeScale").floatValue = 0.05f;
             action.FindPropertyRelative("particles").objectReferenceValue = null;
             action.FindPropertyRelative("active").boolValue = true;
+            action.FindPropertyRelative("light").objectReferenceValue = null;
+            action.FindPropertyRelative("direction").vector3Value = new Vector3(0f, 0.2f, 0f);
+            action.FindPropertyRelative("parameter").stringValue = "";
+            action.FindPropertyRelative("prefab").objectReferenceValue = null;
+            action.FindPropertyRelative("lifetime").floatValue = 2f;
+            action.FindPropertyRelative("chance").floatValue = 1f;
+            action.FindPropertyRelative("variation").floatValue = 0f;
             SerializedProperty calls = action.FindPropertyRelative("onPlay.m_PersistentCalls.m_Calls");
             if (calls != null) { calls.arraySize = 0; }
             SerializedProperty settings = action.FindPropertyRelative("settings");

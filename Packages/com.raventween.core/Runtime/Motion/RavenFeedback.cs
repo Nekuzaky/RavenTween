@@ -25,7 +25,21 @@ namespace RavenTween {
             /// <summary>Turns an object on or off.</summary>
             SetActive = 7,
             /// <summary>Calls anything through a UnityEvent.</summary>
-            Event = 8
+            Event = 8,
+            /// <summary>Flashes a light brighter, then back.</summary>
+            LightFlash = 9,
+            /// <summary>Widens a camera's field of view for an instant (speed, impact).</summary>
+            FieldOfView = 10,
+            /// <summary>Kicks an object along a direction and springs it back.</summary>
+            Nudge = 11,
+            /// <summary>Twists an object around an axis and springs it back.</summary>
+            Twist = 12,
+            /// <summary>Slows the game down smoothly, holds, then speeds back up.</summary>
+            SlowMotion = 13,
+            /// <summary>Sets a trigger on an Animator.</summary>
+            AnimatorTrigger = 14,
+            /// <summary>Spawns a prefab at the object (a puff, sparks, a popup).</summary>
+            Spawn = 15
         }
 
         public Kind kind = Kind.Punch;
@@ -55,6 +69,18 @@ namespace RavenTween {
         [Tooltip("Turn the object on (ticked) or off.")]
         public bool active = true;
         public UnityEvent onPlay = new UnityEvent();
+        public Light light;
+        [Tooltip("Direction of a nudge (local units) or axis of a twist (degrees per axis).")]
+        public Vector3 direction = new Vector3(0f, 0.2f, 0f);
+        [Tooltip("Animator trigger parameter to set.")]
+        public string parameter = "";
+        public GameObject prefab;
+        [Tooltip("Seconds before the spawned object is destroyed (0 = keep it).")]
+        [Min(0f)] public float lifetime = 2f;
+        [Tooltip("Chance that this action plays each time (1 = always, 0.3 = three times in ten).")]
+        [Range(0f, 1f)] public float chance = 1f;
+        [Tooltip("Random change of the strength each time (0 = always the same, 0.3 = up to 30% more or less).")]
+        [Range(0f, 1f)] public float variation;
 
         [NonSerialized] internal RavenFeedback Owner;
         [NonSerialized] MotionTarget _resolved;
@@ -62,25 +88,80 @@ namespace RavenTween {
         [NonSerialized] bool _hasRest;
         [NonSerialized] Sequence _running;
         [NonSerialized] MotionChannels _channels;
+        [NonSerialized] float _restIntensity = -1f;
+        [NonSerialized] float _restFieldOfView = -1f;
 
         internal void RunIfOwnerActive() {
             if (Owner != null && Owner.isActiveAndEnabled) { Run(); }
         }
 
-        /// <summary>Does the action now. Each kind is a few lines on top of the engine.</summary>
+        /// <summary>Does the action now, if its chance allows. Each kind is a few lines on top of the engine.</summary>
         internal void Run() {
+            if (chance < 1f && UnityEngine.Random.value > chance) { return; }
             Transform on = target != null ? target : (Owner != null ? Owner.transform : null);
+            float power = strength * (1f + UnityEngine.Random.Range(-variation, variation));
             switch (kind) {
                 case Kind.Motion: PlayMotion(on, motion, settings); break;
-                case Kind.CameraShake: ShakeCamera(); break;
-                case Kind.Punch: if (on != null) { Raven.PunchScale(on, Vector3.one * (0.25f * strength), duration); } break;
-                case Kind.ColorFlash: FlashColor(on); break;
+                case Kind.CameraShake: ShakeCamera(power); break;
+                case Kind.Punch: if (on != null) { Raven.PunchScale(on, Vector3.one * (0.25f * power), duration); } break;
+                case Kind.ColorFlash: FlashColor(on, power); break;
                 case Kind.Sound: PlaySound(on); break;
                 case Kind.HitStop: Raven.HitStop(timeScale, duration); break;
                 case Kind.Particles: PlayParticles(); break;
                 case Kind.SetActive: if (on != null) { on.gameObject.SetActive(active); } break;
+                case Kind.LightFlash: FlashLight(power); break;
+                case Kind.FieldOfView: KickFieldOfView(power); break;
+                case Kind.Nudge: if (on != null) { Raven.PunchPosition(on, direction * power, duration); } break;
+                case Kind.Twist: if (on != null) { Raven.PunchRotation(on, direction * power, duration); } break;
+                case Kind.SlowMotion: SlowDown(); break;
+                case Kind.AnimatorTrigger: SetAnimatorTrigger(on); break;
+                case Kind.Spawn: Spawn(on); break;
                 default: onPlay.Invoke(); break;
             }
+        }
+
+        // Light and field of view flash from the value they had the first time, so repeats never drift.
+        void FlashLight(float power) {
+            if (light == null) { return; }
+            if (_restIntensity < 0f) { _restIntensity = light.intensity; }
+            float peak = _restIntensity * (1f + power);
+            Raven.Intensity(light, peak, duration * 0.5f).From(_restIntensity).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
+        }
+
+        void KickFieldOfView(float power) {
+            Camera kicked = camera != null ? camera : Camera.main;
+            if (kicked == null) { return; }
+            if (_restFieldOfView < 0f) { _restFieldOfView = kicked.fieldOfView; }
+            float peak = _restFieldOfView + 10f * power;
+            Raven.FieldOfView(kicked, peak, duration * 0.5f).From(_restFieldOfView).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
+        }
+
+        // Down quickly, hold, back up: in real time, so the slow motion doesn't slow itself.
+        void SlowDown() {
+            float restore = Raven.IsHitStopping ? 1f : Time.timeScale;
+            float down = duration * 0.2f;
+            float back = duration * 0.3f;
+            Raven.Sequence()
+                .Chain(Raven.GlobalTimeScale(timeScale, down))
+                .ChainDelay(Mathf.Max(duration - down - back, 0f))
+                .Chain(Raven.GlobalTimeScale(restore, back))
+                .UnscaledTime();
+        }
+
+        void SetAnimatorTrigger(Transform on) {
+#if RAVEN_MODULE_ANIMATION
+            if (on == null || string.IsNullOrEmpty(parameter)) { return; }
+            var animator = on.GetComponent<Animator>();
+            if (animator != null) { animator.SetTrigger(parameter); }
+#endif
+        }
+
+        void Spawn(Transform on) {
+            if (prefab == null) { return; }
+            Vector3 position = on != null ? on.position : Vector3.zero;
+            Quaternion rotation = on != null ? on.rotation : Quaternion.identity;
+            GameObject spawned = UnityEngine.Object.Instantiate(prefab, position, rotation);
+            if (lifetime > 0f) { UnityEngine.Object.Destroy(spawned, lifetime); }
         }
 
         /// <summary>Stops a motion this action started and puts back what it animated.</summary>
@@ -108,17 +189,17 @@ namespace RavenTween {
             _running = MotionBuilder.Build(_resolved, preset, motionSettings, _rest, out _channels);
         }
 
-        void FlashColor(Transform on) {
+        void FlashColor(Transform on, float power) {
             MotionSettings flash = MotionSettings.Default;
             flash.color = color;
             flash.duration = duration;
-            flash.intensity = Mathf.Clamp01(strength);
+            flash.intensity = Mathf.Clamp01(power);
             PlayMotion(on, MotionPreset.Tint, flash);
         }
 
-        void ShakeCamera() {
+        void ShakeCamera(float power) {
             Camera shaken = camera != null ? camera : Camera.main;
-            if (shaken != null) { Raven.ShakeCamera(shaken, strength, duration); }
+            if (shaken != null) { Raven.ShakeCamera(shaken, power, duration); }
         }
 
         // A random pitch is set on the Audio Source itself (one-shots follow the source's pitch),

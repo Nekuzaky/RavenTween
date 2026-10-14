@@ -206,9 +206,9 @@ Everything the code API does, designers can do in the Inspector, on the same zer
 - **Raven Stagger** plays a motion on each child, one after another.
 - **Raven Button Feel** grows a button under the pointer and sinks it when pressed (*Subtle*, *Bouncy*, *Juicy*).
 - **Raven Show Hide** shows, hides and toggles panels and popups from any button.
-- **Raven Feedback** gives an event its juice: camera shake, punch, color flash, sound, hit stop, particles.
+- **Raven Feedback** gives an event its juice: camera shake, punch, color flash, light flash, field-of-view kick, sound, hit stop, slow motion, particles, prefab spawn — each with a chance and a random variation.
 - **Raven Path** moves an object along points drawn in the Scene view.
-- **Raven Typewriter** and **Raven Counter** animate TextMeshPro text and numbers.
+- **Raven Typewriter**, **Raven Text Effect** (per-letter wave, shake, rainbow, pop-in) and **Raven Counter** animate TextMeshPro text and numbers.
 - **Motion Styles** save a tuned motion as an asset the whole team reuses.
 - From code: `Raven.Motion(panel, MotionPreset.SlideInUp)`.
 

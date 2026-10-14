@@ -45,7 +45,7 @@ await Raven.Delay(1.2f);
 - Full time control: elapsed time and progress you can read and set, per-tween time scale, `FixedUpdate` and Rigidbody tweens.
 - Single-axis, speed-based and per-renderer property-block tweens; Incremental and PingPong cycles; tunable Overshoot / Bounce / Elastic eases.
 - Procedural look-at and spring chains, plus optional Animation Rigging integration.
-- No-code tools for designers: 44 ready-made motions with an animated Motion Library, Raven Motion (click, hover, trigger and collision starts, chaining), Raven Stagger, Raven Button Feel, Raven Show Hide, Raven Feedback, Raven Path, Raven Typewriter, Raven Counter, shareable Motion Styles, Tween Templates with Edit Mode preview, and the visual Sequence Editor.
+- No-code tools for designers: 44 ready-made motions with an animated Motion Library, Raven Motion (click, hover, trigger and collision starts, chaining), Raven Stagger, Raven Button Feel, Raven Show Hide, Raven Feedback (16 actions), Raven Path, Raven Typewriter, Raven Text Effect (per-letter), Raven Counter, shareable Motion Styles, Tween Templates with Edit Mode preview, and the visual Sequence Editor.
 - A live **Tools → RavenTween → Monitor** window.
 - A DOTween adapter: swap one `using` and most DOTween code runs on RavenTween.
 

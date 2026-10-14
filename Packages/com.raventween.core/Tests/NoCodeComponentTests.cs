@@ -238,6 +238,69 @@ namespace RavenTween.Tests {
             Assert.That(calls, Is.EqualTo(1));
         }
 
+        [Test]
+        public void Feedback_Chance_Zero_NeverPlays() {
+            var feedback = _go.AddComponent<RavenFeedback>();
+            int calls = 0;
+            var never = new FeedbackAction { kind = FeedbackAction.Kind.Event, chance = 0f };
+            never.onPlay.AddListener(() => calls++);
+            feedback.Actions.Add(never);
+            for (int i = 0; i < 20; i++) { feedback.Play(); }
+            Assert.That(calls, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void Feedback_LightAndFieldOfView_FlashAndComeBack() {
+            var light = _go.AddComponent<Light>();
+            light.intensity = 2f;
+            var cameraObject = new GameObject("feedback-camera", typeof(Camera));
+            try {
+                var camera = cameraObject.GetComponent<Camera>();
+                camera.fieldOfView = 60f;
+                var feedback = _go.AddComponent<RavenFeedback>();
+                feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.LightFlash, light = light, strength = 1f, duration = 0.4f });
+                feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.FieldOfView, camera = camera, strength = 1f, duration = 0.4f });
+                feedback.Play();
+                Step(0.2f);
+                Assert.That(light.intensity, Is.EqualTo(4f).Within(0.05f), "Twice as bright at the peak.");
+                Assert.That(camera.fieldOfView, Is.EqualTo(70f).Within(0.2f), "Ten degrees wider at the peak.");
+                Step(0.3f);
+                Assert.That(light.intensity, Is.EqualTo(2f).Within(1e-3f));
+                Assert.That(camera.fieldOfView, Is.EqualTo(60f).Within(1e-3f));
+            } finally {
+                Object.DestroyImmediate(cameraObject);
+            }
+        }
+
+        [Test]
+        public void Feedback_SlowMotion_SlowsThenRestores() {
+            Time.timeScale = 1f;
+            var feedback = _go.AddComponent<RavenFeedback>();
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.SlowMotion, timeScale = 0.3f, duration = 1f });
+            feedback.Play();
+            Step(0.5f);
+            Assert.That(Time.timeScale, Is.EqualTo(0.3f).Within(1e-3f), "Held down in the middle.");
+            Step(0.6f);
+            Assert.That(Time.timeScale, Is.EqualTo(1f).Within(1e-3f));
+        }
+
+        [Test]
+        public void Feedback_Spawn_CreatesThePrefabAtTheObject() {
+            var prefab = new GameObject("spawn-prefab");
+            try {
+                _go.transform.position = new Vector3(3f, 4f, 0f);
+                var feedback = _go.AddComponent<RavenFeedback>();
+                feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.Spawn, prefab = prefab, lifetime = 0f });
+                feedback.Play();
+                GameObject spawned = GameObject.Find("spawn-prefab(Clone)");
+                Assert.That(spawned, Is.Not.Null);
+                Assert.That(spawned.transform.position, Is.EqualTo(new Vector3(3f, 4f, 0f)));
+                Object.DestroyImmediate(spawned);
+            } finally {
+                Object.DestroyImmediate(prefab);
+            }
+        }
+
         // ----- Path -----
 
         RavenPath MakePath(params Vector3[] points) {

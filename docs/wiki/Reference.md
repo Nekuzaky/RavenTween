@@ -23,9 +23,10 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `RavenMotion` (component) | `Play()`, `Stop()` (back to the rest pose), `Complete()`, `CaptureRest()`, `Style`, `Preset`, `Trigger`, `Settings`, `EffectivePreset`, `EffectiveSettings`, `WhenFinished`, `ThenPlay`, `AnimatedTransform`, `IsPlaying`, `Current`, `OnComplete` |
 | `RavenStagger` (component) | `Play()`, `Stop()`, `Style`, `Preset`, `Interval`, `Settings`, `IsPlaying`, `OnComplete` |
 | `RavenShowHide` (component) | `Show()`, `Hide()`, `Toggle()`, `SetVisible(bool)`, `IsShown`, `IsAnimating`, `ShowMotion`, `HideMotion`, `DeactivateWhenHidden`, `OnShown`, `OnHidden` |
-| `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event), `Trigger`, `Cooldown` |
+| `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event, LightFlash, FieldOfView, Nudge, Twist, SlowMotion, AnimatorTrigger, Spawn; each with `delay`, `chance`, `variation`), `Trigger`, `Cooldown` |
 | `RavenPath` (component) | `Play()`, `Stop()`, `ResetToStart()`, `CreateTween()`, `Evaluate(t)`, `Points`, `Closed`, `Smooth`, `Looping`, `Length`, `TripDuration`, `OnComplete` |
 | `RavenTypewriter` (TextMeshPro) | `Play()`, `Play(string)`, `Skip()`, `LettersPerSecond`, `IsTyping`, `OnComplete` |
+| `RavenTextEffect` (TextMeshPro) | `TextEffect` (None, Wave, Shake, Wobble, Pulse, Rainbow), `AppearStyle` (Instant, Fade, Pop, Rise), `Strength`, `Replay()` |
 | `RavenCounter` (TextMeshPro) | `CountTo(float)`, `Add(float)`, `SetValue(float)`, `Value`, `OnComplete` |
 | `RavenButtonFeel` (component) | `FeelStyle`: `Subtle`, `Bouncy`, `Juicy`, `Custom` |
 
@@ -240,7 +241,7 @@ DOTween names running on RavenTween, for migrating code: `DOMove`, `DOMoveX/Y/Z`
 | **Tools ▸ RavenTween ▸ Updates ▸ Check Automatically** | Daily check on or off (on by default). |
 | **Tools ▸ RavenTween ▸ Updates ▸ Install Automatically** | Install new releases without asking (off by default). |
 | **Create ▸ RavenTween ▸ Tween Template** | A new template asset. |
-| **Add Component ▸ RavenTween** | Raven Motion, Raven Stagger, Raven Button Feel, Raven Show Hide, Raven Feedback, Raven Path, Raven Typewriter, Raven Counter, Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
+| **Add Component ▸ RavenTween** | Raven Motion, Raven Stagger, Raven Button Feel, Raven Show Hide, Raven Feedback, Raven Path, Raven Typewriter, Raven Text Effect, Raven Counter, Raven Animator, Raven Sequence Player, Raven Look At, Raven Spring Chain. |
 | **Create ▸ RavenTween ▸ Motion Style** | A saved motion with its settings, shared by every component that uses it. |
 
 ---

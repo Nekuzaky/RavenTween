@@ -93,6 +93,15 @@ Several Raven Motions can share an object: an entrance plus a hover pulse plus a
 | **Particles** | Plays a Particle System. |
 | **Set Active** | Turns an object on or off. |
 | **Event** | Calls anything through a UnityEvent. |
+| **Light Flash** | Flashes a light brighter, then back. |
+| **Field Of View** | Widens a camera's view for an instant — speed, impact, a dash. |
+| **Nudge** | Kicks an object along a direction and springs it back. |
+| **Twist** | Twists an object around an axis and springs it back. |
+| **Slow Motion** | Slows the game down smoothly, holds, then speeds back up. |
+| **Animator Trigger** | Sets a trigger on an Animator. |
+| **Spawn** | Spawns a prefab at the object (sparks, a puff, a score popup), optionally destroyed after a few seconds. |
+
+Every action also has a **Chance** (1 = always, 0.3 = three times in ten) and, when it has a strength, a **Variation** that changes the strength randomly each time, so repeated hits never feel mechanical.
 
 Start it like a Raven Motion — on click, hover, trigger, collision, or **Manually** through `Play()` from any UnityEvent. **Cooldown** stops a burst of hits from stacking. The **Hit**, **Pickup** and **Damage** buttons add ready-made recipes to tweak. Delays are counted in real time, so a hit stop never delays the actions after it.
 
@@ -110,10 +119,11 @@ Start it like a Raven Motion — on click, hover, trigger, collision, or **Manua
 
 The path is stored relative to the object, so moving the object moves the whole path.
 
-### Raven Typewriter and Raven Counter
+### Raven Typewriter, Raven Text Effect and Raven Counter
 
 For TextMeshPro texts:
 
+- **Raven Text Effect** animates the letters one by one: **Wave**, **Shake** (anger, cold, fear), **Wobble**, **Pulse** or **Rainbow**, with **Strength**, **Speed** and **Spread** (how far each letter is behind the previous one). **Appear** makes each letter **Fade**, **Pop** or **Rise** in as it becomes visible — pair it with Raven Typewriter for dialogue that writes itself in style. **From Letter** and **Letter Count** limit it to a word. It only touches the text's mesh, never the text or its settings, and allocates nothing while it plays.
 - **Raven Typewriter** reveals the text letter by letter, at **Letters Per Second**, with an optional typing sound every few letters. `Skip()` shows it all at once (a "skip" button); `Play(string)` types a new line.
 - **Raven Counter** counts a number up or down — scores, coins, damage, timers — with a prefix, a suffix, decimals and a punch when it lands. Call `CountTo(value)` or `Add(amount)` from a UnityEvent or a script; it counts from what is shown, even mid-count. It formats through TextMeshPro's allocation-free `SetText`.
 
