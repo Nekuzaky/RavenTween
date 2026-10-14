@@ -37,6 +37,9 @@ namespace RavenTween {
         readonly List<MotionChannels> _channels = new List<MotionChannels>(16);
         readonly List<Sequence> _live = new List<Sequence>(16);
         int _pending;
+        // The last run was an exit that finished: the children are hidden, not at rest.
+        bool _leftHidden;
+        bool _playingExit;
 
         public MotionStyle Style { get { return style; } set { style = value; } }
         public MotionPreset Preset { get { return preset; } set { preset = value; } }
@@ -65,6 +68,8 @@ namespace RavenTween {
             if (!isActiveAndEnabled || playing == MotionPreset.None) { return; }
             Stop();
             CollectChildren();
+            _playingExit = MotionLibrary.Category(playing) == MotionCategory.Exit;
+            _leftHidden = false;
             MotionSettings shared = EffectiveSettings;
             int count = _targets.Count;
             for (int i = 0; i < count; i++) {
@@ -81,18 +86,25 @@ namespace RavenTween {
             if (_pending == 0) { onComplete.Invoke(); }
         }
 
-        /// <summary>Stops every child's motion and puts the children back on their rest poses.</summary>
+        /// <summary>
+        /// Stops every child's motion and puts back what it animated. Children at rest are left
+        /// alone, unless an exit hid them: then they are shown again on their rest poses.
+        /// </summary>
         public void Stop() {
+            bool running = _pending > 0;
             for (int i = 0; i < _live.Count; i++) { _live[i].Stop(); }
             _live.Clear();
             _pending = 0;
+            if (!running && !_leftHidden) { return; }
+            _leftHidden = false;
             for (int i = 0; i < _targets.Count; i++) {
                 if (_targets[i].IsValid) { _rests[i].Apply(_targets[i], _channels[i]); }
             }
         }
 
-        // Rest poses are taken the first time each child is seen and kept: a child hidden by
-        // an exit is not "at rest" when the stagger plays again.
+        // Rest poses are read again on every play, after the layout pass, so children follow
+        // layout changes and moves made by scripts. Only children hidden by an exit keep their
+        // previous rest poses: hidden is not "at rest".
         void CollectChildren() {
             RebuildLayout();
             Transform root = transform;
@@ -103,7 +115,7 @@ namespace RavenTween {
                 Transform child = root.GetChild(i);
                 if (child.gameObject.activeInHierarchy) { _children.Add(child); }
             }
-            if (previous != null && SameChildren(previous)) { return; }
+            if (previous != null && SameChildren(previous) && _leftHidden) { return; }
             _targets.Clear();
             _rests.Clear();
             _channels.Clear();
@@ -143,6 +155,7 @@ namespace RavenTween {
             _pending--;
             if (_pending > 0) { return; }
             _live.Clear();
+            _leftHidden = _playingExit;
             onComplete.Invoke();
         }
     }

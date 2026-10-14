@@ -49,6 +49,15 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void Counter_ValueSetBeforeFirstActivation_IsKept() {
+            var counter = _go.AddComponent<RavenCounter>(); // Inactive: Awake has not run yet.
+            counter.SetValue(500f);
+            _go.SetActive(true);
+            Assert.That(counter.Value, Is.EqualTo(500f));
+            Assert.That(_go.GetComponent<TMP_Text>().text, Is.EqualTo("500"));
+        }
+
+        [Test]
         public void Counter_CountsToTheTarget_AndAddKeepsCounting() {
             var counter = _go.AddComponent<RavenCounter>();
             _go.SetActive(true);

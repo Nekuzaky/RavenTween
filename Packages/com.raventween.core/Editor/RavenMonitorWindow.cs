@@ -119,6 +119,8 @@ namespace RavenTween.Editor {
             for (int i = 0; i < _snapshot.Count; i++) {
                 TweenEngine.DebugInfo info = _snapshot[i];
                 if (info.IsCallback || info.OwnedBySequence || info.Paused) { continue; }
+                // Manual tweens advance with whatever delta Raven.Step is given.
+                if (!globalFrozen && info.Phase == UpdatePhase.Manual) { continue; }
                 if (globalFrozen || !info.UnscaledTime) { frozen++; }
             }
             if (frozen == 0) { return; }

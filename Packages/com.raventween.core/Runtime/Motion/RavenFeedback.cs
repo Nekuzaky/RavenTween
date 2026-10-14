@@ -46,7 +46,7 @@ namespace RavenTween {
         [Tooltip("Source to play through (its mixer, 3D settings…). Empty = a one-shot at the object's position.")]
         public AudioSource source;
         [Range(0f, 1f)] public float volume = 1f;
-        [Tooltip("Random pitch between these two values, so repeated sounds don't sound identical.")]
+        [Tooltip("Random pitch between these two values, so repeated sounds don't sound identical. Changes the Audio Source's pitch: use a source dedicated to this sound.")]
         [Range(0.5f, 2f)] public float pitchMin = 1f;
         [Range(0.5f, 2f)] public float pitchMax = 1f;
         [Tooltip("Time.timeScale during the hit stop (0.05 = almost frozen).")]
@@ -61,6 +61,11 @@ namespace RavenTween {
         [NonSerialized] MotionRest _rest;
         [NonSerialized] bool _hasRest;
         [NonSerialized] Sequence _running;
+        [NonSerialized] MotionChannels _channels;
+
+        internal void RunIfOwnerActive() {
+            if (Owner != null && Owner.isActiveAndEnabled) { Run(); }
+        }
 
         /// <summary>Does the action now. Each kind is a few lines on top of the engine.</summary>
         internal void Run() {
@@ -78,23 +83,29 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>Stops a motion this action started and puts its object back.</summary>
+        /// <summary>Stops a motion this action started and puts back what it animated.</summary>
         internal void Stop() {
             if (!_running.IsAlive) { return; }
             _running.Stop();
-            if (_hasRest && _resolved.IsValid) { _rest.Apply(_resolved, MotionChannels.All); }
+            if (_hasRest && _resolved.IsValid) { _rest.Apply(_resolved, _channels); }
         }
 
-        // The rest pose is kept from the first run, so rapid repeats never drift.
+        // The rest pose is taken at the first run, so rapid repeats never drift; between runs
+        // it follows an object that has moved (an enemy, a scrolling list).
         void PlayMotion(Transform on, MotionPreset preset, MotionSettings motionSettings) {
             if (on == null || preset == MotionPreset.None) { return; }
             if (_resolved.Transform != on) {
                 _resolved = MotionTarget.Resolve(on);
                 _hasRest = false;
             }
-            if (_running.IsAlive) { _running.Stop(); }
+            bool idle = !_running.IsAlive;
+            if (!idle) { _running.Stop(); }
             if (!_hasRest) { _rest = MotionRest.Capture(_resolved); _hasRest = true; }
-            _running = Raven.Motion(_resolved, preset, motionSettings, _rest);
+            else if (idle) {
+                _rest.Position = _resolved.ReadPosition();
+                _rest.Rotation = _resolved.Transform.localRotation;
+            }
+            _running = MotionBuilder.Build(_resolved, preset, motionSettings, _rest, out _channels);
         }
 
         void FlashColor(Transform on) {
@@ -110,11 +121,13 @@ namespace RavenTween {
             if (shaken != null) { Raven.ShakeCamera(shaken, strength, duration); }
         }
 
+        // A random pitch is set on the Audio Source itself (one-shots follow the source's pitch),
+        // so give pitched sounds a source of their own. At 1 / 1 the source is left untouched.
         void PlaySound(Transform on) {
             if (clip == null) { return; }
-            float pitch = UnityEngine.Random.Range(Mathf.Min(pitchMin, pitchMax), Mathf.Max(pitchMin, pitchMax));
             if (source != null) {
-                source.pitch = pitch;
+                bool pitched = !Mathf.Approximately(pitchMin, 1f) || !Mathf.Approximately(pitchMax, 1f);
+                if (pitched) { source.pitch = UnityEngine.Random.Range(Mathf.Min(pitchMin, pitchMax), Mathf.Max(pitchMin, pitchMax)); }
                 source.PlayOneShot(clip, volume);
                 return;
             }
@@ -180,8 +193,13 @@ namespace RavenTween {
                 FeedbackAction action = actions[i];
                 if (action == null) { continue; }
                 action.Owner = this;
-                if (action.delay <= 0f) { action.Run(); continue; }
-                _pending.Add(Raven.Delay(action.delay).UnscaledTime().OnComplete(action, a => a.Run()));
+                if (action.delay > 0f) {
+                    _pending.Add(Raven.Delay(action.delay).UnscaledTime().OnComplete(action, a => a.RunIfOwnerActive()));
+                    continue;
+                }
+                action.Run();
+                // An action may have turned this object off: the rest of the feedback stops with it.
+                if (!isActiveAndEnabled) { break; }
             }
         }
 
@@ -205,7 +223,7 @@ namespace RavenTween {
         }
 
         void EnsureTriggerHooks() {
-            if (MotionTriggers.IsPointer(trigger)) { MotionTriggers.EnsurePointerRelay(gameObject); }
+            MotionTriggers.EnsurePointerRelay(gameObject, trigger);
         }
 
         void HandlePhysics(MotionTrigger started, GameObject other) {

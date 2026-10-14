@@ -1,10 +1,13 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RavenTween {
     public static partial class Raven {
         /// <summary>
         /// Plays a ready-made <paramref name="preset"/> on <paramref name="target"/>'s object, around
-        /// its current pose. Entrances hide the object at once, then reveal it.
+        /// its current pose. Entrances hide the object at once, then reveal it. Calling it again
+        /// on the same object while a motion runs replaces that motion and keeps its rest pose,
+        /// so rapid repeats (a pulse on every click) never drift.
         /// </summary>
         public static Sequence Motion(Component target, MotionPreset preset) {
             return Motion(target, preset, MotionSettings.Default);
@@ -17,8 +20,7 @@ namespace RavenTween {
                 Debug.LogError("RavenTween: cannot play a motion on a null or destroyed object.");
                 return default;
             }
-            MotionTarget resolved = MotionTarget.Resolve(target.transform);
-            return MotionBuilder.Build(resolved, preset, settings, MotionRest.Capture(resolved), out _);
+            return MotionBuilder.PlayOn(target.transform, preset, settings);
         }
 
         /// <summary>Plays a preset around a rest pose you captured earlier (see <see cref="MotionRest.Capture"/>).</summary>
@@ -40,6 +42,46 @@ namespace RavenTween {
 
     /// <summary>Turns a <see cref="MotionPreset"/> into a sequence of ordinary tweens.</summary>
     static class MotionBuilder {
+        // Motions started from code, by object: a new one replaces the running one and reuses
+        // its rest pose. Entries of finished motions are dropped as the table grows.
+        struct Running {
+            public Sequence Motion;
+            public MotionRest Rest;
+            public MotionChannels Channels;
+        }
+
+        static readonly Dictionary<Transform, Running> ByObject = new Dictionary<Transform, Running>(32);
+        static readonly List<Transform> Finished = new List<Transform>(32);
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        static void ResetRunning() {
+            ByObject.Clear();
+            Finished.Clear();
+        }
+
+        public static Sequence PlayOn(Transform transform, MotionPreset preset, MotionSettings settings) {
+            MotionTarget resolved = MotionTarget.Resolve(transform);
+            MotionRest rest;
+            if (ByObject.TryGetValue(transform, out Running running) && running.Motion.IsAlive) {
+                running.Motion.Stop();
+                rest = running.Rest;
+            } else {
+                rest = MotionRest.Capture(resolved);
+            }
+            Sequence motion = Build(resolved, preset, settings, rest, out MotionChannels channels);
+            if (ByObject.Count >= 64) { DropFinished(); }
+            ByObject[transform] = new Running { Motion = motion, Rest = rest, Channels = channels };
+            return motion;
+        }
+
+        static void DropFinished() {
+            foreach (KeyValuePair<Transform, Running> entry in ByObject) {
+                if (!entry.Value.Motion.IsAlive) { Finished.Add(entry.Key); }
+            }
+            for (int i = 0; i < Finished.Count; i++) { ByObject.Remove(Finished[i]); }
+            Finished.Clear();
+        }
+
         // Key times are fractions of one play; values are offsets (position, in "amplitude"
         // units), factors (scale) or euler degrees (rotation). Shared, never modified.
         static readonly float[] Even5 = { 0f, 0.25f, 0.5f, 0.75f, 1f };
@@ -113,6 +155,13 @@ namespace RavenTween {
             // The pose at time 0, applied at once for entrances so a delay never shows the object.
             public MotionChannels StartChannels;
             public MotionRest Start;
+            // A fade asked for on something without an alpha: replaced by a scale at the end.
+            public bool MissedFade;
+            public float MissedFrom;
+            public float MissedTo;
+            public float MissedStart;
+            public float MissedLength;
+            public Ease MissedEase;
         }
 
         /// <summary>Builds and starts the motion. <paramref name="channels"/> tells what it animates.</summary>
@@ -132,7 +181,12 @@ namespace RavenTween {
             c.Tint = settings.color.a > 0f ? settings.color : MotionSettings.DefaultTint;
             MotionCategory category = MotionLibrary.Category(preset);
             Compose(ref c, preset);
+            ReplaceMissedFade(ref c, category);
+            // Entrances hide the object at once (a delay never shows it). Exits start from the
+            // rest pose on every channel at once, so nothing pops back to visible halfway through
+            // (an exit started while an entrance was still revealing it).
             if (category == MotionCategory.Entrance) { c.Start.Apply(target, c.StartChannels); }
+            else if (category == MotionCategory.Exit) { c.Rest.Apply(target, c.Channels); }
             ApplyTiming(c.Sequence, category, settings);
             channels = c.Channels;
             return c.Sequence;
@@ -152,6 +206,14 @@ namespace RavenTween {
                 case MotionCategory.Attention: ComposeAttention(ref c, preset); break;
                 default: ComposeLoop(ref c, preset); break;
             }
+        }
+
+        // An entrance or exit on something that can't fade (a mesh, a bare UI root) would stay
+        // visible: unless the preset already scales it, it grows from or shrinks to nothing instead.
+        static void ReplaceMissedFade(ref Context c, MotionCategory category) {
+            if (!c.MissedFade || (c.Channels & MotionChannels.Scale) != 0) { return; }
+            if (category != MotionCategory.Entrance && category != MotionCategory.Exit) { return; }
+            Scale(ref c, Vector3.one * c.MissedFrom, Vector3.one * c.MissedTo, c.MissedStart, c.MissedLength, c.MissedEase);
         }
 
         // ----- Entrances: hidden at time 0, rest pose at the end -----
@@ -434,7 +496,17 @@ namespace RavenTween {
 
         // Alpha values are fractions of the rest alpha, so a half-transparent panel fades to its own level.
         static void Fade(ref Context c, float fromFactor, float toFactor, float start, float length, Ease ease) {
-            if (!c.Target.HasAlpha) { return; }
+            if (!c.Target.HasAlpha) {
+                if (!c.MissedFade) {
+                    c.MissedFade = true;
+                    c.MissedFrom = fromFactor;
+                    c.MissedTo = toFactor;
+                    c.MissedStart = start;
+                    c.MissedLength = length;
+                    c.MissedEase = ease;
+                }
+                return;
+            }
             float from = c.Rest.Alpha * fromFactor;
             float to = c.Rest.Alpha * toFactor;
             Tween tween;

@@ -11,7 +11,7 @@ namespace RavenTween.Editor {
         public static void Play(object owner, IList<Transform> targets, MotionPreset preset, MotionSettings settings, float interval) {
             Debug.Assert(owner != null && targets != null, "A motion preview needs an owner and targets.");
             EditorTweenPreview.End();
-            if (preset == MotionPreset.None || targets.Count == 0) { return; }
+            if (preset == MotionPreset.None || targets.Count == 0 || Application.isPlaying) { return; }
             settings.delay = 0f;
             bool loop = MotionLibrary.Category(preset) == MotionCategory.Loop;
             for (int i = 0; i < targets.Count; i++) { Record(MotionTarget.Resolve(targets[i])); }

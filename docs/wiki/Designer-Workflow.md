@@ -21,7 +21,7 @@ Everything here runs on the same engine as the code API: the same zero-garbage t
 
 ## Motions
 
-A motion is a complete, tuned animation with a name you can guess: *Slide In Left*, *Heartbeat*, *Breathe*. Each one adapts to what it is put on — it moves UI in canvas pixels and scene objects in world units, fades Canvas Groups, Images, Texts and Sprite Renderers, and turns flat objects in the screen plane and 3D objects around their vertical axis. Every motion returns exactly to where the object started, so nothing ever drifts.
+A motion is a complete, tuned animation with a name you can guess: *Slide In Left*, *Heartbeat*, *Breathe*. Each one adapts to what it is put on — it moves UI in canvas pixels and scene objects in world units, fades Canvas Groups, Images, Texts and Sprite Renderers, and turns flat objects in the screen plane and 3D objects around their vertical axis. Entrances, attention motions and loops always end exactly on the object's designed pose, so nothing ever drifts; exits leave it hidden, and `Stop()` always puts it back.
 
 | Family | What it's for | Motions |
 | :--- | :--- | :--- |
@@ -62,7 +62,7 @@ Nothing is changed until you add something: previews always put the objects back
 | **Then Play** | Another Raven Motion to start when this one ends — *Pop In* then *Float*, an entrance then an idle loop. Set the next one to start *Manually*. |
 | **On Complete** | A UnityEvent fired when the motion ends. |
 
-Press **Preview** to see it in the scene outside Play Mode; **Reset** puts the object back. The inspector also catches the usual mistakes and fixes them in one click: a fade on something that can't fade (**Add Canvas Group**), a click trigger without an Event System (**Create Event System**) or without a collider (**Add Box Collider**), a trigger collider that isn't set as a trigger, or a moving motion inside a Layout Group.
+Press **Preview** to see it in the scene outside Play Mode; **Reset** puts the object back. The inspector also catches the usual mistakes and fixes them in one click: a fade on something that can't fade (**Add Canvas Group**), a click trigger without an Event System (**Create Event System**) or without a collider (**Add Box Collider**). It also warns about a trigger collider that isn't set as a trigger, and a moving motion inside a Layout Group.
 
 Several Raven Motions can share an object: an entrance plus a hover pulse plus an idle float is a common combination. A panel with **Slide In Up** *When enabled* and **Slide Out Down** *Manually*, *When Finished: Deactivate*, shows and hides itself properly with `SetActive(true)` and a Close button wired to the exit's `Play`.
 
@@ -76,7 +76,7 @@ Several Raven Motions can share an object: an entrance plus a hover pulse plus a
 
 ### Raven Show Hide
 
-**Add Component ▸ RavenTween ▸ Raven Show Hide** is the one-stop component for panels, popups and menus. Pick a **Show** motion and a **Hide** motion (or Motion Styles), then wire any button's **On Click** to **Show**, **Hide** or **Toggle**. The object is deactivated while hidden (or, with *Deactivate When Hidden* off, kept active but transparent and unclickable through its Canvas Group), always reappears exactly where it was designed, and raises **On Shown** / **On Hidden**. **Start Hidden** hides it when the scene starts; `SetVisible(bool)` shows or hides at once without animation.
+**Add Component ▸ RavenTween ▸ Raven Show Hide** is the one-stop component for panels, popups and menus. Pick a **Show** motion and a **Hide** motion (or Motion Styles), then wire any button's **On Click** to **Show**, **Hide** or **Toggle**. The object is deactivated while hidden (or, with *Deactivate When Hidden* off, kept active but transparent and unclickable through its Canvas Group; without one it is shrunk to nothing), always reappears exactly where it was designed, and raises **On Shown** / **On Hidden**. **Start Hidden** hides it when the scene starts; `SetVisible(bool)` shows or hides at once without animation.
 
 ### Raven Feedback
 

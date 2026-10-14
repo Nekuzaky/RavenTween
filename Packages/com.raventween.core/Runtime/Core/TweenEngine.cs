@@ -12,7 +12,7 @@ namespace RavenTween {
         LateUpdate = 1,
         /// <summary>Physics rate, with Time.fixedDeltaTime. Use it for Rigidbody tweens.</summary>
         FixedUpdate = 2,
-        /// <summary>Never stepped by the player loop: only <see cref="Raven.Step(float)"/> advances it (replays, frame-by-frame rendering).</summary>
+        /// <summary>Never stepped by the player loop: only Raven.Step advances it (replays, frame-by-frame rendering).</summary>
         Manual = 3
     }
 
@@ -77,7 +77,56 @@ namespace RavenTween {
             _lastLoopCheckFrame = -1;
             _evaluatedRoot = null;
             _evaluatedRootRevision = 0;
+            _hitStopRemaining = 0f;
+            _hitStopRestore = 1f;
             Install();
+        }
+
+        // Runs after every BeforeSceneLoad initializer: a package or SDK that replaced the
+        // player loop at startup (without the engine) is caught before any tween is stuck.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        static void VerifyInstalled() {
+            if (ContainsEngine(PlayerLoop.GetCurrentPlayerLoop())) { return; }
+            Install();
+            Debug.LogWarning("RavenTween: the player loop was replaced without RavenTween at startup. RavenTween installed itself again.");
+        }
+
+        // ----- Hit stop -----
+        // Counted down by the Update pass in unscaled time, whatever the global phase or time
+        // scale, so it always ends; a tween could be stopped, slowed or put in a sequence.
+
+        static float _hitStopRemaining;
+        static float _hitStopRestore = 1f;
+        static float _hitStopScale;
+
+        public static bool HitStopActive { get { return _hitStopRemaining > 0f; } }
+
+        public static void BeginHitStop(float timeScale, float duration) {
+            Debug.Assert(timeScale >= 0f && duration >= 0f, "A hit stop needs a non-negative time scale and duration.");
+            if (duration <= 0f) { return; }
+            if (_hitStopRemaining <= 0f) { _hitStopRestore = UnityEngine.Time.timeScale; }
+            _hitStopRemaining = Mathf.Max(_hitStopRemaining, duration);
+            _hitStopScale = Mathf.Max(timeScale, 0f);
+            UnityEngine.Time.timeScale = _hitStopScale;
+        }
+
+        /// <summary>
+        /// Ends a running hit stop now and restores the time scale, unless the game changed it
+        /// meanwhile (a pause menu opened during the freeze keeps its pause).
+        /// </summary>
+        public static void EndHitStop() {
+            if (_hitStopRemaining <= 0f) { return; }
+            _hitStopRemaining = 0f;
+            if (Mathf.Approximately(UnityEngine.Time.timeScale, _hitStopScale)) { UnityEngine.Time.timeScale = _hitStopRestore; }
+        }
+
+        static void TickHitStop(float unscaledDelta) {
+            if (_hitStopRemaining <= 0f) { return; }
+            _hitStopRemaining -= unscaledDelta;
+            if (_hitStopRemaining <= 0f) {
+                _hitStopRemaining = 1f; // EndHitStop needs it positive.
+                EndHitStop();
+            }
         }
 
         // Runs on every play-mode entry (also without domain reload). The player loop may have
@@ -190,6 +239,7 @@ namespace RavenTween {
             scaledDelta = Sanitize(scaledDelta);
             unscaledDelta = Sanitize(unscaledDelta);
             _processing = true;
+            if (phase < 0 || phase == (int)UpdatePhase.Update) { TickHitStop(unscaledDelta); }
             long pass = ++_pass;
             int count = Slots.Count;
             try {
@@ -1220,7 +1270,16 @@ namespace RavenTween {
             TweenSlot slot = Slots[index];
             Debug.Assert(slot.Effect != EffectKind.None, "Only effects are registered.");
             Debug.Assert(slot.UnityTarget != null, "Effects are registered with a live target.");
-            Effects[new EffectKey(slot.UnityTarget, slot.Property)] = index;
+            var key = new EffectKey(slot.UnityTarget, slot.Property);
+            // An OnKill callback of the effect being replaced may have started another one on the
+            // same property meanwhile: only one standalone effect may own it, the newest.
+            if (Effects.TryGetValue(key, out int other) && other != index) {
+                TweenSlot previous = Slots[other];
+                bool live = previous.State != SlotState.Free && previous.Effect != EffectKind.None && !previous.OwnedBySequence
+                    && ReferenceEquals(previous.UnityTarget, slot.UnityTarget) && previous.Property == slot.Property;
+                if (live) { KillInternal(previous, other, false); }
+            }
+            Effects[key] = index;
         }
 
         static void UnregisterEffect(TweenSlot slot, int index) {

@@ -9,6 +9,9 @@ RavenTween includes a small module for TextMeshPro text. It is a separate assemb
 
 ---
 
+> [!TIP]
+> For dialogue and scores without code, add **Raven Typewriter** or **Raven Counter** to the text: see **[Designer Workflow](Designer-Workflow)**.
+
 ## Color and alpha
 
 `TMP_Text` is a uGUI `Graphic`, so the regular color tweens already work on it — no module needed:

@@ -36,6 +36,7 @@ namespace RavenTween {
         string _format;
         float _shown;
         float _target;
+        bool _written;
 
         /// <summary>The value on screen right now.</summary>
         public float Value { get { return _shown; } }
@@ -44,7 +45,7 @@ namespace RavenTween {
         void Awake() {
             _text = GetComponent<TMP_Text>();
             BuildFormat();
-            Write(startValue);
+            if (!_written) { Write(startValue); }
         }
 
         void OnEnable() {
@@ -84,6 +85,7 @@ namespace RavenTween {
 
         void Write(float value) {
             _shown = value;
+            _written = true;
             _text.SetText(_format, value);
         }
 
@@ -103,7 +105,9 @@ namespace RavenTween {
         }
 
         void OnValidate() {
-            if (_text != null) { BuildFormat(); }
+            if (_text == null) { return; }
+            BuildFormat();
+            if (Application.isPlaying) { _text.SetText(_format, _shown); }
         }
     }
 }

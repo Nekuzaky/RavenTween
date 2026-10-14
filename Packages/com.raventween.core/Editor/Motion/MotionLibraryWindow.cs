@@ -21,13 +21,7 @@ namespace RavenTween.Editor {
         static readonly Color LoopColor = new Color(0.4f, 0.62f, 0.98f);
         static readonly Color StyleColor = new Color(0.72f, 0.5f, 0.95f);
 
-        static readonly GUIContent[] TriggerLabels = {
-            new GUIContent("When enabled"), new GUIContent("When the scene starts"), new GUIContent("On click"),
-            new GUIContent("On hover"), new GUIContent("When the pointer leaves"), new GUIContent("On press"),
-            new GUIContent("On release"), new GUIContent("When something enters (trigger)"),
-            new GUIContent("When something leaves (trigger)"), new GUIContent("On collision"),
-            new GUIContent("Manually (event or script)")
-        };
+        static GUIContent[] TriggerLabels { get { return MotionPresetDrawer.TriggerLabels; } }
 
         readonly List<Transform> _targets = new List<Transform>(8);
         readonly List<MotionStyle> _styles = new List<MotionStyle>(8);
@@ -64,15 +58,25 @@ namespace RavenTween.Editor {
             _stage = new MotionStage();
             Selection.selectionChanged += OnSelectionChanged;
             EditorApplication.update += Animate;
+            EditorApplication.playModeStateChanged += OnPlayModeChanged;
             RefreshStyles();
         }
 
         void OnDisable() {
             Selection.selectionChanged -= OnSelectionChanged;
             EditorApplication.update -= Animate;
+            EditorApplication.playModeStateChanged -= OnPlayModeChanged;
             MotionPreview.Stop(this);
             if (_stage != null) { _stage.Dispose(); }
             _stage = null;
+        }
+
+        // Entering or leaving Play Mode may reset the engine (no domain reload): the card's
+        // motion handle must never point at a gameplay tween, so the card starts over.
+        void OnPlayModeChanged(PlayModeStateChange change) {
+            if (change != PlayModeStateChange.ExitingEditMode && change != PlayModeStateChange.ExitingPlayMode) { return; }
+            if (_stage != null) { _stage.Dispose(); }
+            _stage = new MotionStage();
         }
 
         void OnProjectChange() {
@@ -272,7 +276,9 @@ namespace RavenTween.Editor {
         void DrawActions() {
             using (new EditorGUI.DisabledScope(_targets.Count == 0)) {
                 EditorGUILayout.BeginHorizontal();
-                if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.Play, "Preview", "Play it on the selection"), GUILayout.Height(24f))) { Preview(); }
+                using (new EditorGUI.DisabledScope(Application.isPlaying)) {
+                    if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.Play, "Preview", "Play it on the selection (Edit Mode)"), GUILayout.Height(24f))) { Preview(); }
+                }
                 using (new EditorGUI.DisabledScope(!MotionPreview.IsPlaying(this))) {
                     if (GUILayout.Button(RavenEditorIcons.Content(RavenEditorIcons.Stop, "Reset", "Put the objects back"), GUILayout.Height(24f))) { MotionPreview.Stop(this); }
                 }
@@ -303,8 +309,9 @@ namespace RavenTween.Editor {
 
         // ----- Actions -----
 
+        // Scene previews are an Edit Mode tool: in Play Mode the game owns the objects.
         void Preview() {
-            if (_targets.Count == 0) { return; }
+            if (_targets.Count == 0 || Application.isPlaying) { return; }
             MotionSettings settings = _selectedStyle != null ? _selectedStyle.Settings : Settings();
             MotionPreview.Play(this, _targets, CurrentPreset(), settings, _interval);
         }
@@ -393,6 +400,7 @@ namespace RavenTween.Editor {
             RefreshStyles();
             SelectStyle(style);
             EditorGUIUtility.PingObject(style);
+            GUIUtility.ExitGUI(); // The modal dialog broke this frame's layout.
         }
 
         // ----- Helpers -----

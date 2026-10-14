@@ -63,6 +63,8 @@ namespace RavenTween {
         Quaternion _restRotation;
         bool _hasOrigin;
         Tween _tween;
+        float _lastProgress = -1f;
+        bool _reversed;
 
         public List<Vector3> Points { get { return points; } }
         public bool Closed { get { return closed; } set { closed = value; } }
@@ -81,7 +83,7 @@ namespace RavenTween {
         public float TripDuration { get { return timing == Timing.Speed ? Mathf.Max(Length, 0.0001f) / speed : duration; } }
 
         void Awake() {
-            if (MotionTriggers.IsPointer(trigger)) { MotionTriggers.EnsurePointerRelay(gameObject); }
+            MotionTriggers.EnsurePointerRelay(gameObject, trigger);
         }
 
         void OnEnable() {
@@ -133,6 +135,8 @@ namespace RavenTween {
             }
             Rebuild();
             if (_total <= 0f) { return default; }
+            _lastProgress = -1f;
+            _reversed = false;
             return Raven.Custom(this, 0f, 1f, TripDuration, (path, t) => path.Apply(t)).Ease(ease);
         }
 
@@ -177,8 +181,12 @@ namespace RavenTween {
             float clamped = Mathf.Clamp01(t);
             Vector3 position = Origin + SampleAt(clamped * _total);
             transform.localPosition = position;
+            // On the way back (Back And Forth, or an ease that turns around) face the other way.
+            if (_lastProgress >= 0f && !Mathf.Approximately(clamped, _lastProgress)) { _reversed = clamped < _lastProgress; }
+            _lastProgress = clamped;
             if (orientation == Orientation.None) { return; }
             Vector3 ahead = SampleAt(Mathf.Min(clamped * _total + 0.05f, _total)) - SampleAt(Mathf.Max(clamped * _total - 0.05f, 0f));
+            if (_reversed) { ahead = -ahead; }
             if (ahead.sqrMagnitude < 1e-10f) { return; }
             if (orientation == Orientation.FacePath) { transform.localRotation = Quaternion.LookRotation(ahead.normalized, Vector3.up); }
             else { transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(ahead.y, ahead.x) * Mathf.Rad2Deg); }

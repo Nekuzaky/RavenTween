@@ -106,8 +106,13 @@ namespace RavenTween.Editor {
     public sealed class RavenFeedbackEditor : UnityEditor.Editor {
         public override void OnInspectorGUI() {
             serializedObject.Update();
-            EditorGUILayout.PropertyField(serializedObject.FindProperty("trigger"), new GUIContent("Starts", "What plays the feedback. Manually = call Play() from any UnityEvent."));
-            var trigger = (MotionTrigger)serializedObject.FindProperty("trigger").intValue;
+            SerializedProperty triggerProperty = serializedObject.FindProperty("trigger");
+            EditorGUI.showMixedValue = triggerProperty.hasMultipleDifferentValues;
+            EditorGUI.BeginChangeCheck();
+            int chosen = EditorGUILayout.Popup(new GUIContent("Starts", "What plays the feedback. Manually = call Play() from any UnityEvent."), triggerProperty.intValue, MotionPresetDrawer.TriggerLabels);
+            if (EditorGUI.EndChangeCheck()) { triggerProperty.intValue = chosen; }
+            EditorGUI.showMixedValue = false;
+            var trigger = (MotionTrigger)triggerProperty.intValue;
             if (MotionTriggers.IsPhysics(trigger)) { EditorGUILayout.PropertyField(serializedObject.FindProperty("filterTag"), new GUIContent("Only Tag")); }
             EditorGUILayout.PropertyField(serializedObject.FindProperty("cooldown"));
             EditorGUILayout.PropertyField(serializedObject.FindProperty("actions"), true);
@@ -178,6 +183,8 @@ namespace RavenTween.Editor {
             action.FindPropertyRelative("timeScale").floatValue = 0.05f;
             action.FindPropertyRelative("particles").objectReferenceValue = null;
             action.FindPropertyRelative("active").boolValue = true;
+            SerializedProperty calls = action.FindPropertyRelative("onPlay.m_PersistentCalls.m_Calls");
+            if (calls != null) { calls.arraySize = 0; }
             SerializedProperty settings = action.FindPropertyRelative("settings");
             settings.FindPropertyRelative("duration").floatValue = 0f;
             settings.FindPropertyRelative("intensity").floatValue = 1f;

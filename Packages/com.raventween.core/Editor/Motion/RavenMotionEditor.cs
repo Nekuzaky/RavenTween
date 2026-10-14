@@ -12,19 +12,7 @@ namespace RavenTween.Editor {
     /// </summary>
     [CustomEditor(typeof(RavenMotion)), CanEditMultipleObjects]
     public sealed class RavenMotionEditor : UnityEditor.Editor {
-        static readonly GUIContent[] TriggerLabels = {
-            new GUIContent("When enabled", "Every time the object is enabled, and when the scene starts."),
-            new GUIContent("When the scene starts", "Once, in Start."),
-            new GUIContent("On click", "A UI Button's click, or a pointer click on the object."),
-            new GUIContent("On hover", "When the pointer moves over the object."),
-            new GUIContent("When the pointer leaves", "When the pointer moves off the object."),
-            new GUIContent("On press", "When the pointer is pressed on the object."),
-            new GUIContent("On release", "When the pointer is released after a press."),
-            new GUIContent("When something enters (trigger)", "When a collider enters this object's trigger collider."),
-            new GUIContent("When something leaves (trigger)", "When a collider leaves this object's trigger collider."),
-            new GUIContent("On collision", "When something hits this object's collider."),
-            new GUIContent("Manually (event or script)", "Call Play() from a UnityEvent, such as another button's On Click.")
-        };
+        static GUIContent[] TriggerLabels { get { return MotionPresetDrawer.TriggerLabels; } }
 
         SerializedProperty _style;
         SerializedProperty _preset;
@@ -146,13 +134,23 @@ namespace RavenTween.Editor {
         }
 
         // A float where 0 means automatic, shown as a checkbox plus the value.
+        // Writes only what the user changes: selecting several motions never rewrites their values.
         static void AutoFloat(SerializedProperty property, string label, string autoLabel, float suggested) {
             EditorGUILayout.BeginHorizontal();
-            bool isAuto = property.floatValue <= 0f && !property.hasMultipleDifferentValues;
+            bool mixed = property.hasMultipleDifferentValues;
+            bool isAuto = property.floatValue <= 0f && !mixed;
+            EditorGUI.BeginChangeCheck();
             bool wantAuto = EditorGUILayout.ToggleLeft(new GUIContent("Auto " + label.ToLowerInvariant()), isAuto, GUILayout.Width(EditorGUIUtility.labelWidth));
-            if (wantAuto != isAuto) { property.floatValue = wantAuto ? 0f : suggested; }
-            if (wantAuto) { EditorGUILayout.LabelField(autoLabel, EditorStyles.miniLabel); }
-            else { property.floatValue = Mathf.Max(EditorGUILayout.FloatField(property.floatValue), 0.01f); }
+            if (EditorGUI.EndChangeCheck()) { property.floatValue = wantAuto ? 0f : suggested; }
+            if (wantAuto && !mixed) {
+                EditorGUILayout.LabelField(autoLabel, EditorStyles.miniLabel);
+            } else {
+                EditorGUI.showMixedValue = mixed;
+                EditorGUI.BeginChangeCheck();
+                float value = EditorGUILayout.FloatField(property.floatValue);
+                if (EditorGUI.EndChangeCheck()) { property.floatValue = Mathf.Max(value, 0.01f); }
+                EditorGUI.showMixedValue = false;
+            }
             EditorGUILayout.EndHorizontal();
         }
 

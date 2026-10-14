@@ -192,9 +192,33 @@ namespace RavenTween.Tests {
         [Test]
         public void RavenMotion_PointerRelay_OnlyForPointerTriggers() {
             var motion = _go.AddComponent<RavenMotion>();
-            Assert.That(_go.GetComponent<RavenMotionPointerRelay>(), Is.Null, "No relay: it would swallow clicks meant for parents.");
+            Assert.That(_go.GetComponent<RavenPointerRelay>(), Is.Null, "No relay: it would swallow pointer events meant for parents.");
             motion.Trigger = MotionTrigger.OnPointerEnter;
-            Assert.That(_go.GetComponent<RavenMotionPointerRelay>(), Is.Not.Null);
+            Assert.That(_go.GetComponent<RavenHoverRelay>(), Is.Not.Null);
+            Assert.That(_go.GetComponent<UnityEngine.EventSystems.IPointerClickHandler>(), Is.Null, "Hovering must not take clicks from a parent Button.");
+            Assert.That(_go.GetComponent<UnityEngine.EventSystems.IPointerDownHandler>(), Is.Null, "Nor presses.");
+        }
+
+        [Test]
+        public void RavenMotion_PooledObject_EntersWhereItWasPlaced() {
+            var motion = _go.AddComponent<RavenMotion>(); // Pop In when enabled.
+            Step(0.6f);
+            _go.SetActive(false);
+            _go.transform.localPosition = new Vector3(9f, 0f, 0f); // Respawned elsewhere.
+            _go.SetActive(true);
+            Step(0.6f);
+            Assert.That(_go.transform.localPosition, Is.EqualTo(new Vector3(9f, 0f, 0f)), "The entrance plays where the object is now.");
+            Assert.That(motion.IsPlaying, Is.False);
+        }
+
+        [Test]
+        public void RepeatedCodeMotions_DoNotDrift() {
+            for (int i = 0; i < 5; i++) {
+                Raven.Motion(_go.transform, MotionPreset.Pulse);
+                Step(0.1f);
+            }
+            Step(0.6f);
+            AssertAtRest(_go.transform, RestPosition, RestRotation, RestScale, "five quick pulses");
         }
 
         [Test]

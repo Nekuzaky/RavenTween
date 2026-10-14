@@ -6,8 +6,9 @@ using UnityEngine.UI;
 namespace RavenTweenSamples {
     /// <summary>
     /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// Everything that moves is driven by the no-code components — Raven Motion, Raven Stagger
-    /// and Raven Button Feel — added here by script only so the sample needs no scene file.
+    /// Everything that moves is driven by the no-code components — Raven Motion, Raven Stagger,
+    /// Raven Button Feel, Raven Show Hide, Raven Feedback and Raven Path — added here by script
+    /// only so the sample needs no scene file.
     /// In your project, add the same components from the Inspector or the Motion Library.
     /// </summary>
     public sealed class NoCodeMotionDemo : MonoBehaviour {
@@ -79,7 +80,7 @@ namespace RavenTweenSamples {
             rect.sizeDelta = new Vector2(420f, 240f);
             rect.anchoredPosition = new Vector2(0f, -160f);
             dialog.GetComponent<Image>().color = PanelColor;
-            MakeText(rect, "Text", "Raven Motion · Raven Stagger\nRaven Button Feel", 22, new Vector2(0f, 40f));
+            MakeText(rect, "Text", "Raven Motion · Raven Stagger · Raven Path\nRaven Show Hide · Raven Feedback", 22, new Vector2(0f, 40f));
             Button close = MakeButton(rect, "Close");
             ((RectTransform)close.transform).anchoredPosition = new Vector2(0f, -70f);
             var panel = dialog.AddComponent<RavenShowHide>();

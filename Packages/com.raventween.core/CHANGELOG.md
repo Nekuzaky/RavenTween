@@ -6,7 +6,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ## [1.7.0] - 2026-10-14
 
 ### Added
-- **Motions — animation without animation knowledge.** 44 ready-made motions in four families (entrances, exits, attention, loops) that adapt to UI and scene objects, fade Canvas Groups, Graphics and Sprite Renderers, and always return exactly to the rest pose. From code: `Raven.Motion(target, MotionPreset.PopIn)`.
+- **Motions — animation without animation knowledge.** 44 ready-made motions in four families (entrances, exits, attention, loops) that adapt to UI and scene objects, fade Canvas Groups, Graphics and Sprite Renderers, and end exactly on the rest pose (exits leave the object hidden; stopping puts it back). From code: `Raven.Motion(target, MotionPreset.PopIn)`.
 - **Raven Motion** component: a motion plus what starts it — enable, scene start, click, hover, pointer leave, press, release, trigger enter / exit, collision, or a UnityEvent — with intensity, duration, delay, distance and repeat, and *Deactivate* / *Destroy* when finished. Its inspector previews in the scene and fixes common setup mistakes in one click.
 - **Raven Stagger** component: plays a motion on each child, one after another (first to last, last to first, or from the center).
 - **Raven Button Feel** component: hover grow, press sink and spring back, in *Subtle*, *Bouncy*, *Juicy* or custom styles.

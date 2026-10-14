@@ -42,9 +42,19 @@ namespace RavenTween {
             return trigger >= MotionTrigger.OnTriggerEnter && trigger <= MotionTrigger.OnCollisionEnter;
         }
 
-        /// <summary>Adds the pointer relay to <paramref name="go"/> if it has none yet.</summary>
-        public static void EnsurePointerRelay(GameObject go) {
-            if (go != null && go.GetComponent<RavenMotionPointerRelay>() == null) { go.AddComponent<RavenMotionPointerRelay>(); }
+        /// <summary>
+        /// Adds the relay <paramref name="trigger"/> needs to <paramref name="go"/>: hover, press or
+        /// click. Each relay only takes its own events, so it never steals the others from parents.
+        /// </summary>
+        public static void EnsurePointerRelay(GameObject go, MotionTrigger trigger) {
+            if (go == null || !IsPointer(trigger)) { return; }
+            if (trigger == MotionTrigger.OnClick) { Ensure<RavenClickRelay>(go); }
+            else if (trigger == MotionTrigger.OnPointerEnter || trigger == MotionTrigger.OnPointerExit) { Ensure<RavenHoverRelay>(go); }
+            else { Ensure<RavenPressRelay>(go); }
+        }
+
+        static void Ensure<T>(GameObject go) where T : Component {
+            if (go.GetComponent<T>() == null) { go.AddComponent<T>(); }
         }
 
         /// <summary>True when <paramref name="other"/> passes a tag filter (empty = any object).</summary>

@@ -102,7 +102,7 @@ namespace RavenTween {
             if (Renderer.HasPropertyBlock()) {
                 if (_block == null) { _block = new MaterialPropertyBlock(); }
                 Renderer.GetPropertyBlock(_block);
-                if (!_block.isEmpty) { return _block.GetColor(ColorId); }
+                if (_block.HasColor(ColorId)) { return _block.GetColor(ColorId); }
             }
             return Renderer.sharedMaterial.GetColor(ColorId);
         }

@@ -12,7 +12,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `Raven.Motion(Component target, MotionPreset preset, MotionSettings settings)` | `Sequence` |
 | `Raven.Motion(in MotionTarget, MotionPreset, MotionSettings, in MotionRest rest)` | `Sequence` around a pose captured with `MotionRest.Capture` |
 | `component.PlayMotion(MotionPreset [, MotionSettings])` | Extension form |
-| `Raven.HitStop(float timeScale = 0.05, float duration = 0.08)` | `Tween`; drops `Time.timeScale` for an instant, overlaps and `StopAll` safe |
+| `Raven.HitStop(float timeScale = 0.05, float duration = 0.08)` | Drops `Time.timeScale` for `duration` real seconds; overlapping calls extend it. Always ends (counted by the engine in real time, whatever the phase, `Raven.TimeScale` or `StopAll`) and keeps a time scale the game changed meanwhile. `Raven.IsHitStopping`, `Raven.EndHitStop()`. |
 
 | Type | Members |
 | :--- | :--- |
@@ -22,7 +22,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `MotionStyle` (ScriptableObject) | `Preset`, `Settings`, `Notes`; `Play(Component)` |
 | `RavenMotion` (component) | `Play()`, `Stop()` (back to the rest pose), `Complete()`, `CaptureRest()`, `Style`, `Preset`, `Trigger`, `Settings`, `EffectivePreset`, `EffectiveSettings`, `WhenFinished`, `ThenPlay`, `AnimatedTransform`, `IsPlaying`, `Current`, `OnComplete` |
 | `RavenStagger` (component) | `Play()`, `Stop()`, `Style`, `Preset`, `Interval`, `Settings`, `IsPlaying`, `OnComplete` |
-| `RavenShowHide` (component) | `Show()`, `Hide()`, `Toggle()`, `SetVisible(bool)`, `IsShown`, `IsAnimating`, `ShowMotion`, `HideMotion`, `OnShown`, `OnHidden` |
+| `RavenShowHide` (component) | `Show()`, `Hide()`, `Toggle()`, `SetVisible(bool)`, `IsShown`, `IsAnimating`, `ShowMotion`, `HideMotion`, `DeactivateWhenHidden`, `OnShown`, `OnHidden` |
 | `RavenFeedback` (component) | `Play()`, `Stop()`, `Actions` (`FeedbackAction`: Motion, CameraShake, Punch, ColorFlash, Sound, HitStop, Particles, SetActive, Event), `Trigger`, `Cooldown` |
 | `RavenPath` (component) | `Play()`, `Stop()`, `ResetToStart()`, `CreateTween()`, `Evaluate(t)`, `Points`, `Closed`, `Smooth`, `Looping`, `Length`, `TripDuration`, `OnComplete` |
 | `RavenTypewriter` (TextMeshPro) | `Play()`, `Play(string)`, `Skip()`, `LettersPerSecond`, `IsTyping`, `OnComplete` |
@@ -101,6 +101,7 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `SetCapacity(int)` | Pre-create pooled slots. |
 | `Step(float deltaTime)` | Advance every tween now, in any phase, also outside Play Mode. |
 | `Step(float deltaTime, UpdatePhase phase)` | Advance only the tweens of one phase, e.g. `UpdatePhase.Manual`. |
+| `Step(float deltaTime, float unscaledDeltaTime, UpdatePhase phase)` | Same, with a separate delta for unscaled tweens. |
 | `Diagnostics` | Log tweens stopped by a destroyed target. |
 
 ---

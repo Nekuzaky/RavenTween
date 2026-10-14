@@ -8,7 +8,8 @@ namespace RavenTween {
     /// Plays a ready-made <see cref="MotionPreset"/> without code: pick a motion, pick what
     /// starts it (enable, click, hover, a trigger zone, a collision, or a UnityEvent), done.
     /// Several Raven Motions can sit on one object, e.g. an entrance plus a hover pulse, and
-    /// one can start the next ("Then Play"), e.g. Pop In then Float.
+    /// one can start the next ("Then Play"), e.g. Pop In then Float. Added from a script, it
+    /// plays as soon as it is enabled: add it to an inactive object to configure it first.
     /// </summary>
     [AddComponentMenu("RavenTween/Raven Motion")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
@@ -35,6 +36,9 @@ namespace RavenTween {
         MotionRest _rest;
         bool _hasRest;
         MotionChannels _channels;
+        MotionCategory _lastCategory;
+        // An exit finished and left the object hidden (it is not at rest until shown again).
+        bool _leftHidden;
         Button _button;
 
         public MotionStyle Style { get { return style; } set { style = value; } }
@@ -87,15 +91,23 @@ namespace RavenTween {
             bool idle = !_current.IsAlive;
             if (!idle) { _current.Stop(); }
             PrepareRest(idle, playing);
+            _lastCategory = MotionLibrary.Category(playing);
+            if (_lastCategory == MotionCategory.Entrance) { ClearHidden(); }
             _current = MotionBuilder.Build(_resolved, playing, EffectiveSettings, _rest, out _channels);
             if (_current.IsAlive) { _current.OnComplete(this, motion => motion.HandleComplete()); }
         }
 
-        /// <summary>Stops the motion and puts the object back on its rest pose.</summary>
+        /// <summary>
+        /// Stops the motion and puts back what it animated. An idle object is left alone, unless an
+        /// exit hid it: then it is shown again on its rest pose.
+        /// </summary>
         public void Stop() {
-            if (_current.IsAlive) { _current.Stop(); }
+            bool running = _current.IsAlive;
+            if (running) { _current.Stop(); }
             _current = default;
-            if (_hasRest && _resolved.IsValid) { _rest.Apply(_resolved, _channels); }
+            if (!_hasRest || !_resolved.IsValid || (!running && !_leftHidden)) { return; }
+            _rest.Apply(_resolved, _channels);
+            _leftHidden = false;
         }
 
         /// <summary>Jumps to the end of the motion at once (loops: back to the rest pose).</summary>
@@ -121,6 +133,7 @@ namespace RavenTween {
 
         void HandleComplete() {
             _current = default;
+            _leftHidden = _lastCategory == MotionCategory.Exit;
             onComplete.Invoke();
             if (thenPlay != null && thenPlay != this) { thenPlay.Play(); }
             else if (thenPlay == this) { Play(); }
@@ -137,9 +150,10 @@ namespace RavenTween {
             _hasRest = false;
         }
 
-        // The rest pose is taken once, shared with other Raven Motions animating the same
-        // object, so an exit followed by an entrance never mistakes "hidden" for "at rest".
-        // Attention and loop motions follow an object that scripts have moved meanwhile.
+        // The rest pose is taken once, shared with other Raven Motions animating the same object,
+        // so an exit followed by an entrance never mistakes "hidden" for "at rest". When nothing
+        // animates the object and no exit left it hidden, it follows what scripts did meanwhile:
+        // a pooled enemy re-enabled elsewhere, a text recolored, a panel moved.
         void PrepareRest(bool idle, MotionPreset playing) {
             if (!_hasRest) {
                 if (!CopySiblingRest()) {
@@ -149,11 +163,11 @@ namespace RavenTween {
                 _hasRest = true;
                 return;
             }
+            if (!idle || SiblingBusy()) { return; }
             MotionCategory category = MotionLibrary.Category(playing);
-            if (idle && (category == MotionCategory.Attention || category == MotionCategory.Loop)) {
-                _rest.Position = _resolved.ReadPosition();
-                _rest.Rotation = _resolved.Transform.localRotation;
-            }
+            _rest.Position = _resolved.ReadPosition();
+            _rest.Rotation = _resolved.Transform.localRotation;
+            if (category == MotionCategory.Attention || category == MotionCategory.Loop) { _rest.Color = _resolved.ReadColor(); }
         }
 
         bool CopySiblingRest() {
@@ -169,12 +183,57 @@ namespace RavenTween {
             return found;
         }
 
+        // True when this or another Raven Motion on the same object is playing, or an exit left
+        // it hidden: its current pose is then not the rest pose.
+        bool SiblingBusy() {
+            if (_leftHidden) { return true; }
+            GetComponents(Siblings);
+            bool busy = false;
+            for (int i = 0; i < Siblings.Count && !busy; i++) {
+                RavenMotion other = Siblings[i];
+                if (other == this || other.AnimatedTransform != _resolved.Transform) { continue; }
+                busy = other._current.IsAlive || other._leftHidden;
+            }
+            Siblings.Clear();
+            return busy;
+        }
+
+        // An entrance shows the object again: no Raven Motion on it counts it as hidden any more.
+        void ClearHidden() {
+            _leftHidden = false;
+            GetComponents(Siblings);
+            for (int i = 0; i < Siblings.Count; i++) {
+                if (Siblings[i].AnimatedTransform == _resolved.Transform) { Siblings[i]._leftHidden = false; }
+            }
+            Siblings.Clear();
+        }
+
+        /// <summary>The rest scale of <paramref name="animated"/> if a Raven Motion on this object knows it.</summary>
+        internal static bool TryGetRestScale(GameObject owner, Transform animated, out Vector3 scale) {
+            scale = Vector3.one;
+            owner.GetComponents(Siblings);
+            bool found = false;
+            for (int i = 0; i < Siblings.Count && !found; i++) {
+                RavenMotion other = Siblings[i];
+                if (!other._hasRest || other.AnimatedTransform != animated) { continue; }
+                scale = other._rest.Scale;
+                found = true;
+            }
+            Siblings.Clear();
+            return found;
+        }
+
         void EnsureTriggerHooks() {
+            if (trigger != MotionTrigger.OnClick && _button != null) {
+                _button.onClick.RemoveListener(Play);
+                _button = null;
+            }
             if (trigger == MotionTrigger.OnClick && _button == null) {
                 _button = GetComponent<Button>();
                 if (_button != null) { _button.onClick.AddListener(Play); }
             }
-            if (MotionTriggers.IsPointer(trigger)) { MotionTriggers.EnsurePointerRelay(gameObject); }
+            // A Button already reports its clicks; other pointer starts need a relay.
+            if (!(trigger == MotionTrigger.OnClick && _button != null)) { MotionTriggers.EnsurePointerRelay(gameObject, trigger); }
         }
 
         void HandlePhysics(MotionTrigger started, GameObject other) {

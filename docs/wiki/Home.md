@@ -48,7 +48,7 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 
 ## What's new in 1.7.0
 
-Tooling, debugging and the last performance gap:
+Animation for everyone, tooling, debugging and the last performance gap:
 
 - **Manual stepping**: `Raven.Step(deltaTime)` advances tweens outside Play Mode (editor tools, frame-by-frame recording), and `UpdatePhase.Manual` holds tweens only your code drives.
 - **Effects at any scale**: thousands of shakes and punches start in under a millisecond.

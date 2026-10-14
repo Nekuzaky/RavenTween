@@ -200,7 +200,7 @@ transform.DOMoveY(2f, 0.4f).SetEase(Ease.OutQuad).SetLoops(2, LoopType.Yoyo);   
 
 Everything the code API does, designers can do in the Inspector, on the same zero-garbage engine.
 
-**Motions, for anyone.** Select an object, open **Tools → RavenTween → Motion Library**, click a motion to watch it play on the object (nothing is changed), then add it. 44 motions in four families — entrances (*Pop In*, *Slide In*, *Drop In*…), attention (*Tada*, *Jello*, *Heartbeat*, *Shake*…), loops (*Float*, *Breathe*, *Spin*…) and exits — adapt to UI and scene objects and always return to the rest pose.
+**Motions, for anyone.** Select an object, open **Tools → RavenTween → Motion Library**, click a motion to watch it play on the object (nothing is changed), then add it. 44 motions in four families — entrances (*Pop In*, *Slide In*, *Drop In*…), attention (*Tada*, *Jello*, *Heartbeat*, *Shake*…), loops (*Float*, *Breathe*, *Spin*…) and exits — adapt to UI and scene objects and end exactly on the rest pose (exits leave the object hidden).
 
 - **Raven Motion** plays one motion when the object is enabled, clicked, hovered, pressed, entered (trigger), hit (collision), or from any UnityEvent; it can deactivate the object after an exit.
 - **Raven Stagger** plays a motion on each child, one after another.

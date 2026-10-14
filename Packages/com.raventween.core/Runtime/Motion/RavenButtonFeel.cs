@@ -59,7 +59,7 @@ namespace RavenTween {
         public void OnPointerUp(PointerEventData eventData) { _pressed = false; Refresh(); }
 
         void Refresh() {
-            if (!_hasRest) { _rest = transform.localScale; _hasRest = true; }
+            if (!_hasRest) { CaptureRest(); }
             bool interactable = _selectable == null || _selectable.IsInteractable();
             float factor = 1f;
             if (interactable && _pressed) { factor = PressScale(); }
@@ -68,6 +68,16 @@ namespace RavenTween {
             // Springy on the way up and back, snappy on the way down.
             Ease ease = _pressed ? Ease.OutQuad : Ease.OutBack;
             _tween = Raven.Scale(transform, _rest * factor, Duration()).Ease(ease).UnscaledTime(playWhilePaused);
+        }
+
+        // An entrance may still be scaling the button up (Pop In while the pointer is already over
+        // it): the designed scale then comes from the Raven Motion or Raven Show Hide that knows it.
+        void CaptureRest() {
+            if (!RavenMotion.TryGetRestScale(gameObject, transform, out _rest)
+                && !RavenShowHide.TryGetRestScale(gameObject, transform, out _rest)) {
+                _rest = transform.localScale;
+            }
+            _hasRest = true;
         }
 
         float HoverScale() {

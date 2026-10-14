@@ -37,7 +37,7 @@ namespace RavenTween {
 
         void Awake() {
             _text = GetComponent<TMP_Text>();
-            if (MotionTriggers.IsPointer(trigger)) { MotionTriggers.EnsurePointerRelay(gameObject); }
+            MotionTriggers.EnsurePointerRelay(gameObject, trigger);
         }
 
         void OnEnable() {
@@ -91,9 +91,13 @@ namespace RavenTween {
             if (letters == 0 && _text.text != null) { letters = _text.text.Length; }
             int count = Mathf.FloorToInt(progress * letters);
             if (count == _visible) { return; }
+            int previous = Mathf.Max(_visible, 0);
             _visible = count;
             _text.maxVisibleCharacters = count;
-            if (typingSound != null && count > 0 && count % soundEvery == 0) { PlayTick(); }
+            // Several letters can appear in one frame: tick whenever a multiple is crossed. No tick
+            // on the last call, which is a Skip or the end.
+            bool crossed = count / soundEvery > previous / soundEvery;
+            if (typingSound != null && crossed && progress < 1f) { PlayTick(); }
         }
 
         void PlayTick() {

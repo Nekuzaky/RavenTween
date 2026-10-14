@@ -47,8 +47,10 @@ namespace RavenTween.Editor {
 
         static EditorTweenPreview() {
             EditorApplication.playModeStateChanged += state => {
-                if (state == PlayModeStateChange.ExitingEditMode) { End(); }
+                if (state == PlayModeStateChange.ExitingEditMode || state == PlayModeStateChange.ExitingPlayMode) { End(); }
             };
+            // An undo would be overwritten by the next preview frame: the preview stops instead.
+            Undo.undoRedoPerformed += () => { if (HasSnapshots) { End(); } };
             AssemblyReloadEvents.beforeAssemblyReload += End;
             EditorApplication.wantsToQuit += () => { End(); return true; };
             EditorSceneManager.sceneClosing += (scene, removing) => End();

@@ -137,6 +137,51 @@ namespace RavenTween.Tests {
             Assert.That(shown, Is.EqualTo(1));
         }
 
+        [Test]
+        public void ShowHide_KeptActive_StartHiddenWhileInactive_ShowsAtTheDesignedPose() {
+            _canvas = new GameObject("panel-canvas", typeof(Canvas));
+            var panelObject = new GameObject("panel", typeof(RectTransform), typeof(CanvasGroup));
+            panelObject.transform.SetParent(_canvas.transform, false);
+            panelObject.SetActive(false); // Inactive in the scene, hidden before ever being shown.
+            var panel = panelObject.AddComponent<RavenShowHide>();
+            panel.DeactivateWhenHidden = false;
+            panel.Hide();
+            panel.Show();
+            Step(0.6f);
+            Assert.That(panelObject.activeSelf, Is.True);
+            Assert.That(panelObject.GetComponent<CanvasGroup>().alpha, Is.EqualTo(1f).Within(1e-3f), "Hidden was never mistaken for the rest pose.");
+            Assert.That(panelObject.transform.localScale, Is.EqualTo(Vector3.one));
+        }
+
+        [Test]
+        public void ShowHide_HideTwice_RaisesOnHiddenOnce() {
+            var panel = _go.AddComponent<RavenShowHide>();
+            int hidden = 0;
+            panel.OnHidden.AddListener(() => hidden++);
+            panel.Hide();
+            Step(0.6f);
+            panel.Hide();
+            panel.Hide();
+            Assert.That(hidden, Is.EqualTo(1));
+        }
+
+        [Test]
+        public void Feedback_TurningItsOwnObjectOff_StopsTheRest() {
+            var feedback = _go.AddComponent<RavenFeedback>();
+            int calls = 0;
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.SetActive, active = false });
+            var after = new FeedbackAction { kind = FeedbackAction.Kind.Event };
+            after.onPlay.AddListener(() => calls++);
+            feedback.Actions.Add(after);
+            var later = new FeedbackAction { kind = FeedbackAction.Kind.Event, delay = 0.1f };
+            later.onPlay.AddListener(() => calls++);
+            feedback.Actions.Add(later);
+            feedback.Play();
+            Step(0.3f);
+            Assert.That(_go.activeSelf, Is.False);
+            Assert.That(calls, Is.EqualTo(0), "Nothing runs once the feedback's object is off.");
+        }
+
         // ----- Feedback and hit stop -----
 
         [Test]
@@ -167,12 +212,17 @@ namespace RavenTween.Tests {
             Step(0.1f);
             Raven.HitStop(0.05f, 0.2f);
             Step(0.15f);
-            Assert.That(Time.timeScale, Is.EqualTo(0.05f).Within(1e-5f), "The second hit stop is still running.");
+            Assert.That(Time.timeScale, Is.EqualTo(0.05f).Within(1e-5f), "The second hit stop extends the freeze.");
             Step(0.1f);
             Assert.That(Time.timeScale, Is.EqualTo(1f).Within(1e-5f), "Restored once the last one ends.");
             Raven.HitStop(0.1f, 5f);
             Raven.StopAll();
-            Assert.That(Time.timeScale, Is.EqualTo(1f).Within(1e-5f), "Stopping every tween never leaves the game frozen.");
+            TweenEngine.Phase = UpdatePhase.FixedUpdate;
+            Raven.TimeScale = 0f;
+            Step(5.1f);
+            TweenEngine.Phase = UpdatePhase.Update;
+            Raven.TimeScale = 1f;
+            Assert.That(Time.timeScale, Is.EqualTo(1f).Within(1e-5f), "Neither StopAll, the phase nor Raven.TimeScale keep the game frozen.");
         }
 
         [Test]
