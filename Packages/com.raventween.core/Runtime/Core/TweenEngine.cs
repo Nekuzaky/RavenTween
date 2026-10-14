@@ -202,19 +202,20 @@ namespace RavenTween {
 
         static void OnFixedUpdate() {
             if (!Application.isPlaying) { return; }
-            ProcessPhase(UpdatePhase.FixedUpdate, Time.fixedDeltaTime, Time.fixedUnscaledDeltaTime);
+            // Unity can report a negative unscaled delta (Time.captureFramerate, a recorder): clamped here.
+            ProcessPhase(UpdatePhase.FixedUpdate, Sanitize(Time.fixedDeltaTime), Sanitize(Time.fixedUnscaledDeltaTime));
         }
 
         static void OnUpdate() {
             if (!Application.isPlaying || Time.frameCount == _lastUpdateFrame) { return; }
             _lastUpdateFrame = Time.frameCount;
-            ProcessPhase(UpdatePhase.Update, Time.deltaTime, Time.unscaledDeltaTime);
+            ProcessPhase(UpdatePhase.Update, Sanitize(Time.deltaTime), Sanitize(Time.unscaledDeltaTime));
         }
 
         static void OnLateUpdate() {
             if (!Application.isPlaying || Time.frameCount == _lastLateUpdateFrame) { return; }
             _lastLateUpdateFrame = Time.frameCount;
-            ProcessPhase(UpdatePhase.LateUpdate, Time.deltaTime, Time.unscaledDeltaTime);
+            ProcessPhase(UpdatePhase.LateUpdate, Sanitize(Time.deltaTime), Sanitize(Time.unscaledDeltaTime));
         }
 
         static float Sanitize(float delta) {

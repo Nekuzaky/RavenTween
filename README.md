@@ -36,6 +36,20 @@ await Raven.Delay(1.2f);
 **Or without a line of code — and without knowing animation.** Open the **Motion Library**, click *Pop In*, *Tada* or *Float* to watch it on the selected object, pick what starts it (showing up, a click, a hover, a trigger zone) and add it. **Raven Stagger** cascades menus in, **Raven Button Feel** makes buttons springy, **Raven Show Hide** runs popups, **Raven Feedback** adds shake, flash, sound and hit stop to any event, **Raven Path** moves objects along paths drawn in the scene, and for full control there are **Tween Templates** and a visual **Sequence Editor**. Same engine, same zero garbage.
 
 <p align="center">
+  <img src="Packages/com.raventween.core/Documentation~/images/motions.gif" width="560" alt="Ready-made motions: Pop In, Drop In, Tada, Jello, Heartbeat, Wobble, Float, Spin">
+</p>
+
+<p align="center">
+  <img src="Packages/com.raventween.core/Documentation~/images/feedback.gif" width="420" alt="Raven Feedback: punch, twist, flash and hit stop">
+  <img src="Packages/com.raventween.core/Documentation~/images/text-effects.gif" width="420" alt="Raven Text Effect and Raven Typewriter">
+</p>
+
+<p align="center">
+  <img src="Packages/com.raventween.core/Documentation~/images/motion-library.png" width="400" alt="Motion Library window">
+  <img src="Packages/com.raventween.core/Documentation~/images/inspector-feedback.png" width="400" alt="Raven Feedback inspector">
+</p>
+
+<p align="center">
   <img src="Packages/com.raventween.core/Documentation~/images/sequence-editor.png" width="820" alt="Raven Sequence Editor">
 </p>
 

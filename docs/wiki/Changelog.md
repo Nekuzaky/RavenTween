@@ -27,11 +27,14 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `Raven.Diagnostics`: logs every tween stopped because its target was destroyed (off by default, reset on entering Play Mode).
 - The engine reinstalls itself, with a warning, if another system replaces the player loop without it — tweens used to stop advancing silently.
 - Monitor: a warning when tweens are alive but frozen by `Time.timeScale` (or `Raven.TimeScale`) at 0.
-- Documentation: a **Known Pitfalls** page, the camera pivot pattern, manual stepping, and reproducible benchmark figures (CPU, Unity version and test names). The no-code designer workflow is now presented up front, with a two-minute walkthrough and screenshots of the Sequence Editor and the Tween Template inspector.
+- Documentation: a **Known Pitfalls** page, the camera pivot pattern, manual stepping, and reproducible benchmark figures (CPU, Unity version and test names). The no-code designer workflow is now presented up front, with a two-minute walkthrough and screenshots of the Sequence Editor and the Tween Template inspector. Animated previews of the motions, Raven Feedback, Raven Stagger and the text effects, plus screenshots of the Motion Library and the new inspectors.
 
 ### Changed
 - Minimum Unity version is now **2022.3 LTS** (the 2021.3 claim was never tested). Every release is tested on Unity 6.3 and Unity 6.5, with no use of APIs Unity has marked obsolete.
 - Starting a shake or punch no longer scans every live tween to find the effect it replaces: standalone effects are indexed by target and property. 4,000 shakes start in 0.9 ms instead of 33 ms, and creation cost no longer grows with the number of live effects. A test now guards this.
+
+### Fixed
+- Recording with `Time.captureFramerate` (frame recorders, trailer capture) could make Unity report a negative unscaled frame time, which tripped an engine assertion in development builds. Unity's frame times are now clamped before the engine sees them.
 
 ## [1.6.2] - 2026-10-12
 

@@ -12,7 +12,11 @@ RavenTween animates anything in Unity — transforms, UI, cameras, audio, materi
 Raven.Position(transform, target, 0.6f).Ease(Ease.OutBack);
 ```
 
-**In the Inspector** — no code, and no animation knowledge needed. Pick one of 44 ready-made **motions** (*Pop In*, *Slide In*, *Tada*, *Heartbeat*, *Float*…) from the **Motion Library**, watch it play on your object, and choose what starts it: showing up, a click, a hover, a trigger zone. **Raven Stagger** cascades a menu in, **Raven Button Feel** makes every button springy, **Raven Show Hide** runs panels and popups, **Raven Feedback** adds camera shake, flashes, sounds and hit stops to any event, and **Raven Path** moves objects along paths drawn in the scene. For full control, build your own **Tween Templates** and lay out whole choreographies in the visual **Sequence Editor**:
+**In the Inspector** — no code, and no animation knowledge needed. Pick one of 44 ready-made **motions** (*Pop In*, *Slide In*, *Tada*, *Heartbeat*, *Float*…) from the **Motion Library**, watch it play on your object, and choose what starts it: showing up, a click, a hover, a trigger zone. **Raven Stagger** cascades a menu in, **Raven Button Feel** makes every button springy, **Raven Show Hide** runs panels and popups, **Raven Feedback** adds camera shake, flashes, sounds and hit stops to any event, and **Raven Path** moves objects along paths drawn in the scene.
+
+![A few of the 44 ready-made motions](images/motions.gif)
+
+For full control, build your own **Tween Templates** and lay out whole choreographies in the visual **Sequence Editor**:
 
 ![The Sequence Editor](images/sequence-editor.png)
 

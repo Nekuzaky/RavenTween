@@ -152,6 +152,139 @@ namespace RavenTweenDemo {
             }
         }
 
+        // ----- No-code component captures (no Play Mode) -----
+        // Launched via -executeMethod RavenTweenDemo.RavenUIScreenshots.RunInspectors.
+
+        static GameObject[] _shots;
+
+        public static void RunInspectors() {
+            Directory.CreateDirectory(Dir);
+            EditorSceneManager.OpenScene("Assets/Demo/RavenDemo.unity");
+            _shots = new[] { BuildFeedbackObject(), BuildShowHideObject(), BuildStaggerObject(), BuildPathObject(), BuildMotionObject() };
+            _next = EditorApplication.timeSinceStartup + 4.0;
+            _step = 0;
+            EditorApplication.update += InspectorStage;
+        }
+
+        static readonly string[] ShotNames = { "inspector_feedback.png", "inspector_show_hide.png", "inspector_stagger.png", "inspector_path.png" };
+
+        static void InspectorStage() {
+            if (EditorApplication.timeSinceStartup < _next) { return; }
+            _next = EditorApplication.timeSinceStartup + 1.5;
+            _step++;
+            int shot = _step - 2;
+            if (_step == 1) {
+                PlaceInspector(new Rect(80f, 60f, 470f, 900f));
+                Selection.activeObject = _shots[0];
+            } else if (shot < ShotNames.Length) {
+                Capture(GetInspector(), ShotNames[shot]);
+                Selection.activeObject = _shots[shot + 1];
+            } else if (shot == ShotNames.Length) {
+                MotionLibraryWindow.Open();
+                var library = EditorWindow.GetWindow<MotionLibraryWindow>();
+                library.position = new Rect(600f, 60f, 560f, 820f);
+                var selected = typeof(MotionLibraryWindow).GetField("_selected", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                if (selected != null) { selected.SetValue(library, MotionPreset.Tada); }
+            } else if (shot == ShotNames.Length + 1) {
+                Capture(EditorWindow.GetWindow<MotionLibraryWindow>(), "motion_library_selected.png");
+            } else {
+                EditorWindow.GetWindow<MotionLibraryWindow>().Close();
+                RestoreInspector();
+                EditorApplication.update -= InspectorStage;
+                EditorApplication.Exit(0);
+            }
+        }
+
+        static void Fold(GameObject go) {
+            foreach (Component component in go.GetComponents<Component>()) {
+                if (component is Transform || component is MeshFilter || component is Renderer || component is CanvasRenderer
+                    || component is UnityEngine.UI.Image || component is CanvasGroup || component is Collider || component is UnityEngine.UI.LayoutGroup) {
+                    InternalEditorUtility.SetIsInspectorExpanded(component, false);
+                }
+            }
+        }
+
+        // An enemy reacting to a hit: the Raven Feedback list in use.
+        static GameObject BuildFeedbackObject() {
+            GameObject enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            enemy.name = "Enemy";
+            enemy.transform.position = new Vector3(2.5f, 0f, 0f);
+            var feedback = enemy.AddComponent<RavenFeedback>();
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.Punch, target = enemy.transform, strength = 1.2f, duration = 0.35f });
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.ColorFlash, target = enemy.transform, color = Color.white, strength = 0.9f, duration = 0.25f });
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.CameraShake, camera = Camera.main, strength = 0.4f, duration = 0.3f });
+            feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.HitStop, timeScale = 0.05f, duration = 0.08f });
+            feedback.Cooldown = 0.1f;
+            Fold(enemy);
+            Expand(feedback, "actions", 1);
+            return enemy;
+        }
+
+        // Unfolds a list and its first elements, so the inspector shows what is in it.
+        static void Expand(Object target, string list, int elements) {
+            var serialized = new SerializedObject(target);
+            SerializedProperty property = serialized.FindProperty(list);
+            if (property == null) { return; }
+            property.isExpanded = true;
+            for (int i = 0; i < property.arraySize; i++) { property.GetArrayElementAtIndex(i).isExpanded = i < elements; }
+            serialized.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        static RectTransform _canvas;
+
+        static RectTransform Canvas() {
+            if (_canvas != null) { return _canvas; }
+            var go = new GameObject("Canvas", typeof(Canvas), typeof(UnityEngine.UI.CanvasScaler));
+            go.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+            _canvas = (RectTransform)go.transform;
+            return _canvas;
+        }
+
+        static GameObject Panel(string name, Transform parent) {
+            var go = new GameObject(name, typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(CanvasGroup));
+            go.transform.SetParent(parent, false);
+            return go;
+        }
+
+        // A pause menu that pops in and out.
+        static GameObject BuildShowHideObject() {
+            GameObject pause = Panel("Pause Menu", Canvas());
+            var showHide = pause.AddComponent<RavenShowHide>();
+            showHide.ShowMotion = MotionPreset.PopIn;
+            showHide.HideMotion = MotionPreset.ZoomOut;
+            Fold(pause);
+            return pause;
+        }
+
+        // A main menu whose buttons cascade in.
+        static GameObject BuildStaggerObject() {
+            var menu = new GameObject("Main Menu", typeof(RectTransform), typeof(UnityEngine.UI.VerticalLayoutGroup));
+            menu.transform.SetParent(Canvas(), false);
+            string[] items = { "Continue", "New Game", "Options", "Quit" };
+            for (int i = 0; i < items.Length; i++) { Panel(items[i], menu.transform); }
+            var stagger = menu.AddComponent<RavenStagger>();
+            stagger.Preset = MotionPreset.SlideInLeft;
+            stagger.Interval = 0.06f;
+            Fold(menu);
+            return menu;
+        }
+
+        // A moving platform going back and forth along three points.
+        static GameObject BuildPathObject() {
+            GameObject platform = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            platform.name = "Moving Platform";
+            platform.transform.position = new Vector3(-3f, -1f, 0f);
+            platform.transform.localScale = new Vector3(2f, 0.3f, 1f);
+            var path = platform.AddComponent<RavenPath>();
+            path.Points.Clear();
+            path.Points.Add(new Vector3(2f, 1.5f, 0f));
+            path.Points.Add(new Vector3(4f, 0f, 0f));
+            path.Looping = RavenPath.PathLoop.BackAndForth;
+            Fold(platform);
+            Expand(path, "points", 0);
+            return platform;
+        }
+
         static GameObject _motionObject;
 
         // A collectible with an idle float: what the Raven Motion inspector looks like in use.

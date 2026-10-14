@@ -153,4 +153,5 @@ LightingData.asset     binary
 # (common on Linux): every file of the package must be a regular Git object.
 Packages/com.raventween.core/** !filter !diff !merge
 Packages/com.raventween.core/**/*.png binary
+Packages/com.raventween.core/**/*.gif binary
 docs/wiki/images/** !text !filter !merge !diff

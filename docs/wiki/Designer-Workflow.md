@@ -30,6 +30,8 @@ A motion is a complete, tuned animation with a name you can guess: *Slide In Lef
 | **Loops** | Keep something alive while it is on screen. | Float, Breathe, Spin, Sway, Rock, Blink, Throb, Wiggle |
 | **Exits** | Make something disappear. | Fade Out, Pop Out, Zoom Out, Slide Out Left / Right / Up / Down, Fall Out, Sink Out, Spin Out, Flip Out |
 
+![A few of the 44 motions: Pop In, Drop In, Tada, Jello, Heartbeat, Wobble, Float and Spin](images/motions.gif)
+
 ### Motion Library
 
 **Tools ▸ RavenTween ▸ Motion Library** shows every motion on one page, grouped by family, with a search field. **Hover** a motion and the animated card at the bottom of the window plays it — no object needed. Select objects in the Hierarchy and **click** a motion to watch it on them — select several to see them cascade. **Intensity** and **Duration** sliders tune it live. Then:
@@ -40,6 +42,8 @@ A motion is a complete, tuned animation with a name you can guess: *Slide In Lef
 - **Quick add** has one-click setups: **Button Feel**, **Show / Hide**, **Idle Float** and **Pop In On Show**.
 
 Nothing is changed until you add something: previews always put the objects back.
+
+![The Motion Library: every motion on one page, the animated card, and the settings of the selected motion](images/motion-library.png)
 
 ### Raven Motion
 
@@ -70,6 +74,10 @@ Several Raven Motions can share an object: an entrance plus a hover pulse plus a
 
 **Add Component ▸ RavenTween ▸ Raven Stagger** on a parent plays one motion on each child, **Interval** seconds apart — menus that cascade in, list rows, inventory slots, a row of coins. **Order** can run first-to-last, last-to-first, or from the center outwards. It works with Layout Groups: the layout is settled before the children's places are read.
 
+![A menu cascading in with Raven Stagger](images/stagger.gif)
+
+![The Raven Stagger inspector](images/inspector-stagger.png)
+
 ### Raven Button Feel
 
 **Add Component ▸ RavenTween ▸ Raven Button Feel** makes any button feel alive: it grows a little under the pointer, sinks when pressed and springs back when released. Pick a **Style** — *Subtle*, *Bouncy* (default) or *Juicy* — or *Custom* sizes and timing. It respects the Button's **Interactable** flag and keeps working in pause menus.
@@ -77,6 +85,8 @@ Several Raven Motions can share an object: an entrance plus a hover pulse plus a
 ### Raven Show Hide
 
 **Add Component ▸ RavenTween ▸ Raven Show Hide** is the one-stop component for panels, popups and menus. Pick a **Show** motion and a **Hide** motion (or Motion Styles), then wire any button's **On Click** to **Show**, **Hide** or **Toggle**. The object is deactivated while hidden (or, with *Deactivate When Hidden* off, kept active but transparent and unclickable through its Canvas Group; without one it is shrunk to nothing), always reappears exactly where it was designed, and raises **On Shown** / **On Hidden**. **Start Hidden** hides it when the scene starts; `SetVisible(bool)` shows or hides at once without animation.
+
+![The Raven Show Hide inspector: a Show motion, a Hide motion and Preview buttons](images/inspector-show-hide.png)
 
 ### Raven Feedback
 
@@ -105,6 +115,10 @@ Every action also has a **Chance** (1 = always, 0.3 = three times in ten) and, w
 
 Start it like a Raven Motion — on click, hover, trigger, collision, or **Manually** through `Play()` from any UnityEvent. **Cooldown** stops a burst of hits from stacking. The **Hit**, **Pickup** and **Damage** buttons add ready-made recipes to tweak. Delays are counted in real time, so a hit stop never delays the actions after it.
 
+![One Raven Feedback playing a punch, a twist, a white flash and a hit stop](images/feedback.gif)
+
+![The Raven Feedback inspector: an action list with recipes](images/inspector-feedback.png)
+
 ### Raven Path
 
 **Add Component ▸ RavenTween ▸ Raven Path** moves an object along a path you draw in the Scene view: moving platforms, patrols, flying pickups, camera fly-bys. The path starts where the object stands; drag the numbered points with the move handles, add or remove points from the inspector, and press **Preview** to watch the trip in Edit Mode.
@@ -119,6 +133,8 @@ Start it like a Raven Motion — on click, hover, trigger, collision, or **Manua
 
 The path is stored relative to the object, so moving the object moves the whole path.
 
+![The Raven Path inspector](images/inspector-path.png)
+
 ### Raven Typewriter, Raven Text Effect and Raven Counter
 
 For TextMeshPro texts:
@@ -126,6 +142,8 @@ For TextMeshPro texts:
 - **Raven Text Effect** animates the letters one by one: **Wave**, **Shake** (anger, cold, fear), **Wobble**, **Pulse** or **Rainbow**, with **Strength**, **Speed** and **Spread** (how far each letter is behind the previous one). **Appear** makes each letter **Fade**, **Pop** or **Rise** in as it becomes visible — pair it with Raven Typewriter for dialogue that writes itself in style. **From Letter** and **Letter Count** limit it to a word. It only touches the text's mesh, never the text or its settings, and allocates nothing while it plays.
 - **Raven Typewriter** reveals the text letter by letter, at **Letters Per Second**, with an optional typing sound every few letters. `Skip()` shows it all at once (a "skip" button); `Play(string)` types a new line.
 - **Raven Counter** counts a number up or down — scores, coins, damage, timers — with a prefix, a suffix, decimals and a punch when it lands. Call `CountTo(value)` or `Add(amount)` from a UnityEvent or a script; it counts from what is shown, even mid-count. It formats through TextMeshPro's allocation-free `SetText`.
+
+![Raven Text Effect: letters popping in with Raven Typewriter, then waving; shake and rainbow below](images/text-effects.gif)
 
 ### Motion Styles
 

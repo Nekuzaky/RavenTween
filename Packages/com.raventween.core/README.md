@@ -202,6 +202,14 @@ Everything the code API does, designers can do in the Inspector, on the same zer
 
 **Motions, for anyone.** Select an object, open **Tools → RavenTween → Motion Library**, click a motion to watch it play on the object (nothing is changed), then add it. 44 motions in four families — entrances (*Pop In*, *Slide In*, *Drop In*…), attention (*Tada*, *Jello*, *Heartbeat*, *Shake*…), loops (*Float*, *Breathe*, *Spin*…) and exits — adapt to UI and scene objects and end exactly on the rest pose (exits leave the object hidden).
 
+<p align="center">
+  <img src="Documentation~/images/motions.gif" width="560" alt="Ready-made motions: Pop In, Drop In, Tada, Jello, Heartbeat, Wobble, Float, Spin">
+</p>
+
+<p align="center">
+  <img src="Documentation~/images/motion-library.png" width="460" alt="Motion Library window">
+</p>
+
 - **Raven Motion** plays one motion when the object is enabled, clicked, hovered, pressed, entered (trigger), hit (collision), or from any UnityEvent; it can deactivate the object after an exit.
 - **Raven Stagger** plays a motion on each child, one after another.
 - **Raven Button Feel** grows a button under the pointer and sinks it when pressed (*Subtle*, *Bouncy*, *Juicy*).
@@ -210,9 +218,24 @@ Everything the code API does, designers can do in the Inspector, on the same zer
 - **Raven Path** moves an object along points drawn in the Scene view.
 - **Raven Typewriter**, **Raven Text Effect** (per-letter wave, shake, rainbow, pop-in) and **Raven Counter** animate TextMeshPro text and numbers.
 - **Motion Styles** save a tuned motion as an asset the whole team reuses.
+- From code: `Raven.Motion(panel, MotionPreset.SlideInUp)`.
+
+<p align="center">
+  <img src="Documentation~/images/feedback.gif" width="420" alt="Raven Feedback: punch, twist, flash and hit stop">
+  <img src="Documentation~/images/stagger.gif" width="420" alt="Raven Stagger: a menu cascading in">
+</p>
+
+<p align="center">
+  <img src="Documentation~/images/text-effects.gif" width="560" alt="Raven Text Effect and Raven Typewriter">
+</p>
+
+<p align="center">
+  <img src="Documentation~/images/inspector-feedback.png" width="300" alt="Raven Feedback inspector">
+  <img src="Documentation~/images/inspector-show-hide.png" width="300" alt="Raven Show Hide inspector">
+  <img src="Documentation~/images/inspector-path.png" width="300" alt="Raven Path inspector">
+</p>
 
 **Integrations** (each compiled only when its package is present): a Raven Motion Track for **Unity Timeline**, **UI Toolkit** element tweens, **UniTask** awaits, gamepad **rumble**, **URP/HDRP** volume flashes and **Cinemachine** impulses.
-- From code: `Raven.Motion(panel, MotionPreset.SlideInUp)`.
 
 **Your own animations, for full control:**
 
