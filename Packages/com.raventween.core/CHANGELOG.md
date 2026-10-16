@@ -7,6 +7,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 
 ### Changed
 - Available on the Unity Asset Store. Asset Store and Unity registry installs are updated by the Package Manager: the built-in GitHub update check skips them, and **Check Now** points to the Package Manager window.
+- The samples and the documentation folder ship with their `.meta` files, so their GUIDs stay stable across installs and updates.
 
 ## [1.7.0] - 2026-10-14
 
