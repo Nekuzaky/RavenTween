@@ -8,7 +8,9 @@ namespace RavenTween.Editor {
         Git = 1,
         Registry = 2,
         Embedded = 3,
-        Local = 4
+        Local = 4,
+        /// <summary>Asset Store or Unity registry: the Package Manager delivers updates itself.</summary>
+        Managed = 5
     }
 
     /// <summary>Pure, side-effect-free update rules. Kept separate so it is fully unit-tested.</summary>

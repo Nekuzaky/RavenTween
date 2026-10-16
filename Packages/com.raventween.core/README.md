@@ -31,16 +31,18 @@
 
 ## Installation
 
-**Package Manager** → `+` → *Add package from git URL…*
+**Asset Store**: add RavenTween to your assets, then install it from **Package Manager** → *My Assets*. Updates appear in the same window.
+
+**Git URL**: **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.0
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.1
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.0"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.1"
 ```
 
 Requires Unity 2022.3 LTS or newer. Every release is tested on Unity 6.3 and Unity 6.5.
@@ -354,7 +356,7 @@ Samples work with both the legacy Input Manager and the Input System package.
 
 ## Support
 
-RavenTween is free and MIT licensed. If it saves you time, you can support its development through [GitHub Sponsors](https://github.com/sponsors/nekuzaky) or [Buy Me a Coffee](https://buymeacoffee.com/nekuzaky).
+RavenTween is free and MIT licensed. Questions, bug reports and feature requests: [GitHub Issues](https://github.com/Nekuzaky/RavenTween/issues). Full manual: [nekuzaky.com/docs/raventween](https://nekuzaky.com/docs/raventween).
 
 ## License
 

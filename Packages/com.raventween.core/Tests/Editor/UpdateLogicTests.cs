@@ -79,7 +79,8 @@ namespace RavenTween.Tests {
         [TestCase(3)] // Embedded
         [TestCase(4)] // Local
         [TestCase(0)] // Unknown
-        public void EditableOrUnknownSources_AreNotUpdated(int source) {
+        [TestCase(5)] // Managed (Asset Store, Unity registry)
+        public void EditableUnknownOrManagedSources_AreNotUpdated(int source) {
             Assert.That(UpdateLogic.BuildUpdateIdentifier((InstallSource)source, GitId, "v1.3.0"), Is.Null);
         }
 

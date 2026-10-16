@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.7.1] - 2026-10-16
+
+### Changed
+- Available on the Unity Asset Store. Asset Store and Unity registry installs are updated by the Package Manager: the built-in GitHub update check skips them, and **Check Now** points to the Package Manager window.
+
 ## [1.7.0] - 2026-10-14
 
 ### Added

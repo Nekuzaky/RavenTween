@@ -8,7 +8,8 @@ using UnityEngine.Networking;
 namespace RavenTween.Editor {
     /// <summary>
     /// Checks GitHub for a newer RavenTween release at most once a day, then offers the update
-    /// (or applies it, when automatic updates are enabled). One anonymous request to the public
+    /// (or applies it, when automatic updates are enabled). Asset Store and Unity registry installs
+    /// are left to the Package Manager. One anonymous request to the public
     /// GitHub API; nothing is sent about the project or the user.
     /// </summary>
     [InitializeOnLoad]
@@ -45,13 +46,28 @@ namespace RavenTween.Editor {
             if (!CheckEnabled || EditorApplication.isPlayingOrWillChangePlaymode) { return; }
             long.TryParse(EditorPrefs.GetString(PrefLastCheck, "0"), out long last);
             if (!UpdateLogic.IsCheckDue(last, DateTime.UtcNow)) { return; }
+            if (!UpdatesFromGitHub(InstalledPackage.Find())) { return; }
             StartCheck(false);
         }
 
         // ----- Menu -----
 
         [MenuItem("Tools/RavenTween/Updates/Check Now", priority = 100)]
-        static void CheckNow() { StartCheck(true); }
+        static void CheckNow() {
+            InstalledPackage installed = InstalledPackage.Find();
+            if (installed != null && installed.Source == InstallSource.Managed) {
+                EditorUtility.DisplayDialog("RavenTween",
+                    "RavenTween " + installed.Version + " was installed through the Package Manager " +
+                    "(Asset Store or Unity registry). Updates appear in the Package Manager window.", "OK");
+                return;
+            }
+            StartCheck(true);
+        }
+
+        /// <summary>Asset Store and Unity registry installs are updated by the Package Manager, never from here.</summary>
+        static bool UpdatesFromGitHub(InstalledPackage installed) {
+            return installed != null && installed.Source != InstallSource.Managed;
+        }
 
         [MenuItem(MenuCheckEnabled, priority = 120)]
         static void ToggleCheck() { CheckEnabled = !CheckEnabled; }
@@ -174,20 +190,21 @@ namespace RavenTween.Editor {
         public static InstalledPackage Find() {
             var info = UnityEditor.PackageManager.PackageInfo.FindForAssembly(typeof(Raven).Assembly);
             if (info == null) { return null; }
+            bool defaultRegistry = info.registry != null && info.registry.isDefault;
             return new InstalledPackage {
                 Version = info.version,
                 PackageId = info.packageId,
-                Source = Map(info.source)
+                Source = Map(info.source, defaultRegistry)
             };
         }
 
-        static InstallSource Map(PackageSource source) {
+        static InstallSource Map(PackageSource source, bool defaultRegistry) {
             switch (source) {
                 case PackageSource.Git: return InstallSource.Git;
-                case PackageSource.Registry: return InstallSource.Registry;
+                case PackageSource.Registry: return defaultRegistry ? InstallSource.Managed : InstallSource.Registry;
                 case PackageSource.Embedded: return InstallSource.Embedded;
                 case PackageSource.Local: return InstallSource.Local;
-                default: return InstallSource.Unknown;
+                default: return InstallSource.Managed; // Asset Store downloads and tarballs.
             }
         }
     }
