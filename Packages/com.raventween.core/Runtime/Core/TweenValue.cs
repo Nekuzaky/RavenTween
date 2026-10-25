@@ -1,7 +1,6 @@
 using UnityEngine;
 
 namespace RavenTween {
-    /// <summary>Kind of value carried by a <see cref="TweenValue"/>.</summary>
     public enum ValueKind : byte {
         Float = 0,
         Vector2 = 1,
@@ -11,10 +10,6 @@ namespace RavenTween {
         Color = 5
     }
 
-    /// <summary>
-    /// Compact tagged union for every interpolated type. Stored as a Vector4 so tween
-    /// slots stay fixed-size and the engine never boxes values.
-    /// </summary>
     public readonly struct TweenValue {
         public readonly Vector4 Raw;
         public readonly ValueKind Kind;
@@ -33,7 +28,6 @@ namespace RavenTween {
         public Quaternion Quaternion { get { return new Quaternion(Raw.x, Raw.y, Raw.z, Raw.w); } }
         public Color Color { get { return new Color(Raw.x, Raw.y, Raw.z, Raw.w); } }
 
-        /// <summary>Interpolates between two values of the same kind. Quaternions use slerp.</summary>
         public static TweenValue Lerp(in TweenValue from, in TweenValue to, float t) {
             Debug.Assert(from.Kind == to.Kind, "Cannot interpolate between different value kinds.");
             Debug.Assert(!float.IsNaN(t), "Interpolation factor must be a number.");
@@ -44,11 +38,6 @@ namespace RavenTween {
             return new TweenValue(raw, from.Kind);
         }
 
-        /// <summary>
-        /// Adds <paramref name="cycles"/> times the change from <paramref name="from"/> to
-        /// <paramref name="to"/> to <paramref name="value"/> (Incremental cycles). Quaternions
-        /// apply the rotation that many more times.
-        /// </summary>
         public static TweenValue AddCycles(in TweenValue value, in TweenValue from, in TweenValue to, int cycles) {
             Debug.Assert(from.Kind == to.Kind && value.Kind == from.Kind, "Incremental values must share one kind.");
             if (cycles == 0) { return value; }
@@ -61,7 +50,6 @@ namespace RavenTween {
             return new TweenValue(value.Raw + (to.Raw - from.Raw) * cycles, value.Kind);
         }
 
-        /// <summary>Size of the change between two values: a length, or degrees for quaternions.</summary>
         public static float Distance(in TweenValue from, in TweenValue to) {
             if (from.Kind == ValueKind.Quaternion) { return Quaternion.Angle(from.Quaternion, to.Quaternion); }
             return (to.Raw - from.Raw).magnitude;

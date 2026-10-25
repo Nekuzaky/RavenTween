@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTween.Tests {
-    /// <summary>Ready-made motions, Raven Motion and Raven Stagger.</summary>
     public sealed class MotionTests {
         static readonly Vector3 RestPosition = new Vector3(1f, 2f, 3f);
         static readonly Quaternion RestRotation = Quaternion.Euler(0f, 30f, 0f);
@@ -46,8 +45,6 @@ namespace RavenTween.Tests {
             _go.transform.localRotation = RestRotation;
             _go.transform.localScale = RestScale;
         }
-
-        // ----- Every preset on a scene object -----
 
         [Test]
         public void EntrancesAndAttention_EndExactlyOnTheRestPose() {
@@ -111,8 +108,6 @@ namespace RavenTween.Tests {
             }
         }
 
-        // ----- UI -----
-
         RectTransform MakeUi(float alpha) {
             _canvas = new GameObject("motion-canvas", typeof(Canvas));
             var panel = new GameObject("panel", typeof(RectTransform), typeof(CanvasGroup));
@@ -148,11 +143,9 @@ namespace RavenTween.Tests {
             }
         }
 
-        // ----- Raven Motion -----
-
         [Test]
         public void RavenMotion_PlaysOnEnable_AndARetriggerDoesNotDrift() {
-            var motion = _go.AddComponent<RavenMotion>(); // Pop In, when enabled: already playing.
+            var motion = _go.AddComponent<RavenMotion>();
             Assert.That(motion.IsPlaying, Is.True);
             Step(0.15f);
             motion.Play();
@@ -201,10 +194,10 @@ namespace RavenTween.Tests {
 
         [Test]
         public void RavenMotion_PooledObject_EntersWhereItWasPlaced() {
-            var motion = _go.AddComponent<RavenMotion>(); // Pop In when enabled.
+            var motion = _go.AddComponent<RavenMotion>();
             Step(0.6f);
             _go.SetActive(false);
-            _go.transform.localPosition = new Vector3(9f, 0f, 0f); // Respawned elsewhere.
+            _go.transform.localPosition = new Vector3(9f, 0f, 0f);
             _go.SetActive(true);
             Step(0.6f);
             Assert.That(_go.transform.localPosition, Is.EqualTo(new Vector3(9f, 0f, 0f)), "The entrance plays where the object is now.");
@@ -260,11 +253,9 @@ namespace RavenTween.Tests {
             AssertAtRest(_go.transform, RestPosition, RestRotation, RestScale, "stopped loop");
         }
 
-        // ----- Raven Button Feel -----
-
         [Test]
         public void RavenButtonFeel_GrowsSinksAndSettles() {
-            var feel = _go.AddComponent<RavenButtonFeel>(); // Bouncy: 1.06 hover, 0.94 pressed.
+            var feel = _go.AddComponent<RavenButtonFeel>();
             feel.OnPointerEnter(null);
             Step(0.3f);
             Assert.That(_go.transform.localScale.x, Is.EqualTo(RestScale.x * 1.06f).Within(1e-3f), "hover");
@@ -289,8 +280,6 @@ namespace RavenTween.Tests {
             Assert.That(button.transform.localScale.x, Is.EqualTo(1f).Within(1e-4f));
         }
 
-        // ----- Raven Stagger -----
-
         [Test]
         public void RavenStagger_StartsChildrenOneAfterAnother() {
             var children = new Transform[3];
@@ -298,7 +287,7 @@ namespace RavenTween.Tests {
                 children[i] = new GameObject("child-" + i).transform;
                 children[i].SetParent(_go.transform, false);
             }
-            var stagger = _go.AddComponent<RavenStagger>(); // Rise In, 0.06 s apart, when enabled.
+            var stagger = _go.AddComponent<RavenStagger>();
             Assert.That(stagger.IsPlaying, Is.True);
             TweenEngine.Process(0.07f, 0.07f);
             Assert.That(children[0].localPosition.y, Is.GreaterThan(children[2].localPosition.y), "The first child is ahead of the last.");

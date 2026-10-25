@@ -2,12 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Plays motions on scene objects outside Play Mode through <see cref="EditorTweenPreview"/>,
-    /// which puts every touched value back afterwards.
-    /// </summary>
     static class MotionPreview {
-        /// <summary>Previews <paramref name="preset"/> on each target, <paramref name="interval"/> seconds apart.</summary>
         public static void Play(object owner, IList<Transform> targets, MotionPreset preset, MotionSettings settings, float interval) {
             Debug.Assert(owner != null && targets != null, "A motion preview needs an owner and targets.");
             EditorTweenPreview.End();
@@ -30,7 +25,6 @@ namespace RavenTween.Editor {
             return EditorTweenPreview.Owner == owner && EditorTweenPreview.IsActive;
         }
 
-        // A loop can't sit inside another sequence, so loops preview on the first target only.
         static Sequence BuildLoop(Transform target, MotionPreset preset, MotionSettings settings) {
             MotionTarget resolved = MotionTarget.Resolve(target);
             return MotionBuilder.Build(resolved, preset, settings, MotionRest.Capture(resolved), out _);

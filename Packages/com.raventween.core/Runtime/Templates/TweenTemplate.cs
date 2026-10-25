@@ -1,10 +1,6 @@
 using UnityEngine;
 
 namespace RavenTween {
-    /// <summary>
-    /// Reusable tween configuration. Tweens themselves are single-use; templates hold the
-    /// settings and spawn a fresh tween for any target via <see cref="Play"/>.
-    /// </summary>
     [CreateAssetMenu(fileName = "TweenTemplate", menuName = "RavenTween/Tween Template")]
     public sealed class TweenTemplate : ScriptableObject {
         [Tooltip("Property animated on the target.")]
@@ -22,20 +18,14 @@ namespace RavenTween {
 
         public TweenParams settings = TweenParams.Default;
 
-        /// <summary>True when this template loops forever (cycles = -1).</summary>
         public bool LoopsForever {
             get { return settings.cycles < 0; }
         }
 
-        /// <summary>
-        /// Finite stand-in used when a looping template plays inside a sequence: one full
-        /// out-and-back for Yoyo (so it ends where it started), one pass for Restart.
-        /// </summary>
         public int CyclesInsideSequence {
             get { return settings.cycleMode == CycleMode.Yoyo || settings.cycleMode == CycleMode.PingPong ? 2 : 1; }
         }
 
-        /// <summary>True when the property is a shader property and needs <see cref="materialProperty"/>.</summary>
         public bool UsesShaderProperty {
             get { return IsShaderProperty(property); }
         }
@@ -45,11 +35,6 @@ namespace RavenTween {
                    kind == PropertyKind.PropertyBlockFloat || kind == PropertyKind.PropertyBlockColor;
         }
 
-        /// <summary>Creates and plays a tween of this template on <paramref name="target"/>.</summary>
-        /// <remarks>
-        /// <paramref name="target"/> may be the exact object the property needs, or any GameObject
-        /// or component carrying it: the right component (or the renderer's material) is found.
-        /// </remarks>
         public Tween Play(Object target) {
             Debug.Assert(property != PropertyKind.None, "Template has no property to animate.");
             if (!TryBind(target, Application.isPlaying, true, out Object resolved, out int propertyId)) { return default; }
@@ -60,10 +45,6 @@ namespace RavenTween {
             return settings.ApplyTo(tween);
         }
 
-        /// <summary>
-        /// Finds the object and shader property id this template writes to when played on
-        /// <paramref name="assigned"/>, exactly as <see cref="Play"/> does. Used by editor previews.
-        /// </summary>
         internal bool TryBind(Object assigned, bool instanceMaterial, bool logErrors, out Object resolved, out int propertyId) {
             propertyId = 0;
             resolved = PropertyAccessor.ResolveTarget(assigned, property, instanceMaterial);
@@ -81,8 +62,6 @@ namespace RavenTween {
             return target == null ? "nothing" : "a " + target.GetType().Name + " (" + target.name + ")";
         }
 
-        // Built-in shaders call the main color _Color, URP/HDRP call it _BaseColor: either name
-        // works for either pipeline.
         bool TryResolvePropertyId(Object resolved, bool logErrors, out int id) {
             id = 0;
             if (!UsesShaderProperty) { return true; }

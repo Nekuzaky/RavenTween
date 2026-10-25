@@ -3,23 +3,14 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace RavenTween {
-    /// <summary>
-    /// Makes a button feel alive with no setup: it grows a little under the pointer, sinks when
-    /// pressed and springs back when released. Works on UI and on scene objects (with a collider
-    /// and a Physics Raycaster). Respects a Selectable's Interactable flag.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Button Feel")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     [DisallowMultipleComponent]
     public sealed class RavenButtonFeel : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler {
         public enum Style : byte {
-            /// <summary>Barely there: for dense menus.</summary>
             Subtle = 0,
-            /// <summary>Clear and springy: a good default.</summary>
             Bouncy = 1,
-            /// <summary>Big and playful: for casual and kids' games.</summary>
             Juicy = 2,
-            /// <summary>Your own sizes and timing below.</summary>
             Custom = 3
         }
 
@@ -65,13 +56,10 @@ namespace RavenTween {
             if (interactable && _pressed) { factor = PressScale(); }
             else if (interactable && _hovered) { factor = HoverScale(); }
             if (_tween.IsAlive) { _tween.Stop(); }
-            // Springy on the way up and back, snappy on the way down.
             Ease ease = _pressed ? Ease.OutQuad : Ease.OutBack;
             _tween = Raven.Scale(transform, _rest * factor, Duration()).Ease(ease).UnscaledTime(playWhilePaused);
         }
 
-        // An entrance may still be scaling the button up (Pop In while the pointer is already over
-        // it): the designed scale then comes from the Raven Motion or Raven Show Hide that knows it.
         void CaptureRest() {
             if (!RavenMotion.TryGetRestScale(gameObject, transform, out _rest)
                 && !RavenShowHide.TryGetRestScale(gameObject, transform, out _rest)) {

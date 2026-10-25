@@ -4,11 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Every motion on one page. Hover a motion to see it on the animated card, click it to watch
-    /// it play on the selected objects (outside Play Mode, nothing is changed), then add it as a
-    /// Raven Motion in one click. Saved Motion Styles appear at the top.
-    /// </summary>
     public sealed class MotionLibraryWindow : EditorWindow {
         const float ButtonHeight = 30f;
         const float MinButtonWidth = 132f;
@@ -29,8 +24,6 @@ namespace RavenTween.Editor {
         MotionStage _stage;
         MotionPreset _selected = MotionPreset.PopIn;
         MotionStyle _selectedStyle;
-        // The tile under the pointer, kept while the pointer crosses the gaps between tiles or
-        // its tooltip opens, so the card does not flip back and forth; cleared when it leaves.
         MotionPreset _hovered;
         MotionStyle _hoveredStyle;
         MotionTrigger _trigger = MotionTrigger.OnEnable;
@@ -39,7 +32,6 @@ namespace RavenTween.Editor {
         float _interval = 0.06f;
         string _search = "";
         Vector2 _scroll;
-        // The grid's visible area and the pointer, in window space, to ignore tiles scrolled out of view.
         Rect _gridArea;
         Vector2 _pointer;
         double _lastFrame;
@@ -77,8 +69,6 @@ namespace RavenTween.Editor {
             _stage = null;
         }
 
-        // Entering or leaving Play Mode may reset the engine (no domain reload): the card's
-        // motion handle must never point at a gameplay tween, so the card starts over.
         void OnPlayModeChanged(PlayModeStateChange change) {
             if (change != PlayModeStateChange.ExitingEditMode && change != PlayModeStateChange.ExitingPlayMode) { return; }
             if (_stage != null) { _stage.Dispose(); }
@@ -95,8 +85,6 @@ namespace RavenTween.Editor {
             Repaint();
         }
 
-        // The card animates at 30 frames per second while the window is in use, and slowly
-        // (6 per second) when it just sits in the layout, to keep the editor light.
         void Animate() {
             double now = EditorApplication.timeSinceStartup;
             bool inUse = focusedWindow == this || mouseOverWindow == this;
@@ -122,8 +110,6 @@ namespace RavenTween.Editor {
             DrawFooter();
         }
 
-        // ----- Header -----
-
         void DrawHeader() {
             EditorGUILayout.Space(6f);
             EditorGUILayout.LabelField("Hover a motion to see it on the card. Click it to play it on the selected objects, right in the scene. Nothing is changed until you add it.", EditorStyles.wordWrappedMiniLabel);
@@ -145,8 +131,6 @@ namespace RavenTween.Editor {
             _search = EditorGUILayout.TextField(_search, EditorStyles.toolbarSearchField);
             EditorGUILayout.Space(4f);
         }
-
-        // ----- Grid -----
 
         void DrawStyles() {
             if (_styles.Count == 0) { return; }
@@ -182,7 +166,6 @@ namespace RavenTween.Editor {
             }
             if (_row.Count == 0) { return; }
             DrawSectionHeader(title, subtitle, color);
-            // Every tile gets the same width, so a short last row lines up with the rows above.
             float width = TileWidth(out int columns);
             for (int start = 0; start < _row.Count; start += columns) {
                 EditorGUILayout.BeginHorizontal();
@@ -215,7 +198,6 @@ namespace RavenTween.Editor {
             GUI.backgroundColor = previous;
         }
 
-        // Rects are only real outside the Layout pass.
         static bool IsHovered(Rect tile) {
             Event e = Event.current;
             return e.type != EventType.Layout && tile.Contains(e.mousePosition);
@@ -256,11 +238,8 @@ namespace RavenTween.Editor {
 
         MotionPreset CurrentPreset() { return _selectedStyle != null ? _selectedStyle.Preset : _selected; }
 
-        // ----- Footer -----
-
         void DrawFooter() {
             Rect footer = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-            // Pointing at the settings shows the motion being tuned, not the last tile hovered.
             if (IsHovered(footer)) { ClearHover(); }
             DrawStage();
             MotionPreset current = CurrentPreset();
@@ -333,9 +312,6 @@ namespace RavenTween.Editor {
             }
         }
 
-        // ----- Actions -----
-
-        // Scene previews are an Edit Mode tool: in Play Mode the game owns the objects.
         void Preview() {
             if (_targets.Count == 0 || Application.isPlaying) { return; }
             MotionSettings settings = _selectedStyle != null ? _selectedStyle.Settings : Settings();
@@ -426,10 +402,8 @@ namespace RavenTween.Editor {
             RefreshStyles();
             SelectStyle(style);
             EditorGUIUtility.PingObject(style);
-            GUIUtility.ExitGUI(); // The modal dialog broke this frame's layout.
+            GUIUtility.ExitGUI();
         }
-
-        // ----- Helpers -----
 
         void RefreshStyles() {
             _styles.Clear();
@@ -441,7 +415,6 @@ namespace RavenTween.Editor {
             if (_selectedStyle != null && !_styles.Contains(_selectedStyle)) { _selectedStyle = null; }
         }
 
-        // Top-level selected scene objects only (a selected child of a selected parent would play twice).
         void CollectTargets() {
             _targets.Clear();
             Transform[] selected = Selection.GetTransforms(SelectionMode.TopLevel | SelectionMode.Editable);

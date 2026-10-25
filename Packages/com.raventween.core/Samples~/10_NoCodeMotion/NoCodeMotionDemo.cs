@@ -4,13 +4,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace RavenTweenSamples {
-    /// <summary>
-    /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// Everything that moves is driven by the no-code components — Raven Motion, Raven Stagger,
-    /// Raven Button Feel, Raven Show Hide, Raven Feedback and Raven Path — added here by script
-    /// only so the sample needs no scene file.
-    /// In your project, add the same components from the Inspector or the Motion Library.
-    /// </summary>
     public sealed class NoCodeMotionDemo : MonoBehaviour {
         static readonly Color PanelColor = new Color(0.12f, 0.12f, 0.16f, 0.96f);
         static readonly Color ButtonColor = new Color(0.24f, 0.46f, 0.95f);
@@ -24,13 +17,11 @@ namespace RavenTweenSamples {
             BuildPlatform();
             Transform canvas = BuildCanvas();
             Text title = MakeText(canvas, "Title", "No code, just motion", 40, new Vector2(0f, 220f));
-            // The title rises in when the scene starts.
             AddMotion(title.gameObject, MotionPreset.RiseIn, MotionTrigger.OnEnable);
             GameObject dialog = BuildDialog(canvas);
             BuildMenu(canvas, dialog);
         }
 
-        // A coin that floats and spins forever: two loops on different channels.
         void BuildCoin() {
             GameObject coin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             coin.name = "Coin";
@@ -46,7 +37,6 @@ namespace RavenTweenSamples {
             if (main != null) { main.transform.position = new Vector3(0f, 0f, -10f); }
         }
 
-        // Three buttons that cascade in, feel springy, and celebrate when clicked.
         void BuildMenu(Transform canvas, GameObject dialog) {
             var menu = new GameObject("Menu", typeof(RectTransform), typeof(VerticalLayoutGroup));
             var rect = (RectTransform)menu.transform;
@@ -58,7 +48,7 @@ namespace RavenTweenSamples {
             layout.childControlHeight = false;
             layout.childControlWidth = false;
             layout.childAlignment = TextAnchor.MiddleCenter;
-            menu.SetActive(false); // Raven Stagger plays when the menu is enabled below.
+            menu.SetActive(false);
             var stagger = menu.AddComponent<RavenStagger>();
             stagger.Preset = MotionPreset.PopIn;
             stagger.Interval = 0.08f;
@@ -72,7 +62,6 @@ namespace RavenTweenSamples {
             menu.SetActive(true);
         }
 
-        // A dialog shown and hidden by Raven Show Hide: it slides in, and slides out then deactivates.
         GameObject BuildDialog(Transform canvas) {
             var dialog = new GameObject("About Dialog", typeof(Image), typeof(CanvasGroup));
             var rect = (RectTransform)dialog.transform;
@@ -91,7 +80,6 @@ namespace RavenTweenSamples {
             return dialog;
         }
 
-        // A hit: the camera shakes, the button punches and flashes, the game freezes an instant.
         static void AddHitFeedback(GameObject button) {
             var feedback = button.AddComponent<RavenFeedback>();
             feedback.Trigger = MotionTrigger.OnClick;
@@ -101,13 +89,12 @@ namespace RavenTweenSamples {
             feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.HitStop, timeScale = 0.05f, duration = 0.06f });
         }
 
-        // A platform travelling back and forth along a path, like one drawn in the Scene view.
         static void BuildPlatform() {
             GameObject platform = GameObject.CreatePrimitive(PrimitiveType.Cube);
             platform.name = "Moving Platform";
             platform.transform.position = new Vector3(-4.5f, -2.5f, 0f);
             platform.transform.localScale = new Vector3(1.6f, 0.25f, 1f);
-            platform.SetActive(false); // Configure before Raven Path plays it.
+            platform.SetActive(false);
             var path = platform.AddComponent<RavenPath>();
             path.Points.Clear();
             path.Points.Add(new Vector3(2.5f, 1.2f, 0f));
@@ -118,7 +105,7 @@ namespace RavenTweenSamples {
 
         static RavenMotion AddMotion(GameObject go, MotionPreset preset, MotionTrigger trigger) {
             bool wasActive = go.activeSelf;
-            go.SetActive(false); // Configure before OnEnable runs.
+            go.SetActive(false);
             var motion = go.AddComponent<RavenMotion>();
             motion.Preset = preset;
             motion.Trigger = trigger;

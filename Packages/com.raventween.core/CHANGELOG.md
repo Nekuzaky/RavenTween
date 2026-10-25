@@ -3,6 +3,22 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Faster update loop and tween creation, still with 0 B of garbage per frame. Measured in the Unity 6.3 Editor (Mono, i7-14700KF), best of 15 runs: 5,000 mixed tweens 0.65 → 0.52 ms per frame, 10,000 position tweens 1.44 → 1.14 ms, 20,000 value tweens 1.99 → 1.66 ms, 500 looping sequences 0.27 → 0.24 ms; creating 4,000 tweens 0.55 → 0.41 ms and 500 three-tween sequences 0.28 → 0.22 ms. The slots live in a plain array, the per-tween checks of the update loop are inlined, a target is checked once per step instead of twice, a slot is no longer cleared twice when reused, and `Raven.AliveCount` no longer scans the pool.
+- Sample *05 - Complex Sequence* loops with `async` / `await` and the object's `destroyCancellationToken` instead of a coroutine. `ToYieldInstruction()` is unchanged for projects that wait on tweens from their own coroutines.
+- The test suite no longer uses coroutines (`[UnityTest]`): every test steps the engine, physics and TextMeshPro deterministically, so it runs the same on every supported Unity and Test Framework version.
+- The source code carries no comments any more, XML documentation included, so IDE tooltips no longer describe the API. Every public member is described in the manual's new **API Details** page, the engine's design notes in **Engine Internals**, and the samples in **Samples**.
+
+### Fixed
+- A sequence with no tween in it (empty, or only a `ChainDelay` used as a timer) threw a `NullReferenceException` and never completed when it got a pool slot that had never held a sequence.
+- With *Enter Play Mode Options* (no domain reload), a `Tween` or `Sequence` handle kept from an earlier Play Mode session (a static field, an editor window) could point at a new, unrelated tween and stop or change it: the engine reset restarted handle versions at 1. Handles from before a reset now stay dead, and tweens still alive when Play Mode ends are released instead of keeping scene objects and callbacks referenced in Edit Mode.
+- `Raven.HitStop` and `Raven.SlowMotion` (and the Hit Stop / Slow Motion feedback actions) started while the game was paused (`Time.timeScale = 0`) ran the game at the hit-stop or slow-motion speed until they ended. They now never speed the game up: when the time scale is already lower, they do nothing.
+- A slow motion started during a hit stop restored `Time.timeScale` to 1 instead of the speed the game had before the hit stop.
+- `EaseUtility.Evaluate`, `EaseUtility.EvaluateParametric` and `Easing.Evaluate` returned NaN for a NaN time (`Mathf.Clamp01` lets NaN through), and an editor seek to a NaN time wrote NaN values. A NaN time now counts as the start (0).
+- The update checker threw an `ArgumentOutOfRangeException` on every Editor start when its stored last-check date was out of range (a corrupt or hand-edited EditorPrefs value); it now checks again instead.
+
 ## [1.7.1] - 2026-10-16
 
 ### Changed

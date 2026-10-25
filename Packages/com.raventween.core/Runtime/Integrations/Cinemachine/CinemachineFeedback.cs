@@ -6,11 +6,6 @@ using Cinemachine;
 #endif
 
 namespace RavenTween {
-    /// <summary>
-    /// Serves the Camera Impulse action of Raven Feedback: the impulse source fires with the
-    /// action's strength, and every Cinemachine camera with an Impulse Listener reacts (works
-    /// with Cinemachine 2 and 3).
-    /// </summary>
     public static class CinemachineFeedback {
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void Register() {

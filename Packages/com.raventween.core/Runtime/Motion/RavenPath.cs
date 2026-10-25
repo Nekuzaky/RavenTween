@@ -3,36 +3,23 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace RavenTween {
-    /// <summary>
-    /// Moves its object along a path of points drawn in the Scene view: moving platforms, patrols,
-    /// flying pickups, camera fly-bys. The path starts where the object stands and is stored
-    /// relative to it, so moving the object moves the whole path. Constant speed along curves.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Path")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     public sealed class RavenPath : MonoBehaviour, IMotionTriggerable {
         public enum PathLoop : byte {
-            /// <summary>Travel once and stop at the end.</summary>
             Once = 0,
-            /// <summary>Start over from the beginning forever (close the path to make a circuit).</summary>
             Loop = 1,
-            /// <summary>Go to the end and back, forever.</summary>
             BackAndForth = 2
         }
 
         public enum Orientation : byte {
-            /// <summary>Keep the object's rotation.</summary>
             None = 0,
-            /// <summary>Face the direction of travel (3D: forward along the path, up stays up).</summary>
             FacePath = 1,
-            /// <summary>Face the direction of travel in the screen plane (2D: the object's right side leads).</summary>
             FacePath2D = 2
         }
 
         public enum Timing : byte {
-            /// <summary>The whole trip takes Duration seconds.</summary>
             Duration = 0,
-            /// <summary>Travel at Speed units per second, whatever the length.</summary>
             Speed = 1
         }
 
@@ -73,13 +60,10 @@ namespace RavenTween {
         public UnityEvent OnComplete { get { return onComplete; } }
         public bool IsPlaying { get { return _tween.IsAlive; } }
 
-        /// <summary>Where the path starts, in the parent's space: the object's position when it first played.</summary>
         public Vector3 Origin { get { return _hasOrigin ? _origin : transform.localPosition; } }
 
-        /// <summary>Length of the path in the parent's units.</summary>
         public float Length { get { Rebuild(); return _total; } }
 
-        /// <summary>Seconds one trip takes.</summary>
         public float TripDuration { get { return timing == Timing.Speed ? Mathf.Max(Length, 0.0001f) / speed : duration; } }
 
         void Awake() {
@@ -98,7 +82,6 @@ namespace RavenTween {
             if (_tween.IsAlive) { _tween.Stop(); }
         }
 
-        /// <summary>Travels the path from its start.</summary>
         public void Play() {
             if (!isActiveAndEnabled) { return; }
             if (_tween.IsAlive) { _tween.Stop(); }
@@ -109,12 +92,10 @@ namespace RavenTween {
             _tween.UnscaledTime(useUnscaledTime).OnComplete(this, path => path.onComplete.Invoke());
         }
 
-        /// <summary>Stops where the object is.</summary>
         public void Stop() {
             if (_tween.IsAlive) { _tween.Stop(); }
         }
 
-        /// <summary>Stops and puts the object back at the start of the path.</summary>
         public void ResetToStart() {
             Stop();
             if (!_hasOrigin) { return; }
@@ -126,7 +107,6 @@ namespace RavenTween {
             if (started == trigger) { Play(); }
         }
 
-        /// <summary>One trip as a tween (no loop), for previews and custom sequences.</summary>
         public Tween CreateTween() {
             if (!_hasOrigin) {
                 _origin = transform.localPosition;
@@ -140,18 +120,15 @@ namespace RavenTween {
             return Raven.Custom(this, 0f, 1f, TripDuration, (path, t) => path.Apply(t)).Ease(ease);
         }
 
-        /// <summary>Forgets the start point: the next play starts from where the object stands now.</summary>
         public void ForgetOrigin() {
             _hasOrigin = false;
         }
 
-        /// <summary>Point at <paramref name="t"/> (0 = start, 1 = end) along the path, at constant speed, in the parent's space.</summary>
         public Vector3 Evaluate(float t) {
             Rebuild();
             return Origin + SampleAt(Mathf.Clamp01(t) * _total);
         }
 
-        /// <summary>Fills <paramref name="world"/> with points along the path in world space, for drawing.</summary>
         public void GetWorldPolyline(List<Vector3> world) {
             Debug.Assert(world != null, "A list is needed to receive the path.");
             world.Clear();
@@ -159,13 +136,11 @@ namespace RavenTween {
             for (int i = 0; i < _samples.Count; i++) { world.Add(ToWorld(Origin + _samples[i])); }
         }
 
-        /// <summary>World position of control point <paramref name="index"/> (-1 = the start).</summary>
         public Vector3 GetWorldPoint(int index) {
             Vector3 offset = index < 0 ? Vector3.zero : points[index];
             return ToWorld(Origin + offset);
         }
 
-        /// <summary>Moves control point <paramref name="index"/> to a world position.</summary>
         public void SetWorldPoint(int index, Vector3 world) {
             Transform parent = transform.parent;
             Vector3 local = parent != null ? parent.InverseTransformPoint(world) : world;
@@ -181,8 +156,6 @@ namespace RavenTween {
             float clamped = Mathf.Clamp01(t);
             Vector3 position = Origin + SampleAt(clamped * _total);
             transform.localPosition = position;
-            // On the way back (Back And Forth, or an ease that turns around) face the other way.
-            // A jump of more than half the path is a new lap, not a turn-around.
             float step = clamped - _lastProgress;
             if (_lastProgress >= 0f && !Mathf.Approximately(step, 0f) && Mathf.Abs(step) < 0.5f) { _reversed = step < 0f; }
             _lastProgress = clamped;
@@ -194,7 +167,6 @@ namespace RavenTween {
             else { transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(ahead.y, ahead.x) * Mathf.Rad2Deg); }
         }
 
-        // Offset from the origin at a distance along the path (binary search in the length table).
         Vector3 SampleAt(float distance) {
             int count = _samples.Count;
             if (count == 0) { return Vector3.zero; }
@@ -211,7 +183,6 @@ namespace RavenTween {
             return Vector3.LerpUnclamped(_samples[low], _samples[high], k);
         }
 
-        // Samples the path (start, points, back to the start when closed) into a length table.
         void Rebuild() {
             _samples.Clear();
             _lengths.Clear();
@@ -241,8 +212,6 @@ namespace RavenTween {
             return CatmullRom(p0, p1, p2, p3, t);
         }
 
-        // Control point i: 0 is the start, then each point, then the start again when closed.
-        // Out-of-range neighbours wrap on a closed path and repeat the end point on an open one.
         Vector3 Control(int i, int controls) {
             if (closed) {
                 int ring = controls - 1;

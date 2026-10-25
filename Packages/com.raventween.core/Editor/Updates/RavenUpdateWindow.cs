@@ -2,7 +2,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Small, non-modal prompt offering a newer RavenTween release.</summary>
     sealed class RavenUpdateWindow : EditorWindow {
         UpdateLogic.ReleaseInfo _release;
         string _installedVersion;

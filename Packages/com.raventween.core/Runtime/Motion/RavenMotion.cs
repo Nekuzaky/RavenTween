@@ -4,13 +4,6 @@ using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace RavenTween {
-    /// <summary>
-    /// Plays a ready-made <see cref="MotionPreset"/> without code: pick a motion, pick what
-    /// starts it (enable, click, hover, a trigger zone, a collision, or a UnityEvent), done.
-    /// Several Raven Motions can sit on one object, e.g. an entrance plus a hover pulse, and
-    /// one can start the next ("Then Play"), e.g. Pop In then Float. Added from a script, it
-    /// plays as soon as it is enabled: add it to an inactive object to configure it first.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Motion")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     public sealed class RavenMotion : MonoBehaviour, IMotionTriggerable {
@@ -37,7 +30,6 @@ namespace RavenTween {
         bool _hasRest;
         MotionChannels _channels;
         MotionCategory _lastCategory;
-        // An exit finished and left the object hidden (it is not at rest until shown again).
         bool _leftHidden;
         Button _button;
 
@@ -49,16 +41,12 @@ namespace RavenTween {
         public RavenMotion ThenPlay { get { return thenPlay; } set { thenPlay = value; } }
         public UnityEvent OnComplete { get { return onComplete; } }
 
-        /// <summary>The motion that plays: the style's when a style is set, otherwise <see cref="Preset"/>.</summary>
         public MotionPreset EffectivePreset { get { return style != null ? style.Preset : preset; } }
 
-        /// <summary>The settings in use: the style's when a style is set, otherwise <see cref="Settings"/>.</summary>
         public MotionSettings EffectiveSettings { get { return style != null ? style.Settings : settings; } }
 
-        /// <summary>Object being animated: <see cref="target"/>, or this one.</summary>
         public Transform AnimatedTransform { get { return target != null ? target : transform; } set { target = value; _hasRest = false; } }
 
-        /// <summary>The running motion, if any.</summary>
         public Sequence Current { get { return _current; } }
         public bool IsPlaying { get { return _current.IsAlive; } }
 
@@ -82,12 +70,10 @@ namespace RavenTween {
             if (_button != null) { _button.onClick.RemoveListener(Play); }
         }
 
-        // The inspector writes the trigger directly: apply its hooks when it changes in Play Mode.
         void OnValidate() {
             if (Application.isPlaying && isActiveAndEnabled) { EnsureTriggerHooks(); }
         }
 
-        /// <summary>Plays the motion from the start, replacing a run that is still going.</summary>
         public void Play() {
             MotionPreset playing = EffectivePreset;
             if (!isActiveAndEnabled || playing == MotionPreset.None) { return; }
@@ -102,10 +88,6 @@ namespace RavenTween {
             if (_current.IsAlive) { _current.OnComplete(this, motion => motion.HandleComplete()); }
         }
 
-        /// <summary>
-        /// Stops the motion and puts back what it animated. An idle object is left alone, unless an
-        /// exit hid it: then it is shown again on its rest pose.
-        /// </summary>
         public void Stop() {
             bool running = _current.IsAlive;
             if (running) { _current.Stop(); }
@@ -115,13 +97,11 @@ namespace RavenTween {
             _leftHidden = false;
         }
 
-        /// <summary>Jumps to the end of the motion at once (loops: back to the rest pose).</summary>
         public void Complete() {
             if (MotionLibrary.Category(EffectivePreset) == MotionCategory.Loop) { Stop(); return; }
             if (_current.IsAlive) { _current.Complete(); }
         }
 
-        /// <summary>Takes the object's current pose as its rest pose (after moving it from a script).</summary>
         public void CaptureRest() {
             Resolve();
             if (!_resolved.IsValid) { return; }
@@ -129,10 +109,9 @@ namespace RavenTween {
             _hasRest = true;
         }
 
-        /// <summary>Starts the motion if <paramref name="started"/> is this component's trigger.</summary>
         public void HandleTrigger(MotionTrigger started) {
             if (started != trigger) { return; }
-            if (started == MotionTrigger.OnClick && _button != null) { return; } // The Button listener plays it.
+            if (started == MotionTrigger.OnClick && _button != null) { return; }
             Play();
         }
 
@@ -155,10 +134,6 @@ namespace RavenTween {
             _hasRest = false;
         }
 
-        // The rest pose is taken once, shared with other Raven Motions animating the same object,
-        // so an exit followed by an entrance never mistakes "hidden" for "at rest". When nothing
-        // animates the object and no exit left it hidden, it follows what scripts did meanwhile:
-        // a pooled enemy re-enabled elsewhere, a text recolored, a panel moved.
         void PrepareRest(bool idle, MotionPreset playing) {
             if (!_hasRest) {
                 _hasRest = true;
@@ -188,8 +163,6 @@ namespace RavenTween {
             return found;
         }
 
-        // True when this or another Raven Motion on the same object is playing, or an exit left
-        // it hidden: its current pose is then not the rest pose.
         bool SiblingBusy() {
             if (_leftHidden) { return true; }
             GetComponents(Siblings);
@@ -203,7 +176,6 @@ namespace RavenTween {
             return busy;
         }
 
-        // An entrance shows the object again: no Raven Motion on it counts it as hidden any more.
         void ClearHidden() {
             _leftHidden = false;
             GetComponents(Siblings);
@@ -213,7 +185,6 @@ namespace RavenTween {
             Siblings.Clear();
         }
 
-        /// <summary>The rest scale of <paramref name="animated"/> if a Raven Motion on this object knows it.</summary>
         internal static bool TryGetRestScale(GameObject owner, Transform animated, out Vector3 scale) {
             scale = Vector3.one;
             owner.GetComponents(Siblings);
@@ -229,18 +200,7 @@ namespace RavenTween {
         }
 
         void EnsureTriggerHooks() {
-            if (trigger != MotionTrigger.OnClick && _button != null) {
-                _button.onClick.RemoveListener(Play);
-                _button = null;
-            }
-            if (trigger == MotionTrigger.OnClick && _button == null) {
-                // A click on a Button (or on anything inside one, like its icon) is the Button's:
-                // listen to it rather than adding a handler that would take the click away.
-                _button = GetComponentInParent<Button>();
-                if (_button != null) { _button.onClick.AddListener(Play); }
-            }
-            // A Button already reports its clicks; other pointer starts need a relay.
-            if (!(trigger == MotionTrigger.OnClick && _button != null)) { MotionTriggers.EnsurePointerRelay(gameObject, trigger); }
+            _button = MotionTriggers.HookTrigger(this, trigger, _button, Play);
         }
 
         void HandlePhysics(MotionTrigger started, GameObject other) {
@@ -260,9 +220,7 @@ namespace RavenTween {
 #endif
     }
 
-    /// <summary>Layout helpers shared by the no-code components.</summary>
     static class MotionLayout {
-        /// <summary>Inside a Layout Group, positions are only final after the layout pass: run it now.</summary>
         public static void RebuildParent(in MotionTarget target) {
             if (target.Rect == null) { return; }
             var parent = target.Rect.parent as RectTransform;

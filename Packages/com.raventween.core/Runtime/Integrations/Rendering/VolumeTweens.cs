@@ -3,18 +3,12 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace RavenTween {
-    /// <summary>
-    /// Post-processing for URP and HDRP: <c>volume.TweenWeight(1f, 0.3f)</c> fades a Volume's whole
-    /// effect (a red vignette when hit, a blur on pause). Also serves the Volume Flash action of
-    /// Raven Feedback.
-    /// </summary>
     public static class VolumeTweens {
         struct Flashing {
             public Tween Tween;
             public float Rest;
         }
 
-        // A volume flashing now keeps the weight it rests at, so rapid repeats never drift.
         static readonly Dictionary<Volume, Flashing> Flashes = new Dictionary<Volume, Flashing>(4);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -28,7 +22,6 @@ namespace RavenTween {
             return Raven.CustomTo(target, v => v.weight, Mathf.Clamp01(to), duration, (v, w) => v.weight = w);
         }
 
-        /// <summary>Raises the weight to <paramref name="peak"/> and brings it back, in <paramref name="duration"/> seconds.</summary>
         public static Tween FlashWeight(this Volume target, float peak, float duration) {
             Debug.Assert(target != null, "Weight flash needs a live Volume.");
             float rest = target.weight;
@@ -45,7 +38,6 @@ namespace RavenTween {
 
         static readonly List<Volume> Finished = new List<Volume>(8);
 
-        // Forgets volumes that are no longer flashing or were destroyed; running flashes keep their rest.
         static void DropFinished() {
             foreach (KeyValuePair<Volume, Flashing> entry in Flashes) {
                 if (entry.Key == null || !entry.Value.Tween.IsAlive) { Finished.Add(entry.Key); }

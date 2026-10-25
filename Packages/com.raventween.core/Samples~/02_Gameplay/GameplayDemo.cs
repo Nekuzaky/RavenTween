@@ -2,10 +2,6 @@ using RavenTween;
 using UnityEngine;
 
 namespace RavenTweenSamples {
-    /// <summary>
-    /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// It spawns a few cubes and shows typical gameplay motion: hops, spins and patrols.
-    /// </summary>
     public sealed class GameplayDemo : MonoBehaviour {
         void Start() {
             SetupCamera();
@@ -33,7 +29,6 @@ namespace RavenTweenSamples {
 
         static void SpawnHopper(Vector3 position, Color color) {
             Transform cube = SpawnCube(position, color, "Hopper");
-            // Endless hop: up with OutQuad, down with InQuad, via yoyo cycles.
             Raven.Position(cube, position + Vector3.up * 2f, 0.4f)
                 .Ease(Ease.OutQuad)
                 .Infinite(CycleMode.Yoyo);
@@ -41,8 +36,6 @@ namespace RavenTweenSamples {
 
         static void SpawnSpinner(Vector3 position, Color color) {
             Transform cube = SpawnCube(position, color, "Spinner");
-            // Each Restart cycle turns half a turn and jumps back to the start; a cube looks the
-            // same after a half turn, so the loop reads as one continuous spin.
             Raven.LocalEulerAngles(cube, new Vector3(0f, 180f, 0f), 1f)
                 .Ease(Ease.InOutCubic)
                 .Infinite(CycleMode.Restart);
@@ -50,7 +43,6 @@ namespace RavenTweenSamples {
 
         static void SpawnPatroller(Vector3 position, Color color) {
             Transform cube = SpawnCube(position, color, "Patroller");
-            // A patrol loop built as a sequence: move right, pause, move back, squash on arrival.
             Raven.Sequence()
                 .Chain(Raven.Position(cube, position + Vector3.right * 2f, 1f).Ease(Ease.InOutSine))
                 .ChainDelay(0.3f)

@@ -2,40 +2,24 @@ using TMPro;
 using UnityEngine;
 
 namespace RavenTween {
-    /// <summary>
-    /// Animates the letters of a TextMeshPro text one by one: a wave, a shake, a wobble, a pulse
-    /// or a rainbow, and letters that pop or fade in as they appear (with Raven Typewriter or any
-    /// change to maxVisibleCharacters). Works on the mesh only: the text, its layout and its
-    /// colors in the Inspector are never changed. No allocation while it plays.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Text Effect")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     [RequireComponent(typeof(TMP_Text))]
     [DisallowMultipleComponent]
     public sealed class RavenTextEffect : MonoBehaviour {
         public enum Effect : byte {
-            /// <summary>No continuous effect (letters can still appear with Appear).</summary>
             None = 0,
-            /// <summary>Letters bob up and down in a wave.</summary>
             Wave = 1,
-            /// <summary>Letters tremble nervously (anger, cold, fear).</summary>
             Shake = 2,
-            /// <summary>Letters tilt left and right.</summary>
             Wobble = 3,
-            /// <summary>Letters swell and shrink in turn.</summary>
             Pulse = 4,
-            /// <summary>Colors flow through the letters.</summary>
             Rainbow = 5
         }
 
         public enum Appear : byte {
-            /// <summary>Letters show at once.</summary>
             Instant = 0,
-            /// <summary>Each letter fades in.</summary>
             Fade = 1,
-            /// <summary>Each letter pops in with a small overshoot.</summary>
             Pop = 2,
-            /// <summary>Each letter rises into place while fading in.</summary>
             Rise = 3
         }
 
@@ -67,11 +51,12 @@ namespace RavenTween {
         bool _wasAnimating;
         bool _warnedSorting;
 
+        internal float? ClockOverride;
+
         public Effect TextEffect { get { return effect; } set { effect = value; } }
         public Appear AppearStyle { get { return appear; } set { appear = value; } }
         public float Strength { get { return strength; } set { strength = Mathf.Max(value, 0f); } }
 
-        /// <summary>True while it has a laid-out text to shape (false for an empty text).</summary>
         public bool IsShaping { get { return _hasSnapshot; } }
 
         void Awake() {
@@ -88,13 +73,10 @@ namespace RavenTween {
         void OnDisable() {
             if (_text == null) { return; }
             _text.OnPreRenderText -= OnTextRebuilt;
-            // Back to the text as TextMeshPro laid it out.
             if (_hasSnapshot) { Restore(); }
             _hasSnapshot = false;
         }
 
-        // TextMeshPro rebuilt the mesh (new text, layout, visible count) and is about to upload
-        // it: that is the new original, shaped in place before the upload.
         void OnTextRebuilt(TMP_TextInfo info) {
             if (_applying || !Supported() || info.characterCount == 0) { _hasSnapshot = false; return; }
             Snapshot(info);
@@ -102,13 +84,15 @@ namespace RavenTween {
         }
 
         void LateUpdate() {
+            Refresh();
+        }
+
+        internal void Refresh() {
             if (!_hasSnapshot || !_text.isActiveAndEnabled) { return; }
-            // An empty text keeps its old vertex arrays: never upload them again.
             if (_text.textInfo.characterCount == 0) { _hasSnapshot = false; return; }
             Apply(_text.textInfo, true);
         }
 
-        // Reverse geometry sorting reorders the quads after this component reads them.
         bool Supported() {
             if (_text.geometrySortingOrder == VertexSortingOrder.Normal) { return true; }
             if (!_warnedSorting) {
@@ -119,7 +103,6 @@ namespace RavenTween {
         }
 
         void Snapshot(TMP_TextInfo info) {
-            // New words restart the appear animation; a longer typewriter reveal does not.
             int checksum = Checksum(info);
             if (checksum != _lastChecksum) {
                 _lastChecksum = checksum;
@@ -141,7 +124,6 @@ namespace RavenTween {
             return hash;
         }
 
-        // Buffers grow with the text and are reused: allocation only when the text gets longer.
         void EnsureBuffers(TMP_TextInfo info) {
             int meshes = info.meshInfo.Length;
             if (_vertices.Length != meshes) {
@@ -162,13 +144,12 @@ namespace RavenTween {
         }
 
         void Apply(TMP_TextInfo info, bool upload) {
-            float now = useUnscaledTime ? Time.unscaledTime : Time.time;
+            float now = ClockOverride ?? (useUnscaledTime ? Time.unscaledTime : Time.time);
             int visible = Mathf.Min(info.characterCount, _text.maxVisibleCharacters);
             int last = letterCount < 0 ? info.characterCount : Mathf.Min(info.characterCount, fromLetter + letterCount);
             bool appearing = false;
             for (int i = 0; i < info.characterCount; i++) {
                 TMP_CharacterInfo character = info.characterInfo[i];
-                // A hidden letter (not typed yet) starts its appear animation again when shown.
                 if (!character.isVisible || i >= visible) {
                     if (i < _appeared.Length) { _appeared[i] = -1f; }
                     continue;
@@ -181,8 +162,6 @@ namespace RavenTween {
                 bool affected = i >= fromLetter && i < last;
                 ShapeLetter(info.meshInfo[m].vertices, info.meshInfo[m].colors32, m, v, i, now, i < visible, affected);
             }
-            // Nothing moves any more (no effect, every letter in place): one last upload of the
-            // resting text, then no work at all until something changes.
             bool animating = effect != Effect.None || appearing;
             bool needed = animating || _wasAnimating;
             _wasAnimating = animating;
@@ -228,7 +207,6 @@ namespace RavenTween {
             }
         }
 
-        // A letter appears the first frame it is visible, then animates in over appearDuration.
         void AppearAt(int index, float now, ref Vector3 offset, ref float scale, ref float alpha) {
             if (appear == Appear.Instant || index >= _appeared.Length) { return; }
             if (_appeared[index] < 0f) { _appeared[index] = now; }
@@ -259,7 +237,6 @@ namespace RavenTween {
             _applying = false;
         }
 
-        /// <summary>Plays the Appear animation again for every letter (e.g. when the text is shown again).</summary>
         public void Replay() {
             ResetAppearTimes(_appeared.Length);
         }

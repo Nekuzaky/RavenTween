@@ -48,7 +48,7 @@ await Raven.Delay(1.2f);
 </p>
 
 - **0 B per frame** for property, effect, sequence and custom tweens — enforced by the test suite.
-- **About 0.6 ms/frame** for 5,000 simultaneous tweens (desktop CPU, Editor, Mono).
+- **About 0.5 ms/frame** for 5,000 simultaneous tweens (desktop CPU, Editor, Mono).
 - Sequences with timeline callbacks, shake & punch, TextMeshPro, async/await, coroutines, cancellation tokens.
 - Full time control: elapsed time and progress you can read and set, per-tween time scale, `FixedUpdate` and Rigidbody tweens.
 - Single-axis, speed-based and per-renderer property-block tweens; Incremental and PingPong cycles; tunable Overshoot / Bounce / Elastic eases.

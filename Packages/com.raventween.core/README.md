@@ -23,7 +23,7 @@
 | | |
 | --- | --- |
 | **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
-| **Fast** | 5,000 simultaneous tweens step in **about 0.6 ms/frame** on a desktop CPU (Editor, Mono, mixed workload). |
+| **Fast** | 5,000 simultaneous tweens step in **about 0.5 ms/frame** on a desktop CPU (Editor, Mono, mixed workload). |
 | **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
 | **Designers included** | Animations without code or animation knowledge: 44 ready-made **motions** in a **Motion Library**, **Raven Motion**, **Raven Stagger**, **Raven Button Feel**, **Raven Show Hide**, **Raven Feedback**, **Raven Path**, text components, plus **Tween Templates** and a visual **Sequence Editor**. See [Designer workflow](#designer-workflow-no-code). |
 | **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
@@ -294,7 +294,7 @@ Measured by the package's own test suite (`Tests/PerformanceTests.cs`). The allo
 | 5,000 mixed tweens (position, scale, rotation, shake, custom), steady state | **0 B** allocated per frame |
 | 200 infinite sequences, including cycle wraps | **0 B** allocated per frame |
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
-| 5,000 mixed tweens, engine step cost | **about 0.6 ms/frame** (Intel Core i7-14700KF, Unity 6.3 Editor, Mono; expect 2–3× on a laptop CPU) |
+| 5,000 mixed tweens, engine step cost | **about 0.5 ms/frame** (Intel Core i7-14700KF, Unity 6.3 Editor, Mono; expect 2–3× on a laptop CPU) |
 | Starting 4,000 shakes | **under 1 ms** in total |
 
 What does allocate, by design: a lambda that **captures** a local (once, at creation — standard C#), `ToYieldInstruction()` (one small object per call) and `async` state machines. Use them for flow control, not per-frame work.
@@ -333,7 +333,7 @@ Import from **Package Manager → RavenTween → Samples**. Each sample builds i
 | 02 - Gameplay | Hops, spins, patrol loop |
 | 03 - Camera | Breathing zoom, background blend, punch zoom |
 | 04 - Materials | Staggered material color waves |
-| 05 - Complex Sequence | Nested Chain / Group / Insert driven by a coroutine |
+| 05 - Complex Sequence | Nested Chain / Group / Insert driven by an async/await loop |
 | 06 - Benchmark | Thousands of tweens with frame-time and GC readout |
 | 07 - TextMeshPro | Typewriter, number counter, punch feedback |
 | 08 - Procedural | Head look-at and antenna spring, blended with weight tweens |

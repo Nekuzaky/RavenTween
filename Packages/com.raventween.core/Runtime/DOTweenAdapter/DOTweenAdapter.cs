@@ -1,8 +1,5 @@
 using UnityEngine;
 
-// Migration helper: replace `using DG.Tweening;` with `using RavenTween; using RavenTween.DOTweenAdapter;`
-// and the most common DOTween calls compile unchanged, running on RavenTween. Lives in its own
-// namespace, so it never clashes with DOTween itself while both are installed.
 namespace RavenTween.DOTweenAdapter {
     public enum LoopType { Restart = 0, Yoyo = 1, Incremental = 2 }
 
@@ -13,9 +10,7 @@ namespace RavenTween.DOTweenAdapter {
     public delegate T DOGetter<out T>();
     public delegate void DOSetter<in T>(T value);
 
-    /// <summary>DOTween's static entry points.</summary>
     public static class DOTween {
-        /// <summary>Advances the tweens set to <see cref="UpdateType.Manual"/>.</summary>
         public static void ManualUpdate(float deltaTime, float unscaledDeltaTime) {
             Raven.Step(deltaTime, unscaledDeltaTime, UpdatePhase.Manual);
         }
@@ -70,7 +65,6 @@ namespace RavenTween.DOTweenAdapter {
         }
     }
 
-    /// <summary>DOTween's DOVirtual helpers.</summary>
     public static class DOVirtual {
         public static Tween Float(float from, float to, float duration, TweenCallback<float> onVirtualUpdate) {
             return Raven.Value(from, to, duration).OnUpdate(v => onVirtualUpdate(v));
@@ -84,7 +78,6 @@ namespace RavenTween.DOTweenAdapter {
             return Raven.Value(from, to, duration).OnUpdate((TweenValue v) => onVirtualUpdate(v.Color));
         }
 
-        /// <summary>Like DOTween, ignores Time.timeScale unless <paramref name="ignoreTimeScale"/> is false.</summary>
         public static Tween DelayedCall(float delay, TweenCallback callback, bool ignoreTimeScale = true) {
             return Raven.Delay(delay, () => callback()).UnscaledTime(ignoreTimeScale);
         }

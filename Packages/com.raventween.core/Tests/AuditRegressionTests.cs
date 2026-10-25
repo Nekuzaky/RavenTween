@@ -5,7 +5,6 @@ using UnityEngine.TestTools;
 using Object = UnityEngine.Object;
 
 namespace RavenTween.Tests {
-    /// <summary>One test per engine finding of the robustness audit; each failed before its fix.</summary>
     public sealed class AuditRegressionTests {
         GameObject _go;
 
@@ -26,8 +25,6 @@ namespace RavenTween.Tests {
         static void Step(float delta, int frames = 1) {
             for (int i = 0; i < frames; i++) { TweenEngine.Process(delta, delta); }
         }
-
-        // ----- Reentrancy -----
 
         [Test]
         public void CompleteSelf_FromOnUpdate_DoesNotRecurse() {
@@ -79,15 +76,13 @@ namespace RavenTween.Tests {
             var a = Raven.Value(0f, 1f, 0.1f);
             Raven.Value(0f, 1f, 5f);
             Tween c = Raven.Value(0f, 1f, 5f);
-            c.Stop(); // frees a slot with a higher index than a
+            c.Stop();
             a.OnComplete(() => Raven.Value(0f, 10f, 1f).OnUpdate(v => value = v));
             Step(0.2f);
             Assert.That(value, Is.EqualTo(-1f), "A new tween must start on the next frame, whatever slot it reuses.");
             Step(0.5f);
             Assert.That(value, Is.EqualTo(5f).Within(1e-3f));
         }
-
-        // ----- Await on sequence children -----
 
         [Test]
         public void AwaitingSequenceChild_Resumes_WhenSequenceEnds() {
@@ -98,8 +93,6 @@ namespace RavenTween.Tests {
             Step(0.1f, 10);
             Assert.That(resumed, Is.True);
         }
-
-        // ----- Exception isolation -----
 
         [Test]
         public void ThrowingEase_StopsOnlyThatTween_EngineKeepsRunning() {
@@ -150,8 +143,6 @@ namespace RavenTween.Tests {
             Assert.That(_go.transform.localPosition.y, Is.EqualTo(2f).Within(1e-3f));
             Object.DestroyImmediate(template);
         }
-
-        // ----- Sequence structure -----
 
         [Test]
         public void SequenceContainingItself_IsRejected() {
@@ -206,8 +197,6 @@ namespace RavenTween.Tests {
             Assert.That(Vector3.Distance(_go.transform.localPosition, new Vector3(1f, 0.5f, 0f)), Is.LessThan(1e-3f));
         }
 
-        // ----- Extremes -----
-
         [Test]
         public void HugeDelta_OnInfiniteTween_ReturnsQuickly() {
             Raven.Value(0f, 1f, 0.0001f).Infinite();
@@ -239,8 +228,6 @@ namespace RavenTween.Tests {
             Assert.That(_go.transform.localScale.x, Is.EqualTo(1.5f).Within(1e-3f), "The bad From is ignored; the tween starts from the current scale.");
         }
 
-        // ----- Effects -----
-
         [Test]
         public void YoyoShake_EndsExactlyAtRest() {
             _go.transform.localPosition = new Vector3(1f, 2f, 3f);
@@ -259,8 +246,6 @@ namespace RavenTween.Tests {
             Assert.That(_go.transform.localScale.x, Is.EqualTo(1f).Within(1e-4f), "A second punch must not drift the rest scale.");
         }
 
-        // ----- Custom tweens -----
-
         [Test]
         public void CustomOnDestroyedObject_ReturnsDeadHandle() {
             var doomed = new GameObject("doomed");
@@ -269,8 +254,6 @@ namespace RavenTween.Tests {
             Tween t = Raven.Custom(doomed, 0f, 1f, 1f, (g, v) => { });
             Assert.That(t.IsAlive, Is.False);
         }
-
-        // ----- Components -----
 
         [Test]
         public void Animator_CompleteNow_WithAFinishedEntry_DoesNotThrow() {
@@ -321,6 +304,102 @@ namespace RavenTween.Tests {
             Step(0.1f, 5);
             Assert.That(runs, Is.EqualTo(2));
             Object.DestroyImmediate(template);
+        }
+
+        [Test]
+        public void EmptySequence_OnAFreshPoolSlot_Completes() {
+            Raven.SetCapacity(TweenEngine.PoolSize + 1);
+            bool done = false;
+            Raven.Sequence().OnComplete(() => done = true);
+            Assert.DoesNotThrow(() => Step(0.1f));
+            Assert.That(done, Is.True);
+        }
+
+        [Test]
+        public void DelayOnlySequence_OnAFreshPoolSlot_PlaysItsDelay() {
+            Raven.SetCapacity(TweenEngine.PoolSize + 1);
+            bool done = false;
+            Sequence timer = Raven.Sequence().ChainDelay(0.3f).OnComplete(() => done = true);
+            Step(0.2f);
+            Assert.That(timer.IsAlive, Is.True);
+            Step(0.2f);
+            Assert.That(done, Is.True);
+        }
+
+        [Test]
+        public void HandleFromBeforeAnEngineReset_NeverReachesANewTween() {
+            TweenEngine.DomainReset();
+            Tween old = Raven.Value(0f, 1f, 1f);
+            TweenEngine.DomainReset();
+            Tween fresh = Raven.Value(0f, 1f, 1f);
+            Assert.That(old.IsAlive, Is.False);
+            Assert.That(old.Equals(fresh), Is.False);
+            old.Stop();
+            Assert.That(fresh.IsAlive, Is.True);
+        }
+
+        [Test]
+        public void HitStop_WhileTheGameIsPaused_KeepsThePause() {
+            try {
+                Time.timeScale = 0f;
+                Raven.HitStop(0.05f, 0.1f);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+                Step(0.2f);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+            } finally {
+                Raven.EndHitStop();
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void SlowMotion_WhileTheGameIsPaused_KeepsThePause() {
+            try {
+                Time.timeScale = 0f;
+                Raven.SlowMotion(0.3f, 1f);
+                Step(0.1f, 5);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+                Step(0.1f, 7);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+            } finally {
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void SlowMotion_DuringAHitStop_RestoresTheSpeedFromBeforeTheHitStop() {
+            try {
+                Time.timeScale = 0.5f;
+                Raven.HitStop(0.05f, 0.05f);
+                Raven.SlowMotion(0.3f, 1f);
+                Step(0.1f, 12);
+                Assert.That(Time.timeScale, Is.EqualTo(0.5f).Within(1e-3f));
+            } finally {
+                Raven.EndHitStop();
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void Eases_TreatANaNTimeAsTheStart() {
+            LogAssert.ignoreFailingMessages = true;
+            foreach (Ease ease in Enum.GetValues(typeof(Ease))) {
+                if (ease == Ease.Custom) { continue; }
+                Assert.That(EaseUtility.Evaluate(ease, float.NaN), Is.EqualTo(EaseUtility.Evaluate(ease, 0f)), ease.ToString());
+            }
+            Assert.That(Easing.Overshoot().Evaluate(float.NaN), Is.EqualTo(0f));
+            Assert.That(Easing.Bounce().Evaluate(float.NaN), Is.EqualTo(0f));
+            Assert.That(Easing.Elastic().Evaluate(float.NaN), Is.EqualTo(0f));
+            Assert.That(Easing.FromCurve(AnimationCurve.Linear(0f, 0f, 1f, 1f)).Evaluate(float.NaN), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void Seek_ToANaNTime_ShowsTheStart() {
+            LogAssert.ignoreFailingMessages = true;
+            float shown = -1f;
+            Tween tween = Raven.Value(0f, 1f, 1f).OnUpdate(v => shown = v);
+            TweenEngine.Seek(tween.Index, tween.Version, float.NaN);
+            Assert.That(shown, Is.EqualTo(0f));
         }
 
         static TweenTemplate MakeTemplate(float duration) {

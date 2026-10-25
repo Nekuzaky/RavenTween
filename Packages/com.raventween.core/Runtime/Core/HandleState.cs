@@ -2,10 +2,6 @@ using System.Threading;
 using UnityEngine;
 
 namespace RavenTween {
-    /// <summary>
-    /// State queries and changes shared by <see cref="Tween"/> and <see cref="Sequence"/> handles.
-    /// Every method is safe on a dead handle: getters return 0 / false, setters do nothing.
-    /// </summary>
     static class HandleState {
         public static bool IsPaused(int index, uint version) {
             return TweenEngine.TryGetSlot(index, version, out TweenSlot slot) && slot.State == SlotState.Paused;
@@ -106,7 +102,6 @@ namespace RavenTween {
             slot.CompleteInvoker = TargetCallbacks<T>.Complete;
         }
 
-        // Timing of a sequence child is driven by its sequence.
         static bool TryGetRoot(int index, uint version, string what, out TweenSlot slot) {
             if (!TweenEngine.TryGetSlot(index, version, out slot)) { return false; }
             if (!slot.OwnedBySequence) { return true; }
@@ -116,7 +111,6 @@ namespace RavenTween {
         }
     }
 
-    /// <summary>One cached invoker per target type: target-based callbacks never allocate a closure.</summary>
     static class TargetCallbacks<T> where T : class {
         public static readonly System.Action<object, System.Delegate> Complete =
             (target, callback) => ((System.Action<T>)callback)((T)target);

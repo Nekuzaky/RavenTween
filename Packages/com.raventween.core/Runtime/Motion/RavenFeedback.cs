@@ -4,47 +4,27 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace RavenTween {
-    /// <summary>One step of a <see cref="RavenFeedback"/>: a shake, a flash, a sound, a hit stop…</summary>
     [Serializable]
     public sealed class FeedbackAction {
         public enum Kind : byte {
-            /// <summary>Any ready-made motion on an object.</summary>
             Motion = 0,
-            /// <summary>Shakes a camera.</summary>
             CameraShake = 1,
-            /// <summary>A springy scale kick.</summary>
             Punch = 2,
-            /// <summary>Flashes a color and fades back.</summary>
             ColorFlash = 3,
-            /// <summary>Plays a sound.</summary>
             Sound = 4,
-            /// <summary>Freezes the game for an instant, like a heavy hit.</summary>
             HitStop = 5,
-            /// <summary>Plays a particle system.</summary>
             Particles = 6,
-            /// <summary>Turns an object on or off.</summary>
             SetActive = 7,
-            /// <summary>Calls anything through a UnityEvent.</summary>
             Event = 8,
-            /// <summary>Flashes a light brighter, then back.</summary>
             LightFlash = 9,
-            /// <summary>Widens a camera's field of view for an instant (speed, impact).</summary>
             FieldOfView = 10,
-            /// <summary>Kicks an object along a direction and springs it back.</summary>
             Nudge = 11,
-            /// <summary>Twists an object around an axis and springs it back.</summary>
             Twist = 12,
-            /// <summary>Slows the game down smoothly, holds, then speeds back up.</summary>
             SlowMotion = 13,
-            /// <summary>Sets a trigger on an Animator.</summary>
             AnimatorTrigger = 14,
-            /// <summary>Spawns a prefab at the object (a puff, sparks, a popup).</summary>
             Spawn = 15,
-            /// <summary>Vibrates the gamepad (needs the Input System package).</summary>
             Rumble = 16,
-            /// <summary>Flashes a post-processing Volume in and out (needs URP or HDRP).</summary>
             VolumeFlash = 17,
-            /// <summary>Sends a Cinemachine impulse (needs Cinemachine).</summary>
             CameraImpulse = 18
         }
 
@@ -112,7 +92,6 @@ namespace RavenTween {
             if (Owner != null && Owner.isActiveAndEnabled) { Run(); }
         }
 
-        /// <summary>Does the action now, if its chance allows. Each kind is a few lines on top of the engine.</summary>
         internal void Run() {
             if (chance < 1f && UnityEngine.Random.value > chance) { return; }
             Transform on = target != null ? target : (Owner != null ? Owner.transform : null);
@@ -140,7 +119,6 @@ namespace RavenTween {
             }
         }
 
-        // Kinds served by optional assemblies, which register themselves when their package exists.
         void RunHook(Action<FeedbackAction, float> hook, float power, string needs) {
             if (hook != null) { hook(this, power); return; }
             if (_warnedMissing) { return; }
@@ -148,8 +126,6 @@ namespace RavenTween {
             Debug.LogWarning("RavenTween: the " + kind + " feedback needs " + needs + " in the project.", Owner);
         }
 
-        // The rest value is read when no flash is running, so it follows the game (day and night,
-        // a zoom) while rapid repeats never drift. A light resting at 0 (a muzzle flash) still flashes.
         void FlashLight(float power) {
             if (light == null) { return; }
             if (!_lightFlash.IsAlive || _lightOwner != light) {
@@ -161,7 +137,6 @@ namespace RavenTween {
             _lightFlash = Raven.Intensity(light, peak, duration * 0.5f).From(_restIntensity).Ease(Ease.OutQuad).Cycles(2, CycleMode.Yoyo);
         }
 
-        // Perspective cameras widen their field of view; orthographic ones their size.
         void KickFieldOfView(float power) {
             Camera kicked = camera != null ? camera : Camera.main;
             if (kicked == null) { return; }
@@ -196,15 +171,12 @@ namespace RavenTween {
             if (lifetime > 0f) { UnityEngine.Object.Destroy(spawned, lifetime); }
         }
 
-        /// <summary>Stops a motion this action started and puts back what it animated.</summary>
         internal void Stop() {
             if (!_running.IsAlive) { return; }
             _running.Stop();
             if (_hasRest && _resolved.IsValid) { _rest.Apply(_resolved, _channels); }
         }
 
-        // The rest pose is taken at the first run, so rapid repeats never drift; between runs
-        // it follows an object that has moved (an enemy, a scrolling list).
         void PlayMotion(Transform on, MotionPreset preset, MotionSettings motionSettings) {
             if (on == null || preset == MotionPreset.None) { return; }
             if (_resolved.Transform != on) {
@@ -234,8 +206,6 @@ namespace RavenTween {
             if (shaken != null) { Raven.ShakeCamera(shaken, power, duration); }
         }
 
-        // A random pitch is set on the Audio Source itself (one-shots follow the source's pitch),
-        // so give pitched sounds a source of their own. At 1 / 1 the source is left untouched.
         void PlaySound(Transform on) {
             if (clip == null) { return; }
             if (source != null) {
@@ -256,21 +226,12 @@ namespace RavenTween {
         }
     }
 
-    /// <summary>
-    /// Where the optional integrations plug their feedback actions in (Input System rumble,
-    /// SRP volumes, Cinemachine impulses). Each is set by its assembly when its package is present.
-    /// </summary>
     public static class FeedbackHooks {
         public static Action<FeedbackAction, float> Rumble;
         public static Action<FeedbackAction, float> VolumeFlash;
         public static Action<FeedbackAction, float> CameraImpulse;
     }
 
-    /// <summary>
-    /// "Juice" without code: a list of actions — camera shake, punch, color flash, sound, hit
-    /// stop, particles, any motion — played together, each after its own delay. Start it from
-    /// a click, a hover, a trigger zone, a collision, or any UnityEvent (Play).
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Feedback")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     public sealed class RavenFeedback : MonoBehaviour, IMotionTriggerable {
@@ -287,7 +248,6 @@ namespace RavenTween {
 
         public List<FeedbackAction> Actions { get { return actions; } }
         public MotionTrigger Trigger { get { return trigger; } set { trigger = value; EnsureTriggerHooks(); } }
-        /// <summary>Seconds before the feedback can play again (0 = no limit).</summary>
         public float Cooldown { get { return cooldown; } set { cooldown = Mathf.Max(value, 0f); } }
 
         void Awake() {
@@ -306,7 +266,6 @@ namespace RavenTween {
             Stop();
         }
 
-        /// <summary>Plays every action, each after its own delay.</summary>
         public void Play() {
             if (!isActiveAndEnabled) { return; }
             float now = Time.unscaledTime;
@@ -322,12 +281,10 @@ namespace RavenTween {
                     continue;
                 }
                 action.Run();
-                // An action may have turned this object off: the rest of the feedback stops with it.
                 if (!isActiveAndEnabled) { break; }
             }
         }
 
-        /// <summary>Cancels delayed actions and puts animated objects back.</summary>
         public void Stop() {
             for (int i = 0; i < _pending.Count; i++) { _pending[i].Stop(); }
             _pending.Clear();
@@ -338,7 +295,7 @@ namespace RavenTween {
 
         public void HandleTrigger(MotionTrigger started) {
             if (started != trigger) { return; }
-            if (started == MotionTrigger.OnClick && _button != null) { return; } // The Button listener plays it.
+            if (started == MotionTrigger.OnClick && _button != null) { return; }
             Play();
         }
 
@@ -349,23 +306,13 @@ namespace RavenTween {
         }
 
         void EnsureTriggerHooks() {
-            if (trigger != MotionTrigger.OnClick && _button != null) {
-                _button.onClick.RemoveListener(Play);
-                _button = null;
-            }
-            if (trigger == MotionTrigger.OnClick && _button == null) {
-                // A click on a Button (or inside one) is the Button's: listen to it.
-                _button = GetComponentInParent<UnityEngine.UI.Button>();
-                if (_button != null) { _button.onClick.AddListener(Play); return; }
-            }
-            if (!(trigger == MotionTrigger.OnClick && _button != null)) { MotionTriggers.EnsurePointerRelay(gameObject, trigger); }
+            _button = MotionTriggers.HookTrigger(this, trigger, _button, Play);
         }
 
         void OnDestroy() {
             if (_button != null) { _button.onClick.RemoveListener(Play); }
         }
 
-        // The inspector writes the trigger directly: apply its hooks when it changes in Play Mode.
         void OnValidate() {
             if (Application.isPlaying && isActiveAndEnabled) { EnsureTriggerHooks(); }
         }

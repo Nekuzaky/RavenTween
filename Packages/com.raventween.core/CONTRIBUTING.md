@@ -8,6 +8,8 @@ Thanks for taking the time to improve RavenTween. The bar for this package is "i
 - **No reflection, no threads, no recursion** in runtime code. Nested-structure walks use explicit work stacks with depth guards.
 - **Short functions, defensive checks.** Keep functions under ~60 lines, validate inputs with `Debug.Assert` plus a graceful runtime fallback (assertions are stripped from release builds).
 - **Warning-free.** The package must compile clean with the default Unity compiler settings and pass Roslyn analyzers without suppressions.
+- **No comments.** The C# carries no comments (`//`, `///` or `/* */`), in the package, its tests and samples, and the development project. Document behavior in `docs/wiki`: the public API in [API Details](../../docs/wiki/API-Details.md), design notes in [Engine Internals](../../docs/wiki/Engine-Internals.md).
+- **No coroutines.** Tests are plain `[Test]` methods that step the engine (`TweenEngine.Process`, `Raven.Step`), physics (`Physics.Simulate`) and other systems themselves; samples use `async` / `await`. `ToYieldInstruction()` stays for users' own coroutines.
 - **Tests first.** Every bug fix lands with a test that fails before the fix. Keep coverage above 90% of runtime code.
 
 ## Workflow
@@ -20,7 +22,7 @@ Thanks for taking the time to improve RavenTween. The bar for this package is "i
 
 ## Continuous integration
 
-`.github/workflows/tests.yml` runs the Play Mode suite in package mode on Unity 2021.3, 2022.3 and 6 using GameCI. It needs three repository secrets (**Settings → Secrets and variables → Actions**):
+`.github/workflows/tests.yml` runs the Edit Mode and Play Mode suites in package mode on Unity 2022.3, 6000.0, 6000.3 and 6000.5 using GameCI. It needs three repository secrets (**Settings → Secrets and variables → Actions**):
 
 | Secret | Value |
 | --- | --- |

@@ -4,7 +4,6 @@ using UnityEngine.Playables;
 using UnityEngine.Timeline;
 
 namespace RavenTween.Tests {
-    /// <summary>Raven Motion Track: clips sampled exactly at the playhead.</summary>
     public sealed class RavenMotionTrackTests {
         GameObject _go;
         TimelineAsset _timeline;

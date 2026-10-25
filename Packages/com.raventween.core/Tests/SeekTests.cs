@@ -2,7 +2,6 @@ using NUnit.Framework;
 using UnityEngine;
 
 namespace RavenTween.Tests {
-    /// <summary>Seek drives editor scrubbing: any time, any order, same pose as real playback.</summary>
     public sealed class SeekTests {
         GameObject _go;
 
@@ -24,7 +23,6 @@ namespace RavenTween.Tests {
                 .Chain(Raven.LocalPosition(_go.transform, new Vector3(1f, 1f, 0f), 1f));
         }
 
-        // The editor restores recorded values before every seek; tests do the same.
         void SeekFromRest(Sequence s, float time) {
             _go.transform.localPosition = Vector3.zero;
             TweenEngine.Seek(s.Index, s.Version, time);

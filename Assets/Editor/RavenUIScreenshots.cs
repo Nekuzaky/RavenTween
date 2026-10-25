@@ -7,11 +7,6 @@ using UnityEditorInternal;
 using UnityEngine;
 
 namespace RavenTweenDemo {
-    /// <summary>
-    /// Self-driving capture of the package UI: opens the demo scene, selects objects,
-    /// screenshots the Inspector and the Monitor window (in Play Mode), then exits.
-    /// Launched via -executeMethod RavenTweenDemo.RavenUIScreenshots.Run.
-    /// </summary>
     [InitializeOnLoad]
     public static class RavenUIScreenshots {
         const string StageKey = "RavenShots.Stage";
@@ -94,9 +89,6 @@ namespace RavenTweenDemo {
             }
         }
 
-        // ----- Designer workflow captures (no Play Mode) -----
-        // Launched via -executeMethod RavenTweenDemo.RavenUIScreenshots.RunDesigner.
-
         static RavenSequencePlayer _showcase;
 
         public static void RunDesigner() {
@@ -141,7 +133,6 @@ namespace RavenTweenDemo {
                     Capture(EditorWindow.GetWindow<MotionLibraryWindow>(), "designer_motion_library.png");
                     break;
                 case 7:
-                    // Leave the user's layout as it was: Unity saves open windows on exit.
                     EditorWindow.GetWindow<MotionLibraryWindow>().Close();
                     RestoreInspector();
                     EditorApplication.update -= DesignerStage;
@@ -151,9 +142,6 @@ namespace RavenTweenDemo {
                     break;
             }
         }
-
-        // ----- No-code component captures (no Play Mode) -----
-        // Launched via -executeMethod RavenTweenDemo.RavenUIScreenshots.RunInspectors.
 
         static GameObject[] _shots;
 
@@ -204,7 +192,6 @@ namespace RavenTweenDemo {
             }
         }
 
-        // An enemy reacting to a hit: the Raven Feedback list in use.
         static GameObject BuildFeedbackObject() {
             GameObject enemy = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             enemy.name = "Enemy";
@@ -220,7 +207,6 @@ namespace RavenTweenDemo {
             return enemy;
         }
 
-        // Unfolds a list and its first elements, so the inspector shows what is in it.
         static void Expand(Object target, string list, int elements) {
             var serialized = new SerializedObject(target);
             SerializedProperty property = serialized.FindProperty(list);
@@ -246,7 +232,6 @@ namespace RavenTweenDemo {
             return go;
         }
 
-        // A pause menu that pops in and out.
         static GameObject BuildShowHideObject() {
             GameObject pause = Panel("Pause Menu", Canvas());
             var showHide = pause.AddComponent<RavenShowHide>();
@@ -256,7 +241,6 @@ namespace RavenTweenDemo {
             return pause;
         }
 
-        // A main menu whose buttons cascade in.
         static GameObject BuildStaggerObject() {
             var menu = new GameObject("Main Menu", typeof(RectTransform), typeof(UnityEngine.UI.VerticalLayoutGroup));
             menu.transform.SetParent(Canvas(), false);
@@ -269,7 +253,6 @@ namespace RavenTweenDemo {
             return menu;
         }
 
-        // A moving platform going back and forth along three points.
         static GameObject BuildPathObject() {
             GameObject platform = GameObject.CreatePrimitive(PrimitiveType.Cube);
             platform.name = "Moving Platform";
@@ -287,13 +270,11 @@ namespace RavenTweenDemo {
 
         static GameObject _motionObject;
 
-        // A collectible with an idle float: what the Raven Motion inspector looks like in use.
         static GameObject BuildMotionObject() {
             GameObject coin = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             coin.name = "Gold Coin";
             coin.transform.position = new Vector3(0f, 1.5f, 0f);
             Object.DestroyImmediate(coin.GetComponent<Collider>());
-            // Folded so the Raven Motion inspector is in view.
             InternalEditorUtility.SetIsInspectorExpanded(coin.GetComponent<MeshFilter>(), false);
             InternalEditorUtility.SetIsInspectorExpanded(coin.GetComponent<MeshRenderer>(), false);
             var motion = coin.AddComponent<RavenMotion>();
@@ -301,7 +282,6 @@ namespace RavenTweenDemo {
             return coin;
         }
 
-        // A five-step choreography built in memory (never saved), so the timeline has something to show.
         static RavenSequencePlayer BuildShowcase() {
             GameObject crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             crate.name = "Reward Chest";

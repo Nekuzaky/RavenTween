@@ -3,7 +3,6 @@ using RavenTween.Editor;
 using UnityEngine;
 
 namespace RavenTween.Tests {
-    /// <summary>Edit Mode previews restore everything they touched, whatever the property.</summary>
     public sealed class EditorPreviewTests {
         GameObject _go;
         Material _material;

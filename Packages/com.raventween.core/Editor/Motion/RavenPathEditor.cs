@@ -3,10 +3,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Raven Path editing: drag the points in the Scene view, see the curve, add or remove points
-    /// from the inspector, and preview the trip outside Play Mode.
-    /// </summary>
     [CustomEditor(typeof(RavenPath))]
     public sealed class RavenPathEditor : UnityEditor.Editor {
         static readonly Color PathColor = new Color(0.4f, 0.75f, 1f, 0.95f);
@@ -64,7 +60,6 @@ namespace RavenTween.Editor {
             var path = (RavenPath)target;
             if (path.Points.Count == 0) { return; }
             bool previewing = EditorTweenPreview.Owner == (object)this && EditorTweenPreview.IsActive;
-            // Outside Play Mode and previews the path follows the object as it is moved around.
             if (!Application.isPlaying && !previewing) { path.ForgetOrigin(); }
             path.GetWorldPolyline(_polyline);
             Handles.color = PathColor;

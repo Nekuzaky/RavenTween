@@ -32,6 +32,7 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 | Page | What you'll find |
 | :--- | :--- |
 | **[Installation](Installation)** | Add RavenTween through the Package Manager with a Git URL. |
+| **[Samples](Samples)** | What each of the ten samples shows. |
 | **[Getting Started](Getting-Started)** | Your first tweens, sequences and awaits in five minutes. |
 | **[Tweens and Easing](Tweens-and-Easing)** | Every built-in target, `From`, delays, cycles, yoyo, and the 31 easing curves. |
 | **[Sequences](Sequences)** | `Chain`, `Group`, `Insert`, delays, nesting, and looping whole timelines. |
@@ -46,6 +47,8 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
 | **[Migrating](Migrating)** | Side-by-side equivalents for DOTween and PrimeTween. |
 | **[Reference](Reference)** | The complete API, tables only. |
+| **[API Details](API-Details)** | Every public type and member, with its exact behavior. |
+| **[Engine Internals](Engine-Internals)** | How the engine works inside, for contributors. |
 | **[Known Pitfalls](Known-Pitfalls)** | Five behaviors that surprise newcomers, and what to do about them. |
 | **[FAQ](FAQ)** | Short answers to the questions that come up most. |
 
@@ -109,7 +112,7 @@ The full list is in the **[Changelog](Changelog)**.
 ## Why RavenTween?
 
 - **Zero garbage while playing** — property, effect, sequence and custom tweens allocate 0 B per frame, enforced by tests.
-- **Fast** — 5,000 simultaneous tweens step in about 0.6 ms per frame on a desktop CPU.
+- **Fast** — 5,000 simultaneous tweens step in about 0.5 ms per frame on a desktop CPU.
 - **Safe by construction** — handles are small structs; a handle to a finished tween is simply dead, and every call on it does nothing. Destroying a target mid-tween never throws.
 - **No hidden state** — tweens are single-use. Reusable configurations live in Tween Template assets instead.
 - **Runs everywhere** — pure managed C#: no threads, reflection, native plugins or runtime code generation. IL2CPP, WebGL, mobile and consoles are all fine.

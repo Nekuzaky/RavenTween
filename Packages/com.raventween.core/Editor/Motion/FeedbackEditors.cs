@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Draws a feedback action with only the fields its kind uses.</summary>
     [CustomPropertyDrawer(typeof(FeedbackAction))]
     public sealed class FeedbackActionDrawer : PropertyDrawer {
         const float Gap = 2f;
@@ -26,7 +25,6 @@ namespace RavenTween.Editor {
             Rect kindRect = new Rect(line.x + 14f, line.y, line.width * 0.55f - 14f, line.height);
             Rect delayRect = new Rect(line.x + line.width * 0.55f + 4f, line.y, line.width * 0.45f - 4f, line.height);
             SerializedProperty kind = property.FindPropertyRelative("kind");
-            // An element added to an empty list comes in with every field at zero: give it the defaults.
             if (property.FindPropertyRelative("duration").floatValue <= 0f) { FeedbackActionDefaults.Reset(property); }
             EditorGUI.BeginChangeCheck();
             EditorGUI.PropertyField(kindRect, kind, GUIContent.none);
@@ -128,12 +126,10 @@ namespace RavenTween.Editor {
         }
     }
 
-    /// <summary>Default values of a feedback action, shared by the drawer and the recipes.</summary>
     static class FeedbackActionDefaults {
         static readonly Vector3 NudgeDirection = new Vector3(0f, 0.2f, 0f);
         static readonly Vector3 TwistAxis = new Vector3(0f, 0f, 15f);
 
-        /// <summary>A twist needs degrees, a nudge distance: switch the default when the kind changes.</summary>
         public static void DirectionFor(SerializedProperty action, FeedbackAction.Kind kind) {
             SerializedProperty direction = action.FindPropertyRelative("direction");
             if (kind == FeedbackAction.Kind.Twist && direction.vector3Value == NudgeDirection) { direction.vector3Value = TwistAxis; }
@@ -145,7 +141,6 @@ namespace RavenTween.Editor {
         }
     }
 
-    /// <summary>Raven Feedback inspector: the action list, quick-add buttons and a Play button.</summary>
     [CustomEditor(typeof(RavenFeedback))]
     public sealed class RavenFeedbackEditor : UnityEditor.Editor {
         public override void OnInspectorGUI() {
@@ -182,7 +177,6 @@ namespace RavenTween.Editor {
             EditorGUILayout.EndHorizontal();
         }
 
-        // Ready-made recipes: a starting point anyone can tweak.
         void AddHit() {
             Add(FeedbackAction.Kind.CameraShake, 0f, a => { a.FindPropertyRelative("strength").floatValue = 0.6f; a.FindPropertyRelative("duration").floatValue = 0.25f; });
             Add(FeedbackAction.Kind.HitStop, 0f, a => { a.FindPropertyRelative("timeScale").floatValue = 0.05f; a.FindPropertyRelative("duration").floatValue = 0.07f; });
@@ -211,7 +205,6 @@ namespace RavenTween.Editor {
             setup(action);
         }
 
-        // A new array element copies the previous one; start every recipe from the defaults instead.
         internal static void ResetAction(SerializedProperty action) {
             action.FindPropertyRelative("target").objectReferenceValue = null;
             action.FindPropertyRelative("motion").intValue = (int)MotionPreset.Pulse;

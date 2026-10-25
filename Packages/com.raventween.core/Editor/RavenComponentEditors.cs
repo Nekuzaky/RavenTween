@@ -5,7 +5,6 @@ namespace RavenTween.Editor {
     static class RavenPreviewBar {
         const float ButtonHeight = 24f;
 
-        /// <summary>Shared Play / Stop / Complete toolbar used by both component inspectors.</summary>
         public static void Draw(System.Action play, System.Action stop, System.Action complete) {
             Debug.Assert(play != null && stop != null && complete != null, "Preview bar needs all three actions.");
             using (new EditorGUI.DisabledScope(!Application.isPlaying)) {
@@ -25,7 +24,6 @@ namespace RavenTween.Editor {
         }
     }
 
-    /// <summary>Adds play-mode preview buttons under the default RavenAnimator inspector.</summary>
     [CustomEditor(typeof(RavenAnimator))]
     public sealed class RavenAnimatorEditor : UnityEditor.Editor {
         public override void OnInspectorGUI() {
@@ -36,7 +34,6 @@ namespace RavenTween.Editor {
         }
     }
 
-    /// <summary>Adds play-mode preview buttons under the default RavenSequencePlayer inspector.</summary>
     [CustomEditor(typeof(RavenSequencePlayer))]
     public sealed class RavenSequencePlayerEditor : UnityEditor.Editor {
         public override void OnInspectorGUI() {

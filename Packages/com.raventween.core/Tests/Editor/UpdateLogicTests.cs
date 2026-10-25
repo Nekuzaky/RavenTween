@@ -57,6 +57,13 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void CheckIsDue_WhenTheStoredDateIsCorrupt() {
+            DateTime now = new DateTime(2026, 10, 7, 12, 0, 0, DateTimeKind.Utc);
+            Assert.That(UpdateLogic.IsCheckDue(long.MaxValue, now), Is.True);
+            Assert.That(UpdateLogic.IsCheckDue(DateTime.MaxValue.Ticks + 1, now), Is.True);
+        }
+
+        [Test]
         public void GitIdentifier_ReplacesTag_KeepsPath() {
             string id = UpdateLogic.BuildUpdateIdentifier(InstallSource.Git, GitId, "v1.3.0");
             Assert.That(id, Is.EqualTo("https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.3.0"));
@@ -75,11 +82,10 @@ namespace RavenTween.Tests {
             Assert.That(id, Is.EqualTo("com.raventween.core@1.3.0"));
         }
 
-        // InstallSource is internal, so the cases are passed as their underlying values.
-        [TestCase(3)] // Embedded
-        [TestCase(4)] // Local
-        [TestCase(0)] // Unknown
-        [TestCase(5)] // Managed (Asset Store, Unity registry)
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(0)]
+        [TestCase(5)]
         public void EditableUnknownOrManagedSources_AreNotUpdated(int source) {
             Assert.That(UpdateLogic.BuildUpdateIdentifier((InstallSource)source, GitId, "v1.3.0"), Is.Null);
         }

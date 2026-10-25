@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTween {
-    /// <summary>Built-in animated properties. Driven internally without reflection or boxing.</summary>
     public enum PropertyKind : byte {
         None = 0,
         Position,
@@ -27,7 +26,6 @@ namespace RavenTween {
         SpriteColor,
         LightIntensity,
         LightColor,
-        // Values are serialized in templates: new kinds are only ever appended.
         PositionX,
         PositionY,
         PositionZ,
@@ -44,9 +42,7 @@ namespace RavenTween {
         SpriteAlpha
     }
 
-    /// <summary>Reads and writes built-in properties on their targets. No reflection, no allocation.</summary>
     static class PropertyAccessor {
-        /// <summary>The object type a property is read from and written to.</summary>
         public static System.Type TargetType(PropertyKind kind) {
             switch (kind) {
                 case PropertyKind.AnchoredPosition:
@@ -73,11 +69,6 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>
-        /// Finds the object a property needs from whatever was assigned: the object itself, or a
-        /// component on the same GameObject (a renderer's material for material properties).
-        /// Returns null when nothing suitable exists.
-        /// </summary>
         public static Object ResolveTarget(Object assigned, PropertyKind kind, bool instanceMaterial) {
             if (assigned == null) { return null; }
             System.Type type = TargetType(kind);
@@ -91,7 +82,6 @@ namespace RavenTween {
             return instanceMaterial ? renderer.material : renderer.sharedMaterial;
         }
 
-        /// <summary>Value kind produced and consumed by a given property.</summary>
         public static ValueKind KindOf(PropertyKind kind) {
             switch (kind) {
                 case PropertyKind.AnchoredPosition:
@@ -118,7 +108,6 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>Reads the current value of <paramref name="kind"/> from <paramref name="target"/>.</summary>
         public static TweenValue Read(PropertyKind kind, Object target, int propertyId) {
             Debug.Assert(kind != PropertyKind.None, "PropertyKind.None has no backing property.");
             Debug.Assert(target != null, "Cannot read a property from a destroyed target.");
@@ -169,7 +158,6 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>Writes <paramref name="value"/> to <paramref name="kind"/> on <paramref name="target"/>.</summary>
         public static void Write(PropertyKind kind, Object target, int propertyId, in TweenValue value) {
             Debug.Assert(kind != PropertyKind.None, "PropertyKind.None has no backing property.");
             Debug.Assert(target != null, "Cannot write a property to a destroyed target.");
@@ -257,10 +245,6 @@ namespace RavenTween {
         }
     }
 
-    /// <summary>
-    /// Per-renderer shader values through one shared MaterialPropertyBlock: no material copy, no
-    /// allocation. Values the block doesn't hold yet are read from the shared material.
-    /// </summary>
     static class PropertyBlocks {
         static MaterialPropertyBlock _block;
 

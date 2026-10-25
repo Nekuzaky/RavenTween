@@ -2,11 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Places Raven Sequence Player steps on a timeline with exactly the rules the runtime
-    /// Sequence uses (Chain after everything, Group with the previous item, Insert at a time).
-    /// Pure; covered by tests that compare it with real sequences.
-    /// </summary>
     static class SequenceLayout {
         public struct Block {
             public float Start;
@@ -15,7 +10,6 @@ namespace RavenTween.Editor {
             public bool LoopClamped;
         }
 
-        /// <summary>Length of one step on the timeline; 0 for incomplete steps.</summary>
         public static float StepLength(TweenTemplate template, out bool loopClamped) {
             loopClamped = false;
             if (template == null) { return 0f; }
@@ -28,7 +22,6 @@ namespace RavenTween.Editor {
             return Mathf.Max(s.startDelay, 0f) + Mathf.Max(s.duration, 0f) * cycles;
         }
 
-        /// <summary>Fills <paramref name="blocks"/> (one per step) and returns the total duration.</summary>
         public static float Compute(IList<RavenSequencePlayer.Step> steps, List<Block> blocks) {
             Debug.Assert(steps != null, "Layout needs a step list.");
             Debug.Assert(blocks != null, "Layout needs an output list.");
@@ -41,7 +34,7 @@ namespace RavenTween.Editor {
                 float length = StepLength(step.template, out bool clamped);
                 float start = PlaceStart(step, cursor, lastStart);
                 blocks.Add(new Block { Start = start, Length = length, Valid = valid, LoopClamped = clamped });
-                if (!valid) { continue; } // The runtime skips incomplete steps entirely.
+                if (!valid) { continue; }
                 lastStart = start;
                 float end = start + length;
                 if (end > cursor) { cursor = end; }

@@ -3,11 +3,6 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace RavenTween {
-    /// <summary>
-    /// A number that counts up or down on a TextMeshPro text: scores, coins, damage, timers.
-    /// Call CountTo(value) from code or a UnityEvent; it counts from what is shown now. Formatting
-    /// goes through TextMeshPro's allocation-free SetText.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Counter")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     [RequireComponent(typeof(TMP_Text))]
@@ -38,7 +33,6 @@ namespace RavenTween {
         float _target;
         bool _written;
 
-        /// <summary>The value on screen right now.</summary>
         public float Value { get { return _shown; } }
         public UnityEvent OnComplete { get { return onComplete; } }
 
@@ -59,7 +53,6 @@ namespace RavenTween {
             if (_tween.IsAlive) { _tween.Stop(); }
         }
 
-        /// <summary>Counts from the value shown now to <paramref name="value"/>.</summary>
         public void CountTo(float value) {
             if (!isActiveAndEnabled) { SetValue(value); return; }
             if (_tween.IsAlive) { _tween.Stop(); }
@@ -69,13 +62,11 @@ namespace RavenTween {
                 .OnComplete(this, counter => counter.Finish());
         }
 
-        /// <summary>Adds <paramref name="amount"/> to the value being counted to (score += 50), even mid-count.</summary>
         public void Add(float amount) {
             float from = _tween.IsAlive ? _target : _shown;
             CountTo(from + amount);
         }
 
-        /// <summary>Shows <paramref name="value"/> at once.</summary>
         public void SetValue(float value) {
             if (_tween.IsAlive) { _tween.Stop(); }
             if (_text == null) { _text = GetComponent<TMP_Text>(); BuildFormat(); }
@@ -94,8 +85,6 @@ namespace RavenTween {
             onComplete.Invoke();
         }
 
-        // TextMeshPro's SetText reads "{0:N}" as N decimals. Braces would start another
-        // placeholder, so they are left out of the prefix and suffix.
         void BuildFormat() {
             _format = Clean(prefix) + "{0:" + decimals + "}" + Clean(suffix);
         }

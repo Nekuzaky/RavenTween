@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTween.Tests {
-    /// <summary>Tint, Motion Styles, chaining, Show Hide, Feedback, hit stop and Path.</summary>
     public sealed class NoCodeComponentTests {
         GameObject _go;
         GameObject _canvas;
@@ -31,8 +30,6 @@ namespace RavenTween.Tests {
             const float Frame = 1f / 60f;
             for (float t = 0f; t < seconds; t += Frame) { TweenEngine.Process(Frame, Frame); }
         }
-
-        // ----- Tint -----
 
         [Test]
         public void Tint_FlashesTheColorAndComesBackExactly() {
@@ -70,8 +67,6 @@ namespace RavenTween.Tests {
             Assert.That(_go.transform.localScale, Is.EqualTo(Vector3.one));
         }
 
-        // ----- Motion Styles and chaining -----
-
         [Test]
         public void MotionStyle_ReplacesTheComponentsOwnPreset() {
             _style = ScriptableObject.CreateInstance<MotionStyle>();
@@ -103,8 +98,6 @@ namespace RavenTween.Tests {
             Assert.That(first.IsPlaying, Is.False);
             Assert.That(second.IsPlaying, Is.True, "Pop In then Float.");
         }
-
-        // ----- Show Hide -----
 
         [Test]
         public void ShowHide_HidesThenShowsAtTheDesignedPose() {
@@ -142,7 +135,7 @@ namespace RavenTween.Tests {
             _canvas = new GameObject("panel-canvas", typeof(Canvas));
             var panelObject = new GameObject("panel", typeof(RectTransform), typeof(CanvasGroup));
             panelObject.transform.SetParent(_canvas.transform, false);
-            panelObject.SetActive(false); // Inactive in the scene, hidden before ever being shown.
+            panelObject.SetActive(false);
             var panel = panelObject.AddComponent<RavenShowHide>();
             panel.DeactivateWhenHidden = false;
             panel.Hide();
@@ -181,8 +174,6 @@ namespace RavenTween.Tests {
             Assert.That(_go.activeSelf, Is.False);
             Assert.That(calls, Is.EqualTo(0), "Nothing runs once the feedback's object is off.");
         }
-
-        // ----- Feedback and hit stop -----
 
         [Test]
         public void Feedback_RunsEachActionAfterItsDelay() {
@@ -301,10 +292,8 @@ namespace RavenTween.Tests {
             }
         }
 
-        // ----- Path -----
-
         RavenPath MakePath(params Vector3[] points) {
-            _go.SetActive(false); // Configure before OnEnable plays it.
+            _go.SetActive(false);
             var path = _go.AddComponent<RavenPath>();
             path.Points.Clear();
             path.Points.AddRange(points);

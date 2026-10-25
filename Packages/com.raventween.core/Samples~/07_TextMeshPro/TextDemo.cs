@@ -4,10 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTweenSamples {
-    /// <summary>
-    /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// Shows a typewriter reveal, then a score counter that punches on every update.
-    /// </summary>
     public sealed class TextDemo : MonoBehaviour {
         TMP_Text _title;
         TMP_Text _score;
@@ -21,7 +17,6 @@ namespace RavenTweenSamples {
             _title.text = "The raven takes flight.";
             _score.text = "0";
 
-            // Reveal the title, then start awarding points.
             _title.TweenTypewriter(1.5f).OnComplete(AwardPoints);
         }
 

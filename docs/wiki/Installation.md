@@ -59,7 +59,7 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 | **02 - Gameplay** | Hops, spins, a patrol loop built from a sequence |
 | **03 - Camera** | Breathing zoom, background color blend, punch zoom on Space |
 | **04 - Materials** | Staggered material color waves on a grid of spheres |
-| **05 - Complex Sequence** | Nested `Chain` / `Group` / `Insert` driven by a coroutine |
+| **05 - Complex Sequence** | Nested `Chain` / `Group` / `Insert` driven by an `async` / `await` loop |
 | **06 - Benchmark** | Thousands of tweens with a live frame-time and GC readout |
 | **07 - TextMeshPro** | Typewriter reveal, score counter, punch feedback (needs TextMeshPro) |
 | **08 - Procedural** | A head tracking an orbiting target, a swinging antenna, a look-away driven by weight tweens |
@@ -68,6 +68,8 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 
 > [!NOTE]
 > The samples work with both the legacy Input Manager and the Input System package.
+
+What to look at in each sample: **[Samples](Samples)**.
 
 ---
 
@@ -91,4 +93,4 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 
 ---
 
-#### ◀ **[Home](Home)**  ·  Next: **[Getting Started ▶](Getting-Started)**
+#### ◀ **[Home](Home)**  ·  Next: **[Samples ▶](Samples)**

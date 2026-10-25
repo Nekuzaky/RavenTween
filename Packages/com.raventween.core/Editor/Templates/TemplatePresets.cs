@@ -2,7 +2,6 @@ using System;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Ready-made template settings, applied from the Tween Template inspector.</summary>
     static class TemplatePresets {
         public struct Preset {
             public string Menu;

@@ -4,7 +4,6 @@ using RavenTween.Editor;
 using UnityEngine;
 
 namespace RavenTween.Tests {
-    /// <summary>The timeline must place steps exactly where the runtime sequence plays them.</summary>
     public sealed class SequenceLayoutTests {
         readonly List<Object> _cleanup = new List<Object>();
         readonly List<SequenceLayout.Block> _blocks = new List<SequenceLayout.Block>();
