@@ -51,7 +51,7 @@ User code (callbacks, eases, setters, await continuations) may create, stop, com
 ## Time scale helpers
 
 - A hit stop is counted down by the `Update` pass in unscaled time, whatever the global phase, `Raven.TimeScale` or stopped tweens, so it always ends. Its scale is never exactly 0, so a pause set during the freeze is told apart from it and kept.
-- Hit stops and slow motions never speed the game up: started while `Time.timeScale` is already lower, they do nothing. A slow motion started during a hit stop restores the speed from before the hit stop.
+- Hit stops and slow motions never speed the game up: started while `Time.timeScale` is already lower, they do nothing. During a hit stop, a slow motion compares its scale with the speed the hit stop will restore (the speed from before the hit stop), not with the frozen scale, and restores that speed when it ends; if `Time.timeScale` no longer equals the hit-stop scale, the game has taken over (a pause menu) and the slow motion does nothing.
 
 ## Editor previews
 

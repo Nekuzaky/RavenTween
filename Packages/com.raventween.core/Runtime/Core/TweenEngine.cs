@@ -88,6 +88,10 @@ namespace RavenTween {
 
         public static float TimeScaleBeforeHitStop { get { return _hitStopRestore; } }
 
+        public static bool HitStopHoldsTimeScale {
+            get { return _hitStopRemaining > 0f && Mathf.Approximately(UnityEngine.Time.timeScale, _hitStopScale); }
+        }
+
         public static void BeginHitStop(float timeScale, float duration) {
             Debug.Assert(timeScale >= 0f && duration >= 0f, "A hit stop needs a non-negative time scale and duration.");
             if (duration <= 0f) { return; }

@@ -353,7 +353,7 @@ Extension-method style access to UI tweens.
 - `static bool IsHitStopping` — True while a hit stop holds the time scale.
 - `static void EndHitStop()` — Ends a running hit stop at once and restores the time scale.
 - `static bool IsInSlowMotion` — True while a slow motion holds the time scale down.
-- `static void SlowMotion(float timeScale = 0.3f, float duration = 1f)` — Slows the game down smoothly to `timeScale`, holds, then speeds back up, in `duration` real seconds. A new slow motion replaces a running one and keeps the original speed; if the game changes the time scale meanwhile (a pause menu), the speed is not restored over it. Started while the game already runs slower (a pause), it does nothing.
+- `static void SlowMotion(float timeScale = 0.3f, float duration = 1f)` — Slows the game down smoothly to `timeScale`, holds, then speeds back up, in `duration` real seconds. A new slow motion replaces a running one and keeps the original speed; if the game changes the time scale meanwhile (a pause menu), the speed is not restored over it. It never speeds the game up: started while the game already runs slower (a pause), it does nothing. During a hit stop it is compared with the speed the hit stop will restore, and restores that speed when it ends; if the game changed the time scale during the hit stop (a pause menu), it does nothing.
 
 ### `Raven`
 

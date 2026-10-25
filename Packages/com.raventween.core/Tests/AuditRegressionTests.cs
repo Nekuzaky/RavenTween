@@ -381,6 +381,43 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void SlowMotion_DuringAHitStop_NeverRunsFasterThanBeforeTheHitStop() {
+            try {
+                Time.timeScale = 0.2f;
+                Raven.HitStop(0.05f, 0.1f);
+                Raven.SlowMotion(0.3f, 1f);
+                float fastest = 0f;
+                for (int i = 0; i < 30; i++) {
+                    Step(0.05f);
+                    fastest = Mathf.Max(fastest, Time.timeScale);
+                }
+                Assert.That(fastest, Is.LessThanOrEqualTo(0.2f + 1e-4f));
+                Assert.That(Time.timeScale, Is.EqualTo(0.2f).Within(1e-4f));
+            } finally {
+                Raven.EndHitStop();
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void SlowMotion_AfterTheGamePausedDuringAHitStop_KeepsThePause() {
+            try {
+                Time.timeScale = 1f;
+                Raven.HitStop(0.05f, 0.5f);
+                Time.timeScale = 0f;
+                Raven.SlowMotion(0.3f, 1f);
+                Assert.That(Raven.IsInSlowMotion, Is.False);
+                Step(0.05f, 6);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+                Step(0.1f, 20);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+            } finally {
+                Raven.EndHitStop();
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
         public void Eases_TreatANaNTimeAsTheStart() {
             LogAssert.ignoreFailingMessages = true;
             foreach (Ease ease in Enum.GetValues(typeof(Ease))) {
