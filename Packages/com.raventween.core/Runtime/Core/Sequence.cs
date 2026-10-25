@@ -137,8 +137,7 @@ namespace RavenTween {
                 Debug.LogError("RavenTween: this sequence is already nested in another one; build it completely before adding it.");
                 return;
             }
-            int index = TweenEngine.Rent(out TweenSlot holder);
-            holder.IsCallback = true;
+            int index = TweenEngine.RentCallback(out TweenSlot holder);
             holder.OwnedBySequence = true;
             holder.OnComplete = callback;
             holder.CompleteTarget = target;

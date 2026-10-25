@@ -109,7 +109,7 @@ The full list is in the **[Changelog](Changelog)**.
 ## Why RavenTween?
 
 - **Zero garbage while playing** — property, effect, sequence and custom tweens allocate 0 B per frame, enforced by tests.
-- **Fast** — 5,000 simultaneous tweens step in about 0.6 ms per frame on a desktop CPU.
+- **Fast** — 5,000 simultaneous tweens step in about 0.5 ms per frame on a desktop CPU.
 - **Safe by construction** — handles are small structs; a handle to a finished tween is simply dead, and every call on it does nothing. Destroying a target mid-tween never throws.
 - **No hidden state** — tweens are single-use. Reusable configurations live in Tween Template assets instead.
 - **Runs everywhere** — pure managed C#: no threads, reflection, native plugins or runtime code generation. IL2CPP, WebGL, mobile and consoles are all fine.

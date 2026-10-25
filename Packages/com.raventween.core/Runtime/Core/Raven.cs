@@ -206,11 +206,6 @@ namespace RavenTween {
                 Debug.LogError("RavenTween: cannot tween a null or destroyed target.");
                 return default;
             }
-            if (!PropertyAccessor.TargetType(property).IsInstanceOfType(target)) {
-                Debug.LogError("RavenTween: " + property + " needs a " + PropertyAccessor.TargetType(property).Name +
-                               ", got a " + target.GetType().Name + " (" + target.name + ").", target);
-                return default;
-            }
             int index = TweenEngine.Rent(out TweenSlot slot);
             slot.UnityTarget = target;
             slot.RequiresTarget = true;

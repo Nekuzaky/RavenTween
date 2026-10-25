@@ -203,7 +203,6 @@ namespace RavenTween {
             BornPass = 0;
             LinkIndex = -1;
             LinkVersion = 0;
-            ClearReferences();
             ResetValues();
             ResetTiming();
             ResetEasing();
