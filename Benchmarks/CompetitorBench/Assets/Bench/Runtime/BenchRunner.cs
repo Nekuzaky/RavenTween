@@ -10,8 +10,8 @@ namespace RavenBench {
     public sealed class BenchRunner : MonoBehaviour {
         enum Phase {
             Settle,
-            JitWarmup,
             Baseline,
+            JitWarmup,
             Start,
             Warmup,
             Measure,
@@ -102,11 +102,9 @@ namespace RavenBench {
             _outPath = Arg("-benchOut", Path.Combine(Application.persistentDataPath, "raw.csv"));
 
             _targets = new BenchTargets(_count);
-            _library.Prepare(_scenario, _count);
             AllocCounter.Detect();
-            StartLibrary(Mathf.Min(JitWarmupCount, _count));
-            _frames = 0;
-            _phase = Phase.JitWarmup;
+            FrameClock.Install();
+            Settle(Phase.Baseline);
             return true;
         }
 
@@ -125,8 +123,7 @@ namespace RavenBench {
                     if (_frames < JitWarmupFrames) { return; }
                     _library.StopAll();
                     _targets.ResetPositions();
-                    FrameClock.Install();
-                    Settle(Phase.Baseline);
+                    Settle(Phase.Start);
                     return;
                 case Phase.Settle:
                     if (_frames < SettleFrames) { return; }
@@ -137,7 +134,10 @@ namespace RavenBench {
                 case Phase.Baseline:
                     if (_clock.Elapsed.TotalSeconds < BaselineSeconds) { return; }
                     _baseline = EndMeasure();
-                    Settle(Phase.Start);
+                    _library.Prepare(_scenario, _count);
+                    StartLibrary(Mathf.Min(JitWarmupCount, _count));
+                    _frames = 0;
+                    _phase = Phase.JitWarmup;
                     return;
                 case Phase.Start:
                     StartScenario();

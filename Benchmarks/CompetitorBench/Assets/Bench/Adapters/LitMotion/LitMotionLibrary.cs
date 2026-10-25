@@ -1,4 +1,5 @@
 using LitMotion;
+using LitMotion.Adapters;
 using LitMotion.Extensions;
 using UnityEngine;
 
@@ -18,6 +19,7 @@ namespace RavenBench.Adapters {
 
         public override void Prepare(BenchScenario scenario, int count) {
             _handles = new MotionHandle[count];
+            MotionDispatcher.EnsureStorageCapacity<Vector3, NoOptions, Vector3MotionAdapter>(scenario == BenchScenario.Tweens ? count : count * 3);
         }
 
         public override void StartTweens(BenchTargets targets, int count) {

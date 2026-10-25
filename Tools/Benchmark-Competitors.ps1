@@ -7,12 +7,13 @@
     local path) as a Windows release player, then runs one player process per
     (repetition, scenario, tween count, library) in batch mode without graphics, so every library
     starts from a fresh process and a pool sized for its own scenario. Each process measures a
-    baseline (same objects, no tweens), the start cost, then the frame time over the measurement
-    window, and appends one row to raw.csv. The script aggregates the repetitions (median) into
+    baseline first (same objects, before any call to the library, so no pool is reserved), then the
+    start cost, then the frame time over the measurement window, and appends one row to raw.csv. The script aggregates the repetitions (median) into
     summary.csv and results.md.
 
     DOTween is optional: its license only allows verbatim redistribution with its readme, so the
-    repository does not ship it. Run with -InstallDOTween (or extract the official zip into
+    repository does not ship it. Run with -InstallDOTween, which checks the downloaded zip against
+    the pinned -DOTweenSha256 (or extract the official zip into
     Benchmarks/CompetitorBench/Assets/Plugins/Demigiant) to include it; without it the benchmark
     skips DOTween.
 
@@ -37,7 +38,8 @@ param(
     [string]$OutputDirectory = '',
     [switch]$SkipBuild,
     [switch]$InstallDOTween,
-    [string]$DOTweenVersion = '1_3_045'
+    [string]$DOTweenVersion = '1_3_045',
+    [string]$DOTweenSha256 = '32EBA5C48520A541775D00CB396E18975B83587BA79175DBB878D753725BA5D9'
 )
 
 Set-StrictMode -Version 2.0
@@ -74,6 +76,12 @@ function Install-DOTween {
     $zip = Join-Path ([System.IO.Path]::GetTempPath()) "DOTween_$DOTweenVersion.zip"
     Write-Step "Downloading DOTween from $url"
     Invoke-WebRequest -Uri $url -OutFile $zip -UseBasicParsing
+    $hash = (Get-FileHash -Path $zip -Algorithm SHA256).Hash
+    if ($hash -ne $DOTweenSha256.ToUpperInvariant()) {
+        Remove-Item $zip
+        throw "DOTween_$DOTweenVersion.zip has SHA-256 $hash, expected $DOTweenSha256. Not installed: pass -DOTweenSha256 with the hash of the archive you trust."
+    }
+    Write-Step "SHA-256 verified: $hash"
     New-Item -ItemType Directory -Force $target | Out-Null
     Expand-Archive -Path $zip -DestinationPath $target -Force
     Remove-Item $zip
@@ -228,7 +236,7 @@ $md = New-Object System.Text.StringBuilder
 [void]$md.AppendLine("| GC measurement | $($environment['alloc_method']) |")
 foreach ($key in $versions.Keys) { [void]$md.AppendLine("| $key | $($versions[$key]) |") }
 [void]$md.AppendLine()
-[void]$md.AppendLine('**Update** is the CPU time of a whole player-loop frame minus the same process''s baseline frame with the same objects and no tweens: it is what the library adds per frame, transform writes included. **p95** is the 95th percentile frame minus the baseline median. **Start** is the time to create all tweens or sequences in one frame, with each library''s pool reserved beforehand.')
+[void]$md.AppendLine('**Update** is the CPU time of a whole player-loop frame minus the same process''s baseline frame, measured with the same objects before the library is touched (no pool reserved, no tween created): it is what the library adds per frame, its idle pool walk and transform writes included. **p95** is the 95th percentile frame minus the baseline median. **Start** is the time to create all tweens or sequences in one frame, with each library''s pool reserved beforehand.')
 foreach ($scenario in $Scenarios) {
     [void]$md.AppendLine()
     if ($scenario -eq 'Tweens') { [void]$md.AppendLine('## N position tweens (InOutQuad, 20 s)') }
