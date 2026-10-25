@@ -11,6 +11,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - `Raven.HitStop` and `Raven.SlowMotion` (and the Hit Stop / Slow Motion feedback actions) started while the game was paused (`Time.timeScale = 0`) ran the game at the hit-stop or slow-motion speed until they ended. They now never speed the game up: when the time scale is already lower, they do nothing.
 - A slow motion started during a hit stop restored `Time.timeScale` to 1 instead of the speed the game had before the hit stop.
 - `EaseUtility.Evaluate`, `EaseUtility.EvaluateParametric` and `Easing.Evaluate` returned NaN for a NaN time (`Mathf.Clamp01` lets NaN through), and an editor seek to a NaN time wrote NaN values. A NaN time now counts as the start (0).
+- The update checker threw an `ArgumentOutOfRangeException` on every Editor start when its stored last-check date was out of range (a corrupt or hand-edited EditorPrefs value); it now checks again instead.
 
 ## [1.7.1] - 2026-10-16
 

@@ -57,6 +57,13 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void CheckIsDue_WhenTheStoredDateIsCorrupt() {
+            DateTime now = new DateTime(2026, 10, 7, 12, 0, 0, DateTimeKind.Utc);
+            Assert.That(UpdateLogic.IsCheckDue(long.MaxValue, now), Is.True);
+            Assert.That(UpdateLogic.IsCheckDue(DateTime.MaxValue.Ticks + 1, now), Is.True);
+        }
+
+        [Test]
         public void GitIdentifier_ReplacesTag_KeepsPath() {
             string id = UpdateLogic.BuildUpdateIdentifier(InstallSource.Git, GitId, "v1.3.0");
             Assert.That(id, Is.EqualTo("https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.3.0"));

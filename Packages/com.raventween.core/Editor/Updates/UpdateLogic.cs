@@ -58,7 +58,7 @@ namespace RavenTween.Editor {
         /// <summary>True when the last check is older than the interval (or never happened).</summary>
         public static bool IsCheckDue(long lastCheckUtcTicks, DateTime nowUtc) {
             Debug.Assert(nowUtc.Kind != DateTimeKind.Local, "Pass UTC time.");
-            if (lastCheckUtcTicks <= 0) { return true; }
+            if (lastCheckUtcTicks <= 0 || lastCheckUtcTicks > DateTime.MaxValue.Ticks) { return true; }
             var last = new DateTime(lastCheckUtcTicks, DateTimeKind.Utc);
             return nowUtc - last >= CheckInterval || last > nowUtc;
         }
