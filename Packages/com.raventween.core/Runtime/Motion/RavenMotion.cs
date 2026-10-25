@@ -229,18 +229,7 @@ namespace RavenTween {
         }
 
         void EnsureTriggerHooks() {
-            if (trigger != MotionTrigger.OnClick && _button != null) {
-                _button.onClick.RemoveListener(Play);
-                _button = null;
-            }
-            if (trigger == MotionTrigger.OnClick && _button == null) {
-                // A click on a Button (or on anything inside one, like its icon) is the Button's:
-                // listen to it rather than adding a handler that would take the click away.
-                _button = GetComponentInParent<Button>();
-                if (_button != null) { _button.onClick.AddListener(Play); }
-            }
-            // A Button already reports its clicks; other pointer starts need a relay.
-            if (!(trigger == MotionTrigger.OnClick && _button != null)) { MotionTriggers.EnsurePointerRelay(gameObject, trigger); }
+            _button = MotionTriggers.HookTrigger(this, trigger, _button, Play);
         }
 
         void HandlePhysics(MotionTrigger started, GameObject other) {

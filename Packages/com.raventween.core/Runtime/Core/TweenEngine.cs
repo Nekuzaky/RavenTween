@@ -311,14 +311,8 @@ namespace RavenTween {
         // One misbehaving tween (throwing ease, wrong target type) is logged and stopped;
         // it never stops the rest of the engine.
         static void StopFailedTween(Exception exception) {
-            int index = _stepping;
             _sequenceDepth = 0;
-            Debug.LogException(exception);
-            TweenSlot slot = _slots[index];
-            if (IsLive(slot, _steppingVersion)) {
-                Debug.LogError("RavenTween: a tween threw an exception and was stopped.");
-                KillInternal(slot, index, false);
-            }
+            StopAfterException(_slots[_stepping], _stepping, _steppingVersion, exception);
         }
 
         static void LogTargetDestroyed(TweenSlot slot) {
@@ -348,7 +342,7 @@ namespace RavenTween {
         // A destroyed Unity target, or a dead tween whose time scale this one drives.
         static bool TargetLost(TweenSlot slot) {
             if (slot.RequiresTarget && slot.UnityTarget == null) { return true; }
-            return slot.LinkIndex >= 0 && !TryGetSlotInternal(slot.LinkIndex, slot.LinkVersion, out _);
+            return slot.LinkIndex >= 0 && !TryGetSlot(slot.LinkIndex, slot.LinkVersion, out _);
         }
 
         /// <summary>How much user code an evaluation of the timeline may run.</summary>
@@ -361,10 +355,6 @@ namespace RavenTween {
             Rewind = 2,
             /// <summary>Jumping to a time: nothing fires, and what was passed over counts as done.</summary>
             Jump = 3
-        }
-
-        static void EnsureStarted(TweenSlot slot) {
-            EnsureStarted(slot, Quiet.None);
         }
 
         // Starting runs OnStart, which may stop the tween or destroy its target: property
@@ -393,7 +383,7 @@ namespace RavenTween {
                 slot.StartValue = PropertyAccessor.Read(slot.Property, slot.UnityTarget, slot.PropertyId);
             } else if (slot.CustomGetter != null) {
                 slot.StartValue = slot.CustomGetter(slot.CustomTarget, slot.CustomGetterDelegate);
-            } else if (slot.LinkIndex >= 0 && TryGetSlotInternal(slot.LinkIndex, slot.LinkVersion, out TweenSlot linked)) {
+            } else if (slot.LinkIndex >= 0 && TryGetSlot(slot.LinkIndex, slot.LinkVersion, out TweenSlot linked)) {
                 slot.StartValue = new TweenValue(linked.TimeScale);
             }
         }
@@ -469,7 +459,7 @@ namespace RavenTween {
 
         /// <summary>The eased factor a tween shows right now (0 at its start value, 1 at its end value).</summary>
         public static float InterpolationFactor(int index, uint version) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot) || slot.IsSequence) { return 0f; }
+            if (!TryGetSlot(index, version, out TweenSlot slot) || slot.IsSequence) { return 0f; }
             float duration = slot.Duration;
             float local = Mathf.Max(slot.Elapsed - slot.StartDelay, 0f);
             // A finished sequence child rests on the end of its last cycle.
@@ -547,7 +537,7 @@ namespace RavenTween {
         }
 
         static void WriteLinkedTimeScale(TweenSlot slot, float scale) {
-            if (TryGetSlotInternal(slot.LinkIndex, slot.LinkVersion, out TweenSlot linked)) {
+            if (TryGetSlot(slot.LinkIndex, slot.LinkVersion, out TweenSlot linked)) {
                 linked.TimeScale = Mathf.Max(scale, 0f);
             }
         }
@@ -642,7 +632,7 @@ namespace RavenTween {
                 if (current.Items == null) { continue; }
                 for (int i = 0; i < current.Items.Count; i++) {
                     SequenceItem item = current.Items[i];
-                    if (!TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out TweenSlot child)) { continue; }
+                    if (!TryGetSlot(item.ChildIndex, item.ChildVersion, out TweenSlot child)) { continue; }
                     ClearRunState(child, recapture);
                     if (!child.IsSequence) { continue; }
                     if (top == _resetWork.Length) { Array.Resize(ref _resetWork, _resetWork.Length * 2); }
@@ -674,7 +664,7 @@ namespace RavenTween {
                 if (current.Items == null || found) { continue; }
                 for (int i = 0; i < current.Items.Count; i++) {
                     SequenceItem item = current.Items[i];
-                    if (!TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out TweenSlot child)) { continue; }
+                    if (!TryGetSlot(item.ChildIndex, item.ChildVersion, out TweenSlot child)) { continue; }
                     if (top == _walkWork.Length) { Array.Resize(ref _walkWork, _walkWork.Length * 2); }
                     _walkWork[top++] = child;
                 }
@@ -775,7 +765,7 @@ namespace RavenTween {
                 SequenceItem item = items[at];
                 float spot = backwards ? slot.SequenceDuration - item.StartTime : item.StartTime;
                 if (spot <= from || spot > time || (skipTurningPoint && spot <= 0f)) { continue; }
-                if (TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out TweenSlot child) && child.IsCallback) {
+                if (TryGetSlot(item.ChildIndex, item.ChildVersion, out TweenSlot child) && child.IsCallback) {
                     InvokeCompleteCallbacks(child.OnComplete, child.CompleteTarget, child.CompleteDelegate, child.CompleteInvoker);
                 }
                 if (!StillCurrent(slot, version, revision)) { return; }
@@ -783,7 +773,7 @@ namespace RavenTween {
         }
 
         static bool TryGetLiveChild(SequenceItem item, out TweenSlot child) {
-            if (!TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out child)) { return false; }
+            if (!TryGetSlot(item.ChildIndex, item.ChildVersion, out child)) { return false; }
             if (!child.RequiresTarget || child.UnityTarget != null) { return true; }
             HandleTargetDestroyed(child, item.ChildIndex);
             child = null;
@@ -987,10 +977,6 @@ namespace RavenTween {
 
         /// <summary>Resolves a handle. Returns false when the tween is dead or recycled.</summary>
         public static bool TryGetSlot(int index, uint version, out TweenSlot slot) {
-            return TryGetSlotInternal(index, version, out slot);
-        }
-
-        static bool TryGetSlotInternal(int index, uint version, out TweenSlot slot) {
             if ((uint)index >= (uint)_slotCount) { slot = null; return false; }
             TweenSlot candidate = _slots[index];
             bool alive = candidate.State != SlotState.Free && candidate.Version == version;
@@ -1028,7 +1014,7 @@ namespace RavenTween {
 
         /// <summary>Stops a tween. Optionally jumps to the final value and fires OnComplete.</summary>
         public static void Kill(int index, uint version, bool complete) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return; }
             if (slot.OwnedBySequence) {
                 Debug.LogWarning("RavenTween: this tween belongs to a sequence; stop or complete the sequence instead.");
                 return;
@@ -1092,7 +1078,7 @@ namespace RavenTween {
                 if (currentSlot.IsSequence && currentSlot.Items != null) {
                     for (int i = 0; i < currentSlot.Items.Count; i++) {
                         SequenceItem item = currentSlot.Items[i];
-                        if (TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out _)) { ReleaseWork.Push(item.ChildIndex); }
+                        if (TryGetSlot(item.ChildIndex, item.ChildVersion, out _)) { ReleaseWork.Push(item.ChildIndex); }
                     }
                     currentSlot.Items.Clear();
                 }
@@ -1108,7 +1094,7 @@ namespace RavenTween {
 
         /// <summary>Pauses or resumes a root tween or sequence. Paused tweens keep their slot alive.</summary>
         public static void SetPaused(int index, uint version, bool paused) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return; }
             if (slot.OwnedBySequence) {
                 Debug.LogWarning("RavenTween: this tween belongs to a sequence; pause the sequence instead.");
                 return;
@@ -1172,7 +1158,7 @@ namespace RavenTween {
 
         /// <summary>Time since the tween was created, start delay included (0 before it starts).</summary>
         public static float ElapsedTotal(int index, uint version) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return 0f; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return 0f; }
             // Once every cycle is done, Elapsed already holds the last one.
             bool finished = slot.Cycles > 0 && slot.CyclesDone >= slot.Cycles;
             int before = finished ? slot.Cycles - 1 : slot.CyclesDone;
@@ -1196,7 +1182,7 @@ namespace RavenTween {
         /// the start of the next one.
         /// </summary>
         public static void SetElapsedTotal(int index, uint version, float total, bool endOfCycle) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return; }
             if (slot.OwnedBySequence) {
                 Debug.LogWarning("RavenTween: this tween belongs to a sequence; move the sequence's time instead.");
                 return;
@@ -1262,8 +1248,7 @@ namespace RavenTween {
         }
 
         static void MoveSequence(TweenSlot slot, uint version, int cycleIndex, float inCycle) {
-            EnsureStarted(slot);
-            if (!IsLive(slot, version)) { return; }
+            if (!slot.StartFired && !Start(slot, Quiet.None)) { return; }
             RewindSequence(slot, version);
             if (!IsLive(slot, version)) { return; }
             slot.CyclesDone = cycleIndex;
@@ -1285,7 +1270,7 @@ namespace RavenTween {
         /// complete, -1 = loop forever).
         /// </summary>
         public static void SetRemainingCycles(int index, uint version, int remaining) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return; }
             if (slot.OwnedBySequence) {
                 Debug.LogError("RavenTween: set the cycles of the sequence, not of its children; ignored.");
                 return;
@@ -1299,7 +1284,7 @@ namespace RavenTween {
         /// Yoyo and PingPong loops. Other modes always end on the end value: this cycle is the last.
         /// </summary>
         public static void SetRemainingCycles(int index, uint version, bool stopAtEndValue) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return; }
             bool backAndForth = slot.Mode == CycleMode.Yoyo || slot.Mode == CycleMode.PingPong;
             bool headingToEnd = (slot.CyclesDone & 1) == 0;
             int remaining = !backAndForth || headingToEnd == stopAtEndValue ? 1 : 2;
@@ -1431,10 +1416,10 @@ namespace RavenTween {
         public static bool CollectSequenceItems(int index, uint version, List<DebugSequenceItem> buffer) {
             Debug.Assert(buffer != null, "Item buffer cannot be null.");
             buffer.Clear();
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot) || !slot.IsSequence || slot.Items == null) { return false; }
+            if (!TryGetSlot(index, version, out TweenSlot slot) || !slot.IsSequence || slot.Items == null) { return false; }
             for (int i = 0; i < slot.Items.Count; i++) {
                 SequenceItem item = slot.Items[i];
-                TryGetSlotInternal(item.ChildIndex, item.ChildVersion, out TweenSlot child);
+                TryGetSlot(item.ChildIndex, item.ChildVersion, out TweenSlot child);
                 buffer.Add(new DebugSequenceItem {
                     StartTime = item.StartTime,
                     Duration = item.Duration,
@@ -1455,7 +1440,7 @@ namespace RavenTween {
         /// OnStart, OnComplete or timeline callback runs while scrubbing.
         /// </summary>
         public static void Seek(int index, uint version, float time) {
-            if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
+            if (!TryGetSlot(index, version, out TweenSlot slot)) { return; }
             Debug.Assert(!slot.OwnedBySequence, "Seek the root, not a sequence child.");
             Debug.Assert(!float.IsNaN(time), "Seek time must be a number.");
             if (float.IsNaN(time)) { time = 0f; }

@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
 
 namespace RavenTween {
     /// <summary>
@@ -51,6 +53,19 @@ namespace RavenTween {
             if (trigger == MotionTrigger.OnClick) { Ensure<RavenClickRelay>(go); }
             else if (trigger == MotionTrigger.OnPointerEnter || trigger == MotionTrigger.OnPointerExit) { Ensure<RavenHoverRelay>(go); }
             else { Ensure<RavenPressRelay>(go); }
+        }
+
+        internal static Button HookTrigger(Component owner, MotionTrigger trigger, Button button, UnityAction play) {
+            if (trigger != MotionTrigger.OnClick && button != null) {
+                button.onClick.RemoveListener(play);
+                button = null;
+            }
+            if (trigger == MotionTrigger.OnClick && button == null) {
+                button = owner.GetComponentInParent<Button>();
+                if (button != null) { button.onClick.AddListener(play); }
+            }
+            if (!(trigger == MotionTrigger.OnClick && button != null)) { EnsurePointerRelay(owner.gameObject, trigger); }
+            return button;
         }
 
         static void Ensure<T>(GameObject go) where T : Component {

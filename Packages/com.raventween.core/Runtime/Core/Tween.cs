@@ -25,7 +25,7 @@ namespace RavenTween {
 
         /// <summary>True when the tween is alive and paused.</summary>
         public bool IsPaused {
-            get { return TweenEngine.TryGetSlot(Index, Version, out TweenSlot slot) && slot.State == SlotState.Paused; }
+            get { return HandleState.IsPaused(Index, Version); }
         }
 
         // ----- Fluent configuration -----

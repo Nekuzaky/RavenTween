@@ -69,7 +69,6 @@ namespace RavenTween {
             Stop();
             CollectChildren();
             _playingExit = MotionLibrary.Category(playing) == MotionCategory.Exit;
-            _leftHidden = false;
             MotionSettings shared = EffectiveSettings;
             int count = _targets.Count;
             for (int i = 0; i < count; i++) {
@@ -109,13 +108,11 @@ namespace RavenTween {
             RebuildLayout();
             Transform root = transform;
             int count = root.childCount;
-            var previous = _children.Count == 0 ? null : _children.ToArray();
             _children.Clear();
             for (int i = 0; i < count; i++) {
                 Transform child = root.GetChild(i);
                 if (child.gameObject.activeInHierarchy) { _children.Add(child); }
             }
-            if (previous != null && SameChildren(previous) && _leftHidden) { return; }
             _targets.Clear();
             _rests.Clear();
             _channels.Clear();
@@ -125,14 +122,6 @@ namespace RavenTween {
                 _rests.Add(MotionRest.Capture(target));
                 _channels.Add(MotionChannels.None);
             }
-        }
-
-        bool SameChildren(Transform[] previous) {
-            if (previous.Length != _children.Count) { return false; }
-            for (int i = 0; i < previous.Length; i++) {
-                if (previous[i] != _children[i]) { return false; }
-            }
-            return true;
         }
 
         void RebuildLayout() {

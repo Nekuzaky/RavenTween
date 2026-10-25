@@ -349,16 +349,7 @@ namespace RavenTween {
         }
 
         void EnsureTriggerHooks() {
-            if (trigger != MotionTrigger.OnClick && _button != null) {
-                _button.onClick.RemoveListener(Play);
-                _button = null;
-            }
-            if (trigger == MotionTrigger.OnClick && _button == null) {
-                // A click on a Button (or inside one) is the Button's: listen to it.
-                _button = GetComponentInParent<UnityEngine.UI.Button>();
-                if (_button != null) { _button.onClick.AddListener(Play); return; }
-            }
-            if (!(trigger == MotionTrigger.OnClick && _button != null)) { MotionTriggers.EnsurePointerRelay(gameObject, trigger); }
+            _button = MotionTriggers.HookTrigger(this, trigger, _button, Play);
         }
 
         void OnDestroy() {
