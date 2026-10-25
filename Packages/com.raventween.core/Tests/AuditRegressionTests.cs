@@ -418,6 +418,53 @@ namespace RavenTween.Tests {
         }
 
         [Test]
+        public void NewTweens_TakeTheLowestFreeSlots() {
+            Raven.SetCapacity(TweenEngine.PoolSize + 256);
+            Tween first = Raven.Value(0f, 1f, 1f);
+            Tween second = Raven.Value(0f, 1f, 1f);
+            Assert.That(first.Index, Is.EqualTo(0));
+            Assert.That(second.Index, Is.EqualTo(1));
+            first.Stop();
+            Tween third = Raven.Value(0f, 1f, 1f);
+            Assert.That(third.Index, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void UpdateLoop_WalksOnlyUpToTheHighestLiveSlot() {
+            Raven.SetCapacity(4096);
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(0));
+            var tweens = new Tween[100];
+            for (int i = 0; i < tweens.Length; i++) { tweens[i] = Raven.Value(0f, 1f, 1f + i); }
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(100));
+            for (int i = 0; i < tweens.Length - 1; i++) { tweens[i].Stop(); }
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(100));
+            Step(0.1f);
+            Assert.That(tweens[99].IsAlive, Is.True);
+            tweens[99].Stop();
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(0));
+            Sequence sequence = Raven.Sequence().Chain(Raven.Value(0f, 1f, 0.1f)).ChainCallback(() => { }).Chain(Raven.Value(0f, 1f, 0.1f));
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(4));
+            Step(0.5f);
+            Assert.That(sequence.IsAlive, Is.False);
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(0));
+        }
+
+        [Test]
+        public void TweenCreatedDuringAStep_BeyondTheLiveRange_StartsOnTheNextStep() {
+            float latest = -1f;
+            Tween spawned = default;
+            Raven.Value(0f, 1f, 0.1f).OnComplete(() => { spawned = Raven.Value(0f, 1f, 1f).Ease(Ease.Linear).OnUpdate(v => latest = v); });
+            Step(0.2f);
+            Assert.That(spawned.IsAlive, Is.True);
+            Assert.That(latest, Is.EqualTo(-1f));
+            Step(0.5f);
+            Assert.That(latest, Is.EqualTo(0.5f).Within(1e-4f));
+            Raven.StopAll();
+            Assert.That(spawned.IsAlive, Is.False);
+            Assert.That(TweenEngine.ActiveRange, Is.EqualTo(0));
+        }
+
+        [Test]
         public void Eases_TreatANaNTimeAsTheStart() {
             LogAssert.ignoreFailingMessages = true;
             foreach (Ease ease in Enum.GetValues(typeof(Ease))) {

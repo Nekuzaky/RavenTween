@@ -6,7 +6,8 @@ How the engine is put together, and the rules its code relies on. You don't need
 
 ## Slots and handles
 
-- Every tween, sequence and sequence callback lives in a pooled `TweenSlot`. Slots are created once, kept in a plain array, and recycled through a free-index stack. `Raven.SetCapacity` creates them up front.
+- Every tween, sequence and sequence callback lives in a pooled `TweenSlot`. Slots are created once, kept in a plain array, and recycled through a free-slot bitmap (one bit per slot, plus one summary bit per 64 slots) that always hands out the lowest free index without scanning the pool or allocating. `Raven.SetCapacity` creates them up front.
+- The engine keeps the end of the live range: one past the highest slot in use. Renting raises it, releasing the top slot lowers it past the free slots below. Because new tweens take the lowest free index, live slots stay packed at the start of the array, so the update loop, `StopAll` / `CompleteAll`, the per-target calls (`StopAll(target)`, `CompleteAll(target)`, `PauseAll`, `ResumeAll`, `CountTweens`) and the monitor walk only that range: with nothing playing they cost nothing, whatever the capacity reserved.
 - A `Tween` or `Sequence` handle is a slot index plus a version. Releasing a slot bumps its version, so every old handle to it is dead (`IsAlive` is false, every call on it is a no-op).
 - The Play Mode reset (`SubsystemRegistration`) and the end of Play Mode (`Application.quitting`) free every slot and bump its version, instead of dropping the pool: a handle kept across sessions (no domain reload) can never match a new tween.
 - Releasing a slot clears every reference it holds (targets, callbacks, curves), so a large pool never keeps a scene or a closure alive. A reused slot is therefore only reset, never cleared twice.

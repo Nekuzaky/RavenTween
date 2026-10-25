@@ -19,7 +19,8 @@ namespace RavenTween {
 
         static TweenSlot[] _slots = new TweenSlot[InitialCapacity];
         static int _slotCount;
-        static readonly Stack<int> FreeIndices = new Stack<int>(InitialCapacity);
+        static readonly FreeSlotSet FreeSlots = new FreeSlotSet();
+        static int _activeEnd;
         static readonly Dictionary<EffectKey, int> Effects = new Dictionary<EffectKey, int>(InitialCapacity);
         static bool _processing;
         static long _pass;
@@ -35,6 +36,8 @@ namespace RavenTween {
         static int _aliveCount;
 
         public static int PoolSize { get { return _slotCount; } }
+
+        public static int ActiveRange { get { return _activeEnd; } }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         internal static void DomainReset() {
@@ -59,7 +62,8 @@ namespace RavenTween {
 
         static void ReleaseEverySlot() {
             _aliveCount = 0;
-            FreeIndices.Clear();
+            _activeEnd = 0;
+            FreeSlots.Clear();
             Effects.Clear();
             for (int i = _slotCount - 1; i >= 0; i--) {
                 TweenSlot slot = _slots[i];
@@ -69,7 +73,7 @@ namespace RavenTween {
                     slot.State = SlotState.Free;
                     slot.Version++;
                 }
-                FreeIndices.Push(i);
+                FreeSlots.Add(i);
             }
         }
 
@@ -220,7 +224,7 @@ namespace RavenTween {
             _processing = true;
             if (phase < 0 || phase == (int)UpdatePhase.Update) { TickHitStop(unscaledDelta); }
             long pass = ++_pass;
-            int count = _slotCount;
+            int count = _activeEnd;
             try {
                 int next = 0;
                 while (next < count) {
@@ -841,14 +845,14 @@ namespace RavenTween {
         }
 
         public static int Rent(out TweenSlot slot) {
-            int index;
-            if (FreeIndices.Count > 0) {
-                index = FreeIndices.Pop();
+            int index = FreeSlots.TakeLowest();
+            if (index >= 0) {
                 slot = _slots[index];
             } else {
                 slot = new TweenSlot();
                 index = AddSlot(slot);
             }
+            if (index >= _activeEnd) { _activeEnd = index + 1; }
             slot.Reset();
             slot.Index = index;
             slot.State = SlotState.Running;
@@ -873,7 +877,7 @@ namespace RavenTween {
             while (_slotCount < target) {
                 var slot = new TweenSlot();
                 slot.Index = AddSlot(slot);
-                FreeIndices.Push(slot.Index);
+                FreeSlots.Add(slot.Index);
             }
         }
 
@@ -983,8 +987,9 @@ namespace RavenTween {
                 currentSlot.ClearReferences();
                 currentSlot.State = SlotState.Free;
                 currentSlot.Version++;
-                FreeIndices.Push(current);
+                FreeSlots.Add(current);
             }
+            while (_activeEnd > 0 && _slots[_activeEnd - 1].State == SlotState.Free) { _activeEnd--; }
             return continuations;
         }
 
@@ -999,7 +1004,7 @@ namespace RavenTween {
 
         public static void KillAll(bool complete) {
             long pass = ++_pass;
-            int count = _slotCount;
+            int count = _activeEnd;
             for (int i = 0; i < count; i++) {
                 TweenSlot slot = _slots[i];
                 if (slot.State == SlotState.Free || slot.OwnedBySequence || slot.BornPass >= pass) { continue; }
@@ -1011,7 +1016,7 @@ namespace RavenTween {
 
         public static int ForEachOnTarget(object target, TargetAction action) {
             long pass = ++_pass;
-            int count = _slotCount;
+            int count = _activeEnd;
             int matched = 0;
             for (int i = 0; i < count; i++) {
                 TweenSlot slot = _slots[i];
@@ -1225,7 +1230,7 @@ namespace RavenTween {
             Debug.Assert(buffer != null, "Debug buffer cannot be null.");
             if (buffer == null) { return; }
             buffer.Clear();
-            for (int i = 0; i < _slotCount; i++) {
+            for (int i = 0; i < _activeEnd; i++) {
                 TweenSlot slot = _slots[i];
                 if (slot.State == SlotState.Free) { continue; }
                 buffer.Add(new DebugInfo {
