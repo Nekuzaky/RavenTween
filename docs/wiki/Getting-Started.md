@@ -103,4 +103,4 @@ Designers can build the same animations without code using **Tween Template** as
 
 ---
 
-#### ◀ **[Installation](Installation)**  ·  Next: **[Tweens and Easing ▶](Tweens-and-Easing)**
+#### ◀ **[Samples](Samples)**  ·  Next: **[Tweens and Easing ▶](Tweens-and-Easing)**

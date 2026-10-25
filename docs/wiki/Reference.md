@@ -12,8 +12,8 @@ The complete public API, in tables. Everything lives in the `RavenTween` namespa
 | `Raven.Motion(Component target, MotionPreset preset, MotionSettings settings)` | `Sequence` |
 | `Raven.Motion(in MotionTarget, MotionPreset, MotionSettings, in MotionRest rest)` | `Sequence` around a pose captured with `MotionRest.Capture` |
 | `component.PlayMotion(MotionPreset [, MotionSettings])` | Extension form |
-| `Raven.HitStop(float timeScale = 0.05, float duration = 0.08)` | Drops `Time.timeScale` for `duration` real seconds; overlapping calls extend it. Always ends (counted by the engine in real time, whatever the phase, `Raven.TimeScale` or `StopAll`) and keeps a time scale the game changed meanwhile. `Raven.IsHitStopping`, `Raven.EndHitStop()`. |
-| `Raven.SlowMotion(float timeScale = 0.3, float duration = 1)` | Slows the game down smoothly, holds, speeds back up, in real seconds. A new one replaces a running one; a time scale the game sets meanwhile (a pause) is kept. `Raven.IsInSlowMotion`. |
+| `Raven.HitStop(float timeScale = 0.05, float duration = 0.08)` | Drops `Time.timeScale` for `duration` real seconds; overlapping calls extend it. Always ends (counted by the engine in real time, whatever the phase, `Raven.TimeScale` or `StopAll`) and keeps a time scale the game changed meanwhile. Never speeds the game up: started while the game runs slower (a pause, `Time.timeScale = 0`), it does nothing. `Raven.IsHitStopping`, `Raven.EndHitStop()`. |
+| `Raven.SlowMotion(float timeScale = 0.3, float duration = 1)` | Slows the game down smoothly, holds, speeds back up, in real seconds. A new one replaces a running one; a time scale the game sets meanwhile (a pause) is kept, and started while the game already runs slower, it does nothing. `Raven.IsInSlowMotion`. |
 
 | Type | Members |
 | :--- | :--- |
@@ -200,7 +200,7 @@ Compiled only when `com.unity.animation.rigging` is installed.
 | `Ease` | `Linear`, `In/Out/InOut` × `Sine`, `Quad`, `Cubic`, `Quart`, `Quint`, `Expo`, `Circ`, `Back`, `Elastic`, `Bounce`, and `Custom`. |
 | `Easing` | Parametric ease: `Easing.Of(Ease)`, `FromCurve(curve)`, `Overshoot(strength)`, `Bounce(strength)`, `BounceExact(amplitude)`, `Elastic(strength, period)`; `Evaluate(t)`. An `Ease` converts to it implicitly. |
 | `CycleMode` | `Restart`, `Yoyo`, `Incremental`, `PingPong`. |
-| `UpdatePhase` | `Update`, `LateUpdate`, `FixedUpdate`. |
+| `UpdatePhase` | `Update`, `LateUpdate`, `FixedUpdate`, `Manual` (stepped only by `Raven.Step`). |
 | `TweenValue` | Read-only value passed to `OnUpdate(Action<TweenValue>)`: `.Float`, `.Vector2`, `.Vector3`, `.Vector4`, `.Quaternion`, `.Color`, `.Kind`. |
 | `TweenParams` | Serializable settings: `duration`, `startDelay`, `ease`, `customCurve`, `cycles`, `cycleMode`, `useUnscaledTime`; `ApplyTo(Tween)` applies everything except `duration`, which you pass to the factory; `TweenParams.Default`. |
 | `TweenSettings<T>` | Serializable whole tween: `useStartValue`, `startValue`, `endValue`, `settings` (a `TweenParams`). |
@@ -262,4 +262,8 @@ DOTween names running on RavenTween, for migrating code: `DOMove`, `DOMoveX/Y/Z`
 
 ---
 
-#### ◀ **[Migrating](Migrating)**  ·  Next: **[Known Pitfalls ▶](Known-Pitfalls)**
+Every public member, with its exact behavior: **[API Details](API-Details)**.
+
+---
+
+#### ◀ **[Migrating](Migrating)**  ·  Next: **[API Details ▶](API-Details)**

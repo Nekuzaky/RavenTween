@@ -69,6 +69,8 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 > [!NOTE]
 > The samples work with both the legacy Input Manager and the Input System package.
 
+What to look at in each sample: **[Samples](Samples)**.
+
 ---
 
 ## Requirements
@@ -91,4 +93,4 @@ Open **Window ▸ Package Manager**, select **RavenTween**, then the **Samples**
 
 ---
 
-#### ◀ **[Home](Home)**  ·  Next: **[Getting Started ▶](Getting-Started)**
+#### ◀ **[Home](Home)**  ·  Next: **[Samples ▶](Samples)**

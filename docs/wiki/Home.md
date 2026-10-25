@@ -32,6 +32,7 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 | Page | What you'll find |
 | :--- | :--- |
 | **[Installation](Installation)** | Add RavenTween through the Package Manager with a Git URL. |
+| **[Samples](Samples)** | What each of the ten samples shows. |
 | **[Getting Started](Getting-Started)** | Your first tweens, sequences and awaits in five minutes. |
 | **[Tweens and Easing](Tweens-and-Easing)** | Every built-in target, `From`, delays, cycles, yoyo, and the 31 easing curves. |
 | **[Sequences](Sequences)** | `Chain`, `Group`, `Insert`, delays, nesting, and looping whole timelines. |
@@ -46,6 +47,8 @@ Both run on the same engine, so a designer's timeline is exactly as fast and gar
 | **[Performance](Performance)** | How the engine stays at 0 B per frame, measured numbers, and what does allocate. |
 | **[Migrating](Migrating)** | Side-by-side equivalents for DOTween and PrimeTween. |
 | **[Reference](Reference)** | The complete API, tables only. |
+| **[API Details](API-Details)** | Every public type and member, with its exact behavior. |
+| **[Engine Internals](Engine-Internals)** | How the engine works inside, for contributors. |
 | **[Known Pitfalls](Known-Pitfalls)** | Five behaviors that surprise newcomers, and what to do about them. |
 | **[FAQ](FAQ)** | Short answers to the questions that come up most. |
 
