@@ -7,6 +7,8 @@ namespace RavenTweenSamples {
         Transform _left;
         Transform _center;
         Transform _right;
+        Sequence _intro;
+        Tween _gap;
 
         void Start() {
             Camera camera = Camera.main;
@@ -24,10 +26,22 @@ namespace RavenTweenSamples {
         async void RunForever(CancellationToken destroyed) {
             while (!destroyed.IsCancellationRequested) {
                 ResetPositions();
-                await BuildIntro().WithCancellation(destroyed);
+                _intro = BuildIntro().WithCancellation(destroyed);
+                await _intro;
                 if (destroyed.IsCancellationRequested) { return; }
-                await Raven.Delay(0.8f).WithCancellation(destroyed);
+                _gap = Raven.Delay(0.8f).WithCancellation(destroyed);
+                await _gap;
             }
+        }
+
+        void OnEnable() {
+            _intro.Resume();
+            _gap.Resume();
+        }
+
+        void OnDisable() {
+            _intro.Pause();
+            _gap.Pause();
         }
 
         void ResetPositions() {

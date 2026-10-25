@@ -26,7 +26,7 @@ A grid of spheres using the URP Lit shader. Each sphere tweens its own material 
 
 ## 05 - Complex Sequence (`ComplexSequenceDemo`)
 
-A staged intro where three cubes enter, regroup and celebrate. The two side cubes slide in together (`Chain` + `Group`), the center cube drops in slightly before the slides end (`Insert`), then the celebration — a nested sequence built as its own unit — is chained after them. An `async` loop awaits the whole intro, pauses with an awaited `Raven.Delay`, and plays it again. Both are given the object's `destroyCancellationToken` with `WithCancellation`, so destroying the object stops them and ends the loop.
+A staged intro where three cubes enter, regroup and celebrate. The two side cubes slide in together (`Chain` + `Group`), the center cube drops in slightly before the slides end (`Insert`), then the celebration — a nested sequence built as its own unit — is chained after them. An `async` loop awaits the whole intro, pauses with an awaited `Raven.Delay`, and plays it again. Both are given the object's `destroyCancellationToken` with `WithCancellation`, so destroying the object stops them and ends the loop. Disabling the component or its object pauses the running intro or delay (`OnDisable`), and enabling it again resumes it (`OnEnable`), so, like the coroutine it replaces, the loop does not advance while the demo is inactive.
 
 ## 06 - Benchmark (`BenchmarkDemo`)
 
