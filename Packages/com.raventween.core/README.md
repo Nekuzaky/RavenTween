@@ -23,7 +23,7 @@
 | | |
 | --- | --- |
 | **Zero steady-state GC** | Tween state lives in pooled, versioned slots. Property, effect, sequence and custom tweens allocate **0 bytes per frame** — enforced by tests, not promised in prose. |
-| **Fast** | 5,000 simultaneous tweens step in **about 0.5 ms/frame** on a desktop CPU (Editor, Mono, mixed workload). |
+| **Fast to start** | Creating tweens is 1.5–4× faster than DOTween, PrimeTween and LitMotion in a release player. Per-frame update: ahead of PrimeTween, behind DOTween and LitMotion (see Performance). |
 | **Safe by construction** | Handles are structs. A handle to a finished tween is just dead: every call on it is a no-op. Destroying a target mid-tween kills the tween cleanly and can notify you. |
 | **Designers included** | Animations without code or animation knowledge: 44 ready-made **motions** in a **Motion Library**, **Raven Motion**, **Raven Stagger**, **Raven Button Feel**, **Raven Show Hide**, **Raven Feedback**, **Raven Path**, text components, plus **Tween Templates** and a visual **Sequence Editor**. See [Designer workflow](#designer-workflow-no-code). |
 | **No hidden state** | Tweens are single-use, like PrimeTween. Reuse configurations through `TweenTemplate` assets or `TweenParams` fields instead. |
@@ -296,6 +296,17 @@ Measured by the package's own test suite (`Tests/PerformanceTests.cs`). The allo
 | Creating 1,000 tweens from a warm pool | **0 B** allocated |
 | 5,000 mixed tweens, engine step cost | **about 0.5 ms/frame** (Intel Core i7-14700KF, Unity 6.3 Editor, Mono; expect 2–3× on a laptop CPU) |
 | Starting 4,000 shakes | **under 1 ms** in total |
+
+In a Windows release player (Mono, Unity 6000.3, i7-14700KF), next to other libraries, median of 5 runs:
+
+| 10,000 position tweens | Start | Update per frame | GC per frame |
+| :--- | ---: | ---: | ---: |
+| RavenTween | **1.8 ms** | 0.73 ms | 0 B |
+| DOTween 1.3.045 | 3.7 ms | 0.53 ms | 0 B |
+| PrimeTween 1.5.1 | 2.6 ms | 1.21 ms | 0 B |
+| LitMotion 2.0.2 | 3.0 ms | **0.24 ms** | 0 B |
+
+RavenTween's row includes the unreleased Vector3 fast path (1.7.1 as released: 1.18 ms). Sequences update about 2–3× slower than DOTween. Full tables, method and the benchmark project: [Performance](https://nekuzaky.com/docs/raventween) and `Benchmarks/` in the repository.
 
 What does allocate, by design: a lambda that **captures** a local (once, at creation — standard C#), `ToYieldInstruction()` (one small object per call) and `async` state machines. Use them for flow control, not per-frame work.
 

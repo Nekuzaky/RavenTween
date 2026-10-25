@@ -377,7 +377,27 @@ namespace RavenTween {
         }
 
         static void ApplyProgress(TweenSlot slot, float cycleProgress, int cycleIndex) {
+            if (TryWriteTransformVector(slot, cycleProgress, cycleIndex)) { return; }
             WriteValue(slot, ValueAt(slot, cycleProgress, cycleIndex));
+        }
+
+        static bool TryWriteTransformVector(TweenSlot slot, float cycleProgress, int cycleIndex) {
+            PropertyKind property = slot.Property;
+            if (property != PropertyKind.Position && property != PropertyKind.LocalPosition && property != PropertyKind.LocalScale) { return false; }
+            if (slot.Effect != EffectKind.None || slot.Mode == CycleMode.Incremental || slot.LinkIndex >= 0) { return false; }
+            if (slot.CustomInvoker != null || slot.OnUpdateFloat != null || slot.OnUpdateValue != null || slot.UpdateInvoker != null || slot.OnUpdate != null) { return false; }
+            Transform transform = slot.UnityTarget as Transform;
+            if (transform == null) { return false; }
+            bool odd = (cycleIndex & 1) == 1;
+            float eased = EvaluateEase(slot, slot.Mode == CycleMode.Yoyo && odd ? 1f - cycleProgress : cycleProgress);
+            bool reverse = slot.Mode == CycleMode.PingPong && odd;
+            Vector4 from = reverse ? slot.EndValue.Raw : slot.StartValue.Raw;
+            Vector4 to = reverse ? slot.StartValue.Raw : slot.EndValue.Raw;
+            var value = new Vector3(from.x + (to.x - from.x) * eased, from.y + (to.y - from.y) * eased, from.z + (to.z - from.z) * eased);
+            if (property == PropertyKind.Position) { transform.position = value; }
+            else if (property == PropertyKind.LocalPosition) { transform.localPosition = value; }
+            else { transform.localScale = value; }
+            return true;
         }
 
         static TweenValue ValueAt(TweenSlot slot, float cycleProgress, int cycleIndex) {

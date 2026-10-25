@@ -10,6 +10,7 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 - Sample *05 - Complex Sequence* loops with `async` / `await` and the object's `destroyCancellationToken` instead of a coroutine. `ToYieldInstruction()` is unchanged for projects that wait on tweens from their own coroutines.
 - The test suite no longer uses coroutines (`[UnityTest]`): every test steps the engine, physics and TextMeshPro deterministically, so it runs the same on every supported Unity and Test Framework version.
 - The source code carries no comments any more, XML documentation included, so IDE tooltips no longer describe the API. Every public member is described in the manual's new **API Details** page, the engine's design notes in **Engine Internals**, and the samples in **Samples**.
+- Faster update for `Position`, `LocalPosition` and `LocalScale` tweens that have no update callback: they interpolate and write the `Vector3` directly instead of going through the generic value path. In a Mono release player, 10,000 position tweens step in about 0.73 ms per frame instead of 1.1 ms (see `Benchmarks/README.md`).
 
 ### Fixed
 - A sequence with no tween in it (empty, or only a `ChainDelay` used as a timer) threw a `NullReferenceException` and never completed when it got a pool slot that had never held a sequence.
