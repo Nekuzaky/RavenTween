@@ -36,13 +36,13 @@
 **Git URL**: **Package Manager** → `+` → *Add package from git URL…*
 
 ```
-https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.1
+https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.8.0
 ```
 
 Or add it to `Packages/manifest.json`:
 
 ```json
-"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.7.1"
+"com.raventween.core": "https://github.com/Nekuzaky/RavenTween.git?path=/Packages/com.raventween.core#v1.8.0"
 ```
 
 Requires Unity 2022.3 LTS or newer. Every release is tested on Unity 6.3 and Unity 6.5.

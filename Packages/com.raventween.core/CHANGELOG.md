@@ -3,7 +3,7 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [1.8.0] - 2026-10-25
 
 ### Changed
 - The update loop, `StopAll` / `CompleteAll`, the per-target calls (`StopAll(target)`, `CompleteAll(target)`, `PauseAll`, `ResumeAll`, `CountTweens`) and the monitor walk only up to the highest slot in use instead of the whole pool, and new tweens take the lowest free slot so live slots stay packed: their cost no longer grows with `Raven.SetCapacity` or with an earlier burst of tweens. In the Unity 6.3 Editor (Mono, i7-14700KF) with 200,000 slots reserved, a frame with nothing playing went from 1.14 ms to under 0.001 ms, and with 100 tweens from 1.07 ms to 0.006 ms.
