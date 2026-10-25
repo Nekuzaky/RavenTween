@@ -836,17 +836,28 @@ UniTask support: `await tween.ToUniTask(token)`. It ends when the tween ends (co
 
 ### `LoopType`
 
+DOTween's loop types, for `SetLoops(loops, LoopType)`.
 
-### `LoopType.UpdateType`
+- `Restart` — Same as `CycleMode.Restart`.
+- `Yoyo` — Same as `CycleMode.Yoyo`.
+- `Incremental` — Same as `CycleMode.Incremental`.
 
+### `UpdateType`
 
-### `LoopType.UpdateType.DOTween`
+DOTween's update types, for `SetUpdate(UpdateType)`.
+
+- `Normal` — `UpdatePhase.Update`.
+- `Late` — `UpdatePhase.LateUpdate`.
+- `Fixed` — `UpdatePhase.FixedUpdate`.
+- `Manual` — `UpdatePhase.Manual`, advanced by `DOTween.ManualUpdate`.
+
+### `DOTween`
 
 DOTween's static entry points.
 
 - `static void ManualUpdate(float deltaTime, float unscaledDeltaTime)` — Advances the tweens set to `UpdateType.Manual`.
 
-### `LoopType.UpdateType.DOVirtual`
+### `DOVirtual`
 
 DOTween's DOVirtual helpers.
 
