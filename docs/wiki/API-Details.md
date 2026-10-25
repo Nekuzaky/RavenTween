@@ -178,9 +178,6 @@ A whole tween in one serializable field: end value, optional start value and tim
 - `TweenSettings(T endValue, float duration, Ease ease = Ease.OutQuad)` — Starts from the current value.
 - `TweenSettings(T startValue, T endValue, float duration, Ease ease = Ease.OutQuad) : this(endValue, duration, ease)` — Starts from `startValue`.
 
-### `Raven`
-
-
 ### `CycleMode`
 
 How a tween behaves when it repeats.
@@ -207,7 +204,7 @@ Compact tagged union for every interpolated type. Stored as a Vector4 so tween s
 
 ## Property, effect and custom tweens
 
-### `Raven`
+### `Raven` (AudioSource)
 
 - `static Tween Volume(AudioSource target, float to, float duration)` — Tweens an AudioSource's volume.
 - `static Tween Pitch(AudioSource target, float to, float duration)` — Tweens an AudioSource's pitch.
@@ -217,7 +214,7 @@ Compact tagged union for every interpolated type. Stored as a Vector4 so tween s
 Extension-method style access to AudioSource tweens.
 
 
-### `Raven`
+### `Raven` (Camera)
 
 - `static Tween FieldOfView(Camera target, float to, float duration)` — Tweens a camera's field of view (perspective cameras).
 - `static Tween OrthographicSize(Camera target, float to, float duration)` — Tweens a camera's orthographic size (orthographic cameras).
@@ -228,7 +225,7 @@ Extension-method style access to AudioSource tweens.
 Extension-method style access to Camera tweens.
 
 
-### `Raven`
+### `Raven` (custom tweens)
 
 - `static Tween Custom<T>(T target, float from, float to, float duration, Action<T, float> setter) where T : class` — Tweens any float on any target through a setter. Pass a non-capturing lambda (e.g. `(t, v) => t.fontSize = v`) and the tween allocates nothing. If `target` is a UnityEngine.Object, the tween dies with it.
 - `static Tween Custom<T>(T target, Vector2 from, Vector2 to, float duration, Action<T, Vector2> setter) where T : class` — Zero-allocation Vector2 custom tween. See the float overload.
@@ -243,7 +240,7 @@ Extension-method style access to Camera tweens.
 - `static Tween CustomTo<T>(T target, Func<T, Quaternion> getter, Quaternion to, float duration, Action<T, Quaternion> setter) where T : class` — Quaternion `CustomTo<T>(T, Func<T, float>, float, float, Action<T, float>)`.
 - `static Tween CustomTo<T>(T target, Func<T, Color> getter, Color to, float duration, Action<T, Color> setter) where T : class` — Color `CustomTo<T>(T, Func<T, float>, float, float, Action<T, float>)`.
 
-### `Raven`
+### `Raven` (shake and punch)
 
 - `static Tween ShakePosition(Transform target, Vector3 strength, float duration, float frequency = DefaultShakeFrequency)` — Noise-driven shake around the current **local** position, decaying to rest. Same as `ShakeLocalPosition`.
 - `static Tween ShakeRotation(Transform target, Vector3 strength, float duration, float frequency = DefaultShakeFrequency)` — Noise-driven shake around the current **local** euler angles, in degrees. Same as `ShakeLocalRotation`.
@@ -262,7 +259,7 @@ Extension-method style access to Camera tweens.
 Extension-method style access to shake and punch effects.
 
 
-### `Raven`
+### `Raven` (Material)
 
 - `static Tween MaterialFloat(Material target, int propertyId, float to, float duration)` — Tweens a material float property. Prefer Shader.PropertyToID over name strings.
 - `static Tween MaterialFloat(Material target, string propertyName, float to, float duration)` — Tweens a material float property by name. Resolves the ID once at creation.
@@ -282,7 +279,7 @@ Weight tweens for the procedural components. Blending a look-at or a spring chai
 - `static Tween TweenWeight(this RavenSpringChain chain, float to, float duration)` — Blends the spring motion in (1) or out (0) from its current weight.
 - `static Tween LookAtTarget(this RavenLookAt lookAt, Transform newTarget, float blendDuration)` — Switches the look-at to a new target and blends it in. With a weight already at 1 the smoothing handles the turn; from 0 the head eases from its animated pose.
 
-### `Raven`
+### `Raven` (renderers and lights)
 
 - `static Tween Color(SpriteRenderer target, Color to, float duration)` — Tweens a SpriteRenderer's color.
 - `static Tween Alpha(SpriteRenderer target, float to, float duration)` — Tweens only the alpha of a SpriteRenderer's color.
@@ -298,7 +295,7 @@ Weight tweens for the procedural components. Blending a look-at or a spring chai
 Extension-method style access to renderer and light tweens.
 
 
-### `Raven`
+### `Raven` (Transform)
 
 - `static Tween Position(Transform target, Vector3 to, float duration)` — Tweens world position.
 - `static Tween LocalPosition(Transform target, Vector3 to, float duration)` — Tweens local position.
@@ -327,7 +324,7 @@ Extension-method style access to renderer and light tweens.
 Extension-method style access to Transform tweens.
 
 
-### `Raven`
+### `Raven` (UI)
 
 - `static Tween AnchoredPosition(RectTransform target, Vector2 to, float duration)` — Tweens a RectTransform's anchored position.
 - `static Tween SizeDelta(RectTransform target, Vector2 to, float duration)` — Tweens a RectTransform's size delta.
@@ -347,7 +344,7 @@ Extension-method style access to UI tweens.
 
 ## Motions and no-code components
 
-### `Raven`
+### `Raven` (time scale)
 
 - `static void HitStop(float timeScale = 0.05f, float duration = 0.08f)` — Freezes the game for an instant, the classic heavy-hit effect: `Time.timeScale` drops to `timeScale` for `duration` real seconds, then comes back. Overlapping hit stops extend the freeze and restore the original time scale once. The countdown runs in real time inside the engine, whatever the update phase, `TimeScale` or stopped tweens, so the game can never stay frozen. It never speeds the game up: started while the game already runs slower (a pause), it does nothing.
 - `static bool IsHitStopping` — True while a hit stop holds the time scale.
@@ -355,7 +352,7 @@ Extension-method style access to UI tweens.
 - `static bool IsInSlowMotion` — True while a slow motion holds the time scale down.
 - `static void SlowMotion(float timeScale = 0.3f, float duration = 1f)` — Slows the game down smoothly to `timeScale`, holds, then speeds back up, in `duration` real seconds. A new slow motion replaces a running one and keeps the original speed; if the game changes the time scale meanwhile (a pause menu), the speed is not restored over it. It never speeds the game up: started while the game already runs slower (a pause), it does nothing. During a hit stop it is compared with the speed the hit stop will restore, and restores that speed when it ends; if the game changed the time scale during the hit stop (a pause menu), it does nothing.
 
-### `Raven`
+### `Raven` (motions)
 
 - `static Sequence Motion(Component target, MotionPreset preset)` — Plays a ready-made `preset` on `target`'s object, around its current pose. Entrances hide the object at once, then reveal it. Calling it again on the same object while a motion runs replaces that motion and keeps its rest pose, so rapid repeats (a pulse on every click) never drift.
 - `static Sequence Motion(Component target, MotionPreset preset, MotionSettings settings)` — Plays a ready-made `preset` with custom timing, strength or distance.
@@ -549,6 +546,18 @@ Click events.
 
 Moves its object along a path of points drawn in the Scene view: moving platforms, patrols, flying pickups, camera fly-bys. The path starts where the object stands and is stored relative to it, so moving the object moves the whole path. Constant speed along curves.
 
+- `Vector3 Origin` — Where the path starts, in the parent's space: the object's position when it first played.
+- `float Length` — Length of the path in the parent's units.
+- `float TripDuration` — Seconds one trip takes.
+- `void Play()` — Travels the path from its start.
+- `void Stop()` — Stops where the object is.
+- `void ResetToStart()` — Stops and puts the object back at the start of the path.
+- `Tween CreateTween()` — One trip as a tween (no loop), for previews and custom sequences.
+- `void ForgetOrigin()` — Forgets the start point: the next play starts from where the object stands now.
+- `Vector3 Evaluate(float t)` — Point at `t` (0 = start, 1 = end) along the path, at constant speed, in the parent's space.
+- `void GetWorldPolyline(List<Vector3> world)` — Fills `world` with points along the path in world space, for drawing.
+- `Vector3 GetWorldPoint(int index)` — World position of control point `index` (-1 = the start).
+- `void SetWorldPoint(int index, Vector3 world)` — Moves control point `index` to a world position.
 
 ### `RavenPath.PathLoop`
 
@@ -566,20 +575,6 @@ Moves its object along a path of points drawn in the Scene view: moving platform
 
 - `Duration` — The whole trip takes Duration seconds.
 - `Speed` — Travel at Speed units per second, whatever the length.
-### `RavenPath`
-
-- `Vector3 Origin` — Where the path starts, in the parent's space: the object's position when it first played.
-- `float Length` — Length of the path in the parent's units.
-- `float TripDuration` — Seconds one trip takes.
-- `void Play()` — Travels the path from its start.
-- `void Stop()` — Stops where the object is.
-- `void ResetToStart()` — Stops and puts the object back at the start of the path.
-- `Tween CreateTween()` — One trip as a tween (no loop), for previews and custom sequences.
-- `void ForgetOrigin()` — Forgets the start point: the next play starts from where the object stands now.
-- `Vector3 Evaluate(float t)` — Point at `t` (0 = start, 1 = end) along the path, at constant speed, in the parent's space.
-- `void GetWorldPolyline(List<Vector3> world)` — Fills `world` with points along the path in world space, for drawing.
-- `Vector3 GetWorldPoint(int index)` — World position of control point `index` (-1 = the start).
-- `void SetWorldPoint(int index, Vector3 world)` — Moves control point `index` to a world position.
 
 ### `RavenShowHide`
 
@@ -595,16 +590,14 @@ Shows and hides a panel, a popup or any object with an entrance and an exit moti
 
 Plays one `MotionPreset` on every child, one after another: menus that cascade in, list rows, inventory slots, a row of coins. No code needed.
 
+- `void Play()` — Plays the motion on every active child, one after another.
+- `void Stop()` — Stops every child's motion and puts back what it animated. Children at rest are left alone, unless an exit hid them: then they are shown again on their rest poses.
 
 ### `RavenStagger.Order`
 
 - `FirstToLast` — First child first.
 - `LastToFirst` — Last child first.
 - `CenterOut` — From the middle child outwards.
-### `RavenStagger`
-
-- `void Play()` — Plays the motion on every active child, one after another.
-- `void Stop()` — Stops every child's motion and puts back what it animated. Children at rest are left alone, unless an exit hid them: then they are shown again on their rest poses.
 
 ---
 
@@ -614,21 +607,29 @@ Plays one `MotionPreset` on every child, one after another: menus that cascade i
 
 Plays one or more tween templates on scene targets without writing code. Hook `Play` to a UnityEvent, enable Play On Enable, or call it from code.
 
-
-### `RavenAnimator.Entry`
-
-### `RavenAnimator`
-
 - `List<Entry> Entries` — Entries played by this animator. Edit at runtime before calling Play.
 - `UnityEvent OnAllComplete` — Raised once every entry of the current Play call has completed.
 - `void Play()` — Stops any previous run, then plays every entry.
 - `void Stop()` — Stops every tween started by this animator. Does not raise On All Complete.
 - `void CompleteNow()` — Jumps every running tween to its end value, then raises On All Complete.
 
+### `RavenAnimator.Entry`
+
+One template played by the animator.
+
+- `Object target` — Component or asset the template animates (Transform, CanvasGroup, Material, …). A GameObject also works: the template finds the component its property needs on it.
+- `TweenTemplate template` — The tween to play on `target`. An entry with no target or no template is skipped with a warning.
+
 ### `RavenSequencePlayer`
 
 Builds and plays a sequence from serialized steps without writing code. Each step chains, groups or inserts a template on a scene target.
 
+- `List<Step> Steps` — Steps played by this component. Edit at runtime before calling Play.
+- `UnityEvent OnComplete` — Raised when the built sequence completes.
+- `Sequence Current` — Handle to the sequence of the current run; dead when nothing plays.
+- `void Play()` — Stops any previous run, rebuilds the sequence from steps, and plays it.
+- `void Stop()` — Stops the running sequence, if any.
+- `void CompleteNow()` — Jumps the running sequence to its end. The handle is cleared first: On Complete may start a new run (Play) safely.
 
 ### `RavenSequencePlayer.StepMode`
 
@@ -638,14 +639,12 @@ Builds and plays a sequence from serialized steps without writing code. Each ste
 
 ### `RavenSequencePlayer.Step`
 
-### `RavenSequencePlayer`
+One step of the built sequence.
 
-- `List<Step> Steps` — Steps played by this component. Edit at runtime before calling Play.
-- `UnityEvent OnComplete` — Raised when the built sequence completes.
-- `Sequence Current` — Handle to the sequence of the current run; dead when nothing plays.
-- `void Play()` — Stops any previous run, rebuilds the sequence from steps, and plays it.
-- `void Stop()` — Stops the running sequence, if any.
-- `void CompleteNow()` — Jumps the running sequence to its end. The handle is cleared first: On Complete may start a new run (Play) safely.
+- `StepMode mode` — How the step is placed: chained after everything before it, grouped with the previous step, or inserted at `insertTime`.
+- `float insertTime` — Position on the sequence timeline, in seconds; used only by `Insert`.
+- `Object target` — Component or asset the template animates.
+- `TweenTemplate template` — The tween to play on `target`. A looping template plays a finite number of cycles inside the sequence (`CyclesInsideSequence`). A step with no target or no template is skipped with a warning.
 
 ### `TweenTemplate`
 
@@ -696,6 +695,8 @@ A number that counts up or down on a TextMeshPro text: scores, coins, damage, ti
 
 Animates the letters of a TextMeshPro text one by one: a wave, a shake, a wobble, a pulse or a rainbow, and letters that pop or fade in as they appear (with Raven Typewriter or any change to maxVisibleCharacters). Works on the mesh only: the text, its layout and its colors in the Inspector are never changed. No allocation while it plays.
 
+- `bool IsShaping` — True while it has a laid-out text to shape (false for an empty text).
+- `void Replay()` — Plays the Appear animation again for every letter (e.g. when the text is shown again).
 
 ### `RavenTextEffect.Effect`
 
@@ -712,10 +713,6 @@ Animates the letters of a TextMeshPro text one by one: a wave, a shake, a wobble
 - `Fade` — Each letter fades in.
 - `Pop` — Each letter pops in with a small overshoot.
 - `Rise` — Each letter rises into place while fading in.
-### `RavenTextEffect`
-
-- `bool IsShaping` — True while it has a laid-out text to shape (false for an empty text).
-- `void Replay()` — Plays the Appear animation again for every letter (e.g. when the text is shown again).
 
 ### `RavenTypewriter`
 
