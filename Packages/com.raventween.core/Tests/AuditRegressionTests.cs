@@ -355,6 +355,48 @@ namespace RavenTween.Tests {
             Assert.That(fresh.IsAlive, Is.True);
         }
 
+        [Test]
+        public void HitStop_WhileTheGameIsPaused_KeepsThePause() {
+            try {
+                Time.timeScale = 0f;
+                Raven.HitStop(0.05f, 0.1f);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+                Step(0.2f);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+            } finally {
+                Raven.EndHitStop();
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void SlowMotion_WhileTheGameIsPaused_KeepsThePause() {
+            try {
+                Time.timeScale = 0f;
+                Raven.SlowMotion(0.3f, 1f);
+                Step(0.1f, 5);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+                Step(0.1f, 7);
+                Assert.That(Time.timeScale, Is.EqualTo(0f));
+            } finally {
+                Time.timeScale = 1f;
+            }
+        }
+
+        [Test]
+        public void SlowMotion_DuringAHitStop_RestoresTheSpeedFromBeforeTheHitStop() {
+            try {
+                Time.timeScale = 0.5f;
+                Raven.HitStop(0.05f, 0.05f);
+                Raven.SlowMotion(0.3f, 1f);
+                Step(0.1f, 12);
+                Assert.That(Time.timeScale, Is.EqualTo(0.5f).Within(1e-3f));
+            } finally {
+                Raven.EndHitStop();
+                Time.timeScale = 1f;
+            }
+        }
+
         static TweenTemplate MakeTemplate(float duration) {
             var t = ScriptableObject.CreateInstance<TweenTemplate>();
             t.property = PropertyKind.LocalPosition;

@@ -118,12 +118,15 @@ namespace RavenTween {
 
         public static bool HitStopActive { get { return _hitStopRemaining > 0f; } }
 
+        public static float TimeScaleBeforeHitStop { get { return _hitStopRestore; } }
+
         public static void BeginHitStop(float timeScale, float duration) {
             Debug.Assert(timeScale >= 0f && duration >= 0f, "A hit stop needs a non-negative time scale and duration.");
             if (duration <= 0f) { return; }
             bool active = _hitStopRemaining > 0f;
             // The game took over the time scale during the freeze (a pause menu): leave it alone.
             if (active && !Mathf.Approximately(UnityEngine.Time.timeScale, _hitStopScale)) { return; }
+            if (!active && UnityEngine.Time.timeScale < Mathf.Max(timeScale, 0.0001f)) { return; }
             if (!active) { _hitStopRestore = UnityEngine.Time.timeScale; }
             _hitStopRemaining = Mathf.Max(_hitStopRemaining, duration);
             // Never exactly 0, so a pause (0) set during the freeze is always told apart from it.

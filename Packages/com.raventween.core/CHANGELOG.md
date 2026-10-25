@@ -8,6 +8,8 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and
 ### Fixed
 - A sequence with no tween in it (empty, or only a `ChainDelay` used as a timer) threw a `NullReferenceException` and never completed when it got a pool slot that had never held a sequence.
 - With *Enter Play Mode Options* (no domain reload), a `Tween` or `Sequence` handle kept from an earlier Play Mode session (a static field, an editor window) could point at a new, unrelated tween and stop or change it: the engine reset restarted handle versions at 1. Handles from before a reset now stay dead, and tweens still alive when Play Mode ends are released instead of keeping scene objects and callbacks referenced in Edit Mode.
+- `Raven.HitStop` and `Raven.SlowMotion` (and the Hit Stop / Slow Motion feedback actions) started while the game was paused (`Time.timeScale = 0`) ran the game at the hit-stop or slow-motion speed until they ended. They now never speed the game up: when the time scale is already lower, they do nothing.
+- A slow motion started during a hit stop restored `Time.timeScale` to 1 instead of the speed the game had before the hit stop.
 
 ## [1.7.1] - 2026-10-16
 

@@ -49,12 +49,14 @@ namespace RavenTween {
         /// </summary>
         public static void SlowMotion(float timeScale = 0.3f, float duration = 1f) {
             Debug.Assert(timeScale >= 0f && duration >= 0f, "Slow motion needs a non-negative time scale and duration.");
+            float scale = Mathf.Max(timeScale, 0.0001f);
+            if (!IsHitStopping && !IsInSlowMotion && Time.timeScale < scale) { return; }
             bool running = IsInSlowMotion;
             _slowDown.Stop();
             _slowTimer.Stop();
             _slowBack.Stop();
-            if (!running) { _slowMotionRestore = IsHitStopping ? 1f : Time.timeScale; }
-            _slowMotionScale = Mathf.Max(timeScale, 0.0001f);
+            if (!running) { _slowMotionRestore = IsHitStopping ? TweenEngine.TimeScaleBeforeHitStop : Time.timeScale; }
+            _slowMotionScale = scale;
             float down = duration * 0.2f;
             _slowMotionBack = Mathf.Max(duration * 0.3f, 0.01f);
             // Separate root tweens: a sequence would write its children's end values again when it ends.
