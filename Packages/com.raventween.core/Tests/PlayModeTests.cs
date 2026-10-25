@@ -1,11 +1,12 @@
-using System.Collections;
+using System.Collections.Generic;
+using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.LowLevel;
+using UnityEngine.PlayerLoop;
 using UnityEngine.TestTools;
 
 namespace RavenTween.Tests {
-    /// <summary>Integration tests running against the real player loop.</summary>
     public sealed class PlayModeTests {
         [SetUp]
         public void SetUp() {
@@ -20,31 +21,52 @@ namespace RavenTween.Tests {
             Time.timeScale = 1f;
         }
 
-        [UnityTest]
-        public IEnumerator ReplacedPlayerLoop_EngineReinstallsItself() {
+        static void Step(float scaled, float unscaled, int frames = 1) {
+            for (int i = 0; i < frames; i++) { TweenEngine.Process(scaled, unscaled); }
+        }
+
+        [Test]
+        public void ReplacedPlayerLoop_EngineReinstallsItself() {
             PlayerLoopSystem original = PlayerLoop.GetCurrentPlayerLoop();
             var go = new GameObject("loop-target");
             try {
                 PlayerLoop.SetPlayerLoop(WithoutEngine(original));
-                for (int i = 0; i < 4; i++) { yield return null; }
+                SimulateStalledPlayerLoop();
                 LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("player loop was replaced"));
                 Raven.Position(go.transform, new Vector3(5f, 0f, 0f), 0.1f);
-                float deadline = Time.realtimeSinceStartup + 2f;
-                while (go.transform.position.x < 5f && Time.realtimeSinceStartup < deadline) { yield return null; }
-                Assert.That(go.transform.position.x, Is.EqualTo(5f).Within(1e-3f), "Tweens advance again once the engine is back.");
+                PlayerLoopSystem.UpdateFunction update = FindEngineSystem(PlayerLoop.GetCurrentPlayerLoop(), typeof(Update));
+                Assert.That(update, Is.Not.Null, "The engine is back in the Update phase.");
+                Step(0.2f, 0.2f);
+                Assert.That(go.transform.position.x, Is.EqualTo(5f).Within(1e-3f));
             } finally {
                 PlayerLoop.SetPlayerLoop(original);
-                Object.Destroy(go);
+                Object.DestroyImmediate(go);
             }
         }
 
-        // A copy of the loop with the engine's systems taken out, like a third-party loop would be.
+        [Test]
+        public void EngineSystems_SitInUpdatePreLateUpdateAndFixedUpdate() {
+            PlayerLoopSystem loop = PlayerLoop.GetCurrentPlayerLoop();
+            Assert.That(FindEngineSystem(loop, typeof(Update)), Is.Not.Null);
+            Assert.That(FindEngineSystem(loop, typeof(PreLateUpdate)), Is.Not.Null);
+            Assert.That(FindEngineSystem(loop, typeof(FixedUpdate)), Is.Not.Null);
+            Assert.That(IndexIn(loop, typeof(FixedUpdate), typeof(TweenEngine)),
+                Is.EqualTo(IndexIn(loop, typeof(FixedUpdate), typeof(FixedUpdate.ScriptRunBehaviourFixedUpdate)) + 1),
+                "Fixed tweens run right after the scripts' FixedUpdate, before the physics step.");
+        }
+
+        static void SimulateStalledPlayerLoop() {
+            const BindingFlags Flags = BindingFlags.NonPublic | BindingFlags.Static;
+            typeof(TweenEngine).GetField("_lastUpdateFrame", Flags).SetValue(null, Time.frameCount - 3);
+            typeof(TweenEngine).GetField("_lastLoopCheckFrame", Flags).SetValue(null, -1);
+        }
+
         static PlayerLoopSystem WithoutEngine(PlayerLoopSystem root) {
             var phases = (PlayerLoopSystem[])root.subSystemList.Clone();
             for (int i = 0; i < phases.Length; i++) {
                 PlayerLoopSystem[] children = phases[i].subSystemList;
                 if (children == null) { continue; }
-                var kept = new System.Collections.Generic.List<PlayerLoopSystem>(children.Length);
+                var kept = new List<PlayerLoopSystem>(children.Length);
                 for (int j = 0; j < children.Length; j++) {
                     if (children[j].type != typeof(TweenEngine)) { kept.Add(children[j]); }
                 }
@@ -54,64 +76,95 @@ namespace RavenTween.Tests {
             return root;
         }
 
-        [UnityTest]
-        public IEnumerator PropertyTween_MovesTransform() {
-            var go = new GameObject("tween-target");
-            Tween tween = Raven.Position(go.transform, new Vector3(0f, 10f, 0f), 0.2f);
-            yield return tween.ToYieldInstruction();
-            Assert.That(go.transform.position.y, Is.EqualTo(10f).Within(1e-3f));
-            Object.Destroy(go);
+        internal static PlayerLoopSystem.UpdateFunction FindEngineSystem(PlayerLoopSystem root, System.Type phase) {
+            int at = IndexIn(root, phase, typeof(TweenEngine));
+            if (at < 0) { return null; }
+            for (int i = 0; i < root.subSystemList.Length; i++) {
+                if (root.subSystemList[i].type == phase) { return root.subSystemList[i].subSystemList[at].updateDelegate; }
+            }
+            return null;
         }
 
-        [UnityTest]
-        public IEnumerator DestroyedTarget_KillsTween_WithoutErrors() {
+        static int IndexIn(PlayerLoopSystem root, System.Type phase, System.Type system) {
+            for (int i = 0; i < root.subSystemList.Length; i++) {
+                if (root.subSystemList[i].type != phase || root.subSystemList[i].subSystemList == null) { continue; }
+                PlayerLoopSystem[] children = root.subSystemList[i].subSystemList;
+                for (int j = 0; j < children.Length; j++) {
+                    if (children[j].type == system) { return j; }
+                }
+            }
+            return -1;
+        }
+
+        [Test]
+        public void PropertyTween_MovesTransform() {
+            var go = new GameObject("tween-target");
+            Raven.Position(go.transform, new Vector3(0f, 10f, 0f), 0.2f);
+            Step(0.25f, 0.25f);
+            Assert.That(go.transform.position.y, Is.EqualTo(10f).Within(1e-3f));
+            Object.DestroyImmediate(go);
+        }
+
+        [Test]
+        public void DestroyedTarget_KillsTween_WithoutErrors() {
             var go = new GameObject("doomed");
             bool destroyedCallback = false;
             Tween tween = Raven.Position(go.transform, Vector3.one * 100f, 5f)
                 .OnTargetDestroyed(() => destroyedCallback = true);
-            yield return null;
-            Object.Destroy(go);
-            yield return null;
-            yield return null;
+            Step(0.016f, 0.016f);
+            Object.DestroyImmediate(go);
+            Step(0.016f, 0.016f);
             Assert.That(tween.IsAlive, Is.False, "Tween must die when its target is destroyed.");
             Assert.That(destroyedCallback, Is.True);
         }
 
-        [UnityTest]
-        public IEnumerator UnscaledTween_IgnoresTimeScaleZero() {
-            Time.timeScale = 0f;
+        [Test]
+        public void UnscaledTween_IgnoresTimeScaleZero() {
             Tween tween = Raven.Value(0f, 1f, 0.2f).UnscaledTime();
-            float deadline = Time.realtimeSinceStartup + 3f;
-            while (tween.IsAlive && Time.realtimeSinceStartup < deadline) { yield return null; }
-            Time.timeScale = 1f;
+            Step(0f, 0.05f, 5);
             Assert.That(tween.IsAlive, Is.False, "Unscaled tween must finish while timeScale is 0.");
         }
 
-        [UnityTest]
-        public IEnumerator ScaledTween_FreezesAtTimeScaleZero() {
-            Time.timeScale = 0f;
+        [Test]
+        public void ScaledTween_FreezesAtTimeScaleZero() {
             Tween tween = Raven.Value(0f, 1f, 0.1f);
-            for (int i = 0; i < 10; i++) { yield return null; }
+            Step(0f, 0.05f, 10);
             Assert.That(tween.IsAlive, Is.True, "Scaled tween must freeze while timeScale is 0.");
-            Time.timeScale = 1f;
-            yield return tween.ToYieldInstruction();
+            Step(0.05f, 0.05f, 3);
             Assert.That(tween.IsAlive, Is.False);
         }
 
-        [UnityTest]
-        public IEnumerator Coroutine_Yield_WaitsForCompletion() {
+        [Test]
+        public void YieldInstruction_KeepsWaitingUntilTheTweenEnds() {
             float value = 0f;
             Tween tween = Raven.Value(0f, 5f, 0.2f).OnUpdate(v => value = v);
-            yield return tween.ToYieldInstruction();
+            CustomYieldInstruction wait = tween.ToYieldInstruction();
+            Assert.That(wait.keepWaiting, Is.True);
+            Step(0.1f, 0.1f);
+            Assert.That(wait.keepWaiting, Is.True);
+            Step(0.15f, 0.15f);
+            Assert.That(wait.keepWaiting, Is.False);
             Assert.That(value, Is.EqualTo(5f).Within(1e-3f));
         }
 
-        [UnityTest]
-        public IEnumerator AsyncAwait_ResumesAfterCompletion() {
+        [Test]
+        public void YieldInstruction_OfASequence_KeepsWaitingUntilItEnds() {
+            Sequence sequence = Raven.Sequence().Chain(Raven.Value(0f, 1f, 0.2f)).Chain(Raven.Value(0f, 1f, 0.2f));
+            CustomYieldInstruction wait = sequence.ToYieldInstruction();
+            Step(0.3f, 0.3f);
+            Assert.That(wait.keepWaiting, Is.True);
+            Step(0.2f, 0.2f);
+            Assert.That(wait.keepWaiting, Is.False);
+        }
+
+        [Test]
+        public void AsyncAwait_ResumesAfterCompletion() {
             bool finished = false;
             AwaitTween();
-            float deadline = Time.realtimeSinceStartup + 3f;
-            while (!finished && Time.realtimeSinceStartup < deadline) { yield return null; }
+            Assert.That(finished, Is.False);
+            Step(0.1f, 0.1f);
+            Assert.That(finished, Is.False);
+            Step(0.15f, 0.15f);
             Assert.That(finished, Is.True, "await must resume after the tween completes.");
 
             async void AwaitTween() {
@@ -120,8 +173,8 @@ namespace RavenTween.Tests {
             }
         }
 
-        [UnityTest]
-        public IEnumerator Template_PlaysOnTarget() {
+        [Test]
+        public void Template_PlaysOnTarget() {
             var template = ScriptableObject.CreateInstance<TweenTemplate>();
             template.property = PropertyKind.LocalScale;
             template.endValue = new Vector4(2f, 2f, 2f, 0f);
@@ -130,15 +183,15 @@ namespace RavenTween.Tests {
             var go = new GameObject("template-target");
             Tween tween = template.Play(go.transform);
             Assert.That(tween.IsAlive, Is.True);
-            yield return tween.ToYieldInstruction();
+            Step(0.25f, 0.25f);
+            Assert.That(tween.IsAlive, Is.False);
             Assert.That(go.transform.localScale.x, Is.EqualTo(2f).Within(1e-3f));
-            Object.Destroy(go);
-            Object.Destroy(template);
+            Object.DestroyImmediate(go);
+            Object.DestroyImmediate(template);
         }
 
         [Test]
         public void SequencePlayer_LoopingTemplate_PlaysFinitely_WithoutErrors() {
-            // Any error log would fail this test: looping templates must be handled quietly.
             var template = ScriptableObject.CreateInstance<TweenTemplate>();
             template.property = PropertyKind.LocalScale;
             template.endValue = new Vector4(2f, 2f, 2f, 0f);
@@ -162,8 +215,8 @@ namespace RavenTween.Tests {
             Object.DestroyImmediate(template);
         }
 
-        [UnityTest]
-        public IEnumerator Animator_PlaysEntries_AndRaisesEvent() {
+        [Test]
+        public void Animator_PlaysEntries_AndRaisesEvent() {
             var template = ScriptableObject.CreateInstance<TweenTemplate>();
             template.property = PropertyKind.LocalPosition;
             template.endValue = new Vector4(0f, 3f, 0f, 0f);
@@ -175,12 +228,13 @@ namespace RavenTween.Tests {
             bool completed = false;
             animator.OnAllComplete.AddListener(() => completed = true);
             animator.Play();
-            float deadline = Time.realtimeSinceStartup + 3f;
-            while (!completed && Time.realtimeSinceStartup < deadline) { yield return null; }
+            Step(0.1f, 0.1f);
+            Assert.That(completed, Is.False);
+            Step(0.15f, 0.15f);
             Assert.That(completed, Is.True);
             Assert.That(go.transform.localPosition.y, Is.EqualTo(3f).Within(1e-3f));
-            Object.Destroy(go);
-            Object.Destroy(template);
+            Object.DestroyImmediate(go);
+            Object.DestroyImmediate(template);
         }
     }
 }

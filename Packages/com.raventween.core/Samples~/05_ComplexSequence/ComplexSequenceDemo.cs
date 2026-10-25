@@ -1,4 +1,4 @@
-using System.Collections;
+using System.Threading;
 using RavenTween;
 using UnityEngine;
 
@@ -6,7 +6,7 @@ namespace RavenTweenSamples {
     /// <summary>
     /// Drop this component on an empty GameObject in a blank scene and press Play.
     /// Builds a nested sequence: a staged "intro" where three cubes enter, regroup and
-    /// celebrate. A coroutine waits for it to finish, pauses, and plays it again.
+    /// celebrate. An async loop awaits it, pauses, and plays it again until the object is destroyed.
     /// </summary>
     public sealed class ComplexSequenceDemo : MonoBehaviour {
         Transform _left;
@@ -23,17 +23,17 @@ namespace RavenTweenSamples {
             _left = Spawn(new Vector3(-6f, 0f, 0f), Color.cyan);
             _center = Spawn(new Vector3(0f, 6f, 0f), Color.yellow);
             _right = Spawn(new Vector3(6f, 0f, 0f), Color.magenta);
-            StartCoroutine(RunForever());
+            RunForever(destroyCancellationToken);
         }
 
-        IEnumerator RunForever() {
-            while (true) {
+        async void RunForever(CancellationToken destroyed) {
+            while (!destroyed.IsCancellationRequested) {
                 ResetPositions();
-                Sequence intro = BuildIntro();
-                // A sequence can be awaited from a coroutine...
-                yield return intro.ToYieldInstruction();
-                // ...or from async code; here we just pause between runs.
-                yield return Raven.Delay(0.8f).ToYieldInstruction();
+                // Awaiting a sequence resumes when it ends; the token stops it if the object is destroyed.
+                await BuildIntro().WithCancellation(destroyed);
+                if (destroyed.IsCancellationRequested) { return; }
+                // A pause between runs.
+                await Raven.Delay(0.8f).WithCancellation(destroyed);
             }
         }
 

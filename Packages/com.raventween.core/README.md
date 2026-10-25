@@ -333,7 +333,7 @@ Import from **Package Manager → RavenTween → Samples**. Each sample builds i
 | 02 - Gameplay | Hops, spins, patrol loop |
 | 03 - Camera | Breathing zoom, background blend, punch zoom |
 | 04 - Materials | Staggered material color waves |
-| 05 - Complex Sequence | Nested Chain / Group / Insert driven by a coroutine |
+| 05 - Complex Sequence | Nested Chain / Group / Insert driven by an async/await loop |
 | 06 - Benchmark | Thousands of tweens with frame-time and GC readout |
 | 07 - TextMeshPro | Typewriter, number counter, punch feedback |
 | 08 - Procedural | Head look-at and antenna spring, blended with weight tweens |

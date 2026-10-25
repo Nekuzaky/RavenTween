@@ -67,6 +67,8 @@ namespace RavenTween {
         bool _wasAnimating;
         bool _warnedSorting;
 
+        internal float? ClockOverride;
+
         public Effect TextEffect { get { return effect; } set { effect = value; } }
         public Appear AppearStyle { get { return appear; } set { appear = value; } }
         public float Strength { get { return strength; } set { strength = Mathf.Max(value, 0f); } }
@@ -102,6 +104,10 @@ namespace RavenTween {
         }
 
         void LateUpdate() {
+            Refresh();
+        }
+
+        internal void Refresh() {
             if (!_hasSnapshot || !_text.isActiveAndEnabled) { return; }
             // An empty text keeps its old vertex arrays: never upload them again.
             if (_text.textInfo.characterCount == 0) { _hasSnapshot = false; return; }
@@ -162,7 +168,7 @@ namespace RavenTween {
         }
 
         void Apply(TMP_TextInfo info, bool upload) {
-            float now = useUnscaledTime ? Time.unscaledTime : Time.time;
+            float now = ClockOverride ?? (useUnscaledTime ? Time.unscaledTime : Time.time);
             int visible = Mathf.Min(info.characterCount, _text.maxVisibleCharacters);
             int last = letterCount < 0 ? info.characterCount : Mathf.Min(info.characterCount, fromLetter + letterCount);
             bool appearing = false;

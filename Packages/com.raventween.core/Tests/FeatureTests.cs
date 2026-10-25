@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -69,11 +68,15 @@ namespace RavenTween.Tests {
             Assert.That(a, Is.EqualTo(5f).Within(1e-4f));
         }
 
-        [UnityTest]
-        public IEnumerator FixedUpdatePhase_RunsInThePlayerLoop() {
+        [Test]
+        public void FixedUpdatePhase_IsSteppedByThePlayerLoopFixedUpdateSystem() {
             float v = -1f;
             Raven.Value(0f, 1f, 0.2f).UpdateIn(UpdatePhase.FixedUpdate).OnUpdate(x => v = x);
-            yield return new WaitForSeconds(0.5f);
+            UnityEngine.LowLevel.PlayerLoopSystem.UpdateFunction fixedStep =
+                PlayModeTests.FindEngineSystem(UnityEngine.LowLevel.PlayerLoop.GetCurrentPlayerLoop(), typeof(UnityEngine.PlayerLoop.FixedUpdate));
+            Assert.That(fixedStep, Is.Not.Null);
+            int steps = Mathf.CeilToInt(0.2f / Time.fixedDeltaTime) + 1;
+            for (int i = 0; i < steps; i++) { fixedStep(); }
             Assert.That(v, Is.EqualTo(1f).Within(1e-4f));
         }
 
