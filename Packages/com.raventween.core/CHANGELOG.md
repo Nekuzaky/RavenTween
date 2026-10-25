@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Fixed
+- A sequence with no tween in it (empty, or only a `ChainDelay` used as a timer) threw a `NullReferenceException` and never completed when it got a pool slot that had never held a sequence.
+
 ## [1.7.1] - 2026-10-16
 
 ### Changed

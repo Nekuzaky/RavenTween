@@ -144,7 +144,6 @@ namespace RavenTween {
             holder.CompleteTarget = target;
             holder.CompleteDelegate = targetCallback;
             holder.CompleteInvoker = invoker;
-            if (sequenceSlot.Items == null) { sequenceSlot.Items = new List<SequenceItem>(4); }
             InsertSorted(sequenceSlot.Items, new SequenceItem {
                 StartTime = time, ActiveStart = time, Duration = 0f, ChildIndex = index, ChildVersion = holder.Version
             });
@@ -177,7 +176,6 @@ namespace RavenTween {
             }
             child.OwnedBySequence = true;
             float childLength = ComputeChildLength(child);
-            if (sequenceSlot.Items == null) { sequenceSlot.Items = new List<SequenceItem>(4); }
             InsertSorted(sequenceSlot.Items, new SequenceItem {
                 StartTime = startTime,
                 ActiveStart = startTime + child.StartDelay,

@@ -61,6 +61,8 @@ namespace RavenTween {
             }
         }
 
+        public static int PoolSize { get { return Slots.Count; } }
+
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         static void DomainReset() {
             Slots.Clear();

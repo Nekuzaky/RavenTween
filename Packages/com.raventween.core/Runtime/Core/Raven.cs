@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RavenTween {
@@ -86,6 +87,7 @@ namespace RavenTween {
         public static Sequence Sequence() {
             int index = TweenEngine.Rent(out TweenSlot slot);
             slot.IsSequence = true;
+            if (slot.Items == null) { slot.Items = new List<SequenceItem>(4); }
             return new Sequence(index, slot.Version);
         }
 

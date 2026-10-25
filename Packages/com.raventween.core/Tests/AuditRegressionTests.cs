@@ -323,6 +323,26 @@ namespace RavenTween.Tests {
             Object.DestroyImmediate(template);
         }
 
+        [Test]
+        public void EmptySequence_OnAFreshPoolSlot_Completes() {
+            Raven.SetCapacity(TweenEngine.PoolSize + 1);
+            bool done = false;
+            Raven.Sequence().OnComplete(() => done = true);
+            Assert.DoesNotThrow(() => Step(0.1f));
+            Assert.That(done, Is.True);
+        }
+
+        [Test]
+        public void DelayOnlySequence_OnAFreshPoolSlot_PlaysItsDelay() {
+            Raven.SetCapacity(TweenEngine.PoolSize + 1);
+            bool done = false;
+            Sequence timer = Raven.Sequence().ChainDelay(0.3f).OnComplete(() => done = true);
+            Step(0.2f);
+            Assert.That(timer.IsAlive, Is.True);
+            Step(0.2f);
+            Assert.That(done, Is.True);
+        }
+
         static TweenTemplate MakeTemplate(float duration) {
             var t = ScriptableObject.CreateInstance<TweenTemplate>();
             t.property = PropertyKind.LocalPosition;
