@@ -30,7 +30,7 @@ Measured in a **built player**, not the Editor, with the benchmark in [`Benchmar
 | CPU | Intel Core i7-14700KF (28 logical cores), Windows 11 |
 | Unity | 6000.3.13f1, Windows release player, `-batchmode -nographics`, vSync off |
 | Scripting backend | **Mono** (the IL2CPP Windows module was not installed on the benchmark machine) |
-| Versions | RavenTween 1.7.1 + the unreleased changes on `main` (Vector3 fast path, live-range update loop), DOTween 1.3.045 (free, `DOTween.Init()` defaults), PrimeTween 1.5.1, LitMotion 2.0.2 (Burst 1.8.29) |
+| Versions | RavenTween 1.8.0 (Vector3 fast path, live-range update loop), DOTween 1.3.045 (free, `DOTween.Init()` defaults), PrimeTween 1.5.1, LitMotion 2.0.2 (Burst 1.8.29) |
 
 **N position tweens**
 

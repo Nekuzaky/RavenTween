@@ -306,7 +306,7 @@ In a Windows release player (Mono, Unity 6000.3, i7-14700KF), next to other libr
 | PrimeTween 1.5.1 | 2.74 ms | 1.20 ms | 0 B |
 | LitMotion 2.0.2 | 2.19 ms | **0.24 ms** | 0 B |
 
-RavenTween's row includes the unreleased Vector3 fast path and live-range update loop (1.7.1 as released: 1.18 ms). Sequences update 2.4–2.8× slower than DOTween, and at 50,000 sequences slower than PrimeTween and LitMotion too. Full tables, method and the benchmark project: [Performance](https://nekuzaky.com/docs/raventween) and `Benchmarks/` in the repository.
+RavenTween's row is 1.8.0, with the Vector3 fast path and live-range update loop (1.7.1: 1.18 ms). Sequences update 2.4–2.8× slower than DOTween, and at 50,000 sequences slower than PrimeTween and LitMotion too. Full tables, method and the benchmark project: [Performance](https://nekuzaky.com/docs/raventween) and `Benchmarks/` in the repository.
 
 What does allocate, by design: a lambda that **captures** a local (once, at creation — standard C#), `ToYieldInstruction()` (one small object per call) and `async` state machines. Use them for flow control, not per-frame work.
 
