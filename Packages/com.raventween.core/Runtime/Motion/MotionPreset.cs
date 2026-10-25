@@ -2,16 +2,9 @@ using System;
 using UnityEngine;
 
 namespace RavenTween {
-    /// <summary>
-    /// Ready-made animations that need no animation knowledge: pick one, play it on any object.
-    /// They adapt to UI (anchored position, CanvasGroup / Graphic alpha) and to scene objects
-    /// (local transform, SpriteRenderer alpha). Values are explicit so that saved scenes keep
-    /// their choice when presets are added.
-    /// </summary>
     public enum MotionPreset : byte {
         None = 0,
 
-        // Entrances: from hidden to the object's rest pose.
         FadeIn = 10,
         PopIn = 11,
         ZoomIn = 12,
@@ -25,7 +18,6 @@ namespace RavenTween {
         FlipIn = 20,
         ElasticIn = 21,
 
-        // Exits: from the rest pose to hidden.
         FadeOut = 40,
         PopOut = 41,
         ZoomOut = 42,
@@ -38,7 +30,6 @@ namespace RavenTween {
         SpinOut = 49,
         FlipOut = 50,
 
-        // Attention: around the rest pose, always ending exactly on it.
         Pulse = 70,
         Bounce = 71,
         Shake = 72,
@@ -53,7 +44,6 @@ namespace RavenTween {
         HeadShake = 81,
         Tint = 82,
 
-        // Loops: play until stopped, centered on the rest pose.
         Float = 100,
         Breathe = 101,
         Spin = 102,
@@ -64,7 +54,6 @@ namespace RavenTween {
         Wiggle = 107
     }
 
-    /// <summary>The four families of <see cref="MotionPreset"/>.</summary>
     public enum MotionCategory : byte {
         Entrance = 0,
         Exit = 1,
@@ -72,42 +61,26 @@ namespace RavenTween {
         Loop = 3
     }
 
-    /// <summary>What starts a <see cref="RavenMotion"/>.</summary>
     public enum MotionTrigger : byte {
-        /// <summary>Every time the object is enabled (and when the scene starts).</summary>
         OnEnable = 0,
-        /// <summary>Once, when the scene starts.</summary>
         OnStart = 1,
-        /// <summary>When the object is clicked (a UI Button's click, or a pointer click).</summary>
         OnClick = 2,
-        /// <summary>When the pointer moves over the object.</summary>
         OnPointerEnter = 3,
-        /// <summary>When the pointer leaves the object.</summary>
         OnPointerExit = 4,
-        /// <summary>When the pointer is pressed on the object.</summary>
         OnPointerDown = 5,
-        /// <summary>When the pointer is released after a press on the object.</summary>
         OnPointerUp = 6,
-        /// <summary>When something enters this object's trigger collider (3D or 2D).</summary>
         OnTriggerEnter = 7,
-        /// <summary>When something leaves this object's trigger collider (3D or 2D).</summary>
         OnTriggerExit = 8,
-        /// <summary>When something hits this object's collider (3D or 2D).</summary>
         OnCollisionEnter = 9,
-        /// <summary>Only when <see cref="RavenMotion.Play"/> is called (a UnityEvent, a button, code).</summary>
         Manual = 10
     }
 
-    /// <summary>What happens to the object once its motion has finished.</summary>
     public enum MotionFinish : byte {
         Nothing = 0,
-        /// <summary>Deactivate the GameObject (typical after an exit).</summary>
         Deactivate = 1,
-        /// <summary>Destroy the GameObject.</summary>
         Destroy = 2
     }
 
-    /// <summary>The few knobs a motion needs. Every field has a sensible automatic value.</summary>
     [Serializable]
     public struct MotionSettings {
         [Tooltip("Length in seconds. 0 = the preset's own timing.")]
@@ -125,18 +98,14 @@ namespace RavenTween {
         [Tooltip("Color of the Tint motion (damage red, warning yellow, highlight white).")]
         public Color color;
 
-        /// <summary>The Tint color used when none is set: a damage red.</summary>
         public static readonly Color DefaultTint = new Color(1f, 0.22f, 0.2f, 1f);
 
-        /// <summary>Automatic timing and distance, full intensity, no delay, plays once.</summary>
         public static MotionSettings Default {
             get { return new MotionSettings { duration = 0f, intensity = 1f, delay = 0f, distance = 0f, repeat = 1, useUnscaledTime = false, color = DefaultTint }; }
         }
     }
 
-    /// <summary>Names, families and default timings of the presets, for tools and inspectors.</summary>
     public static class MotionLibrary {
-        /// <summary>Every preset, in display order.</summary>
         public static readonly MotionPreset[] All = {
             MotionPreset.FadeIn, MotionPreset.PopIn, MotionPreset.ZoomIn, MotionPreset.SlideInLeft, MotionPreset.SlideInRight,
             MotionPreset.SlideInUp, MotionPreset.SlideInDown, MotionPreset.DropIn, MotionPreset.RiseIn, MotionPreset.SpinIn,
@@ -159,7 +128,6 @@ namespace RavenTween {
             return MotionCategory.Entrance;
         }
 
-        /// <summary>Seconds one play (or one loop cycle) takes when the duration is automatic.</summary>
         public static float DefaultDuration(MotionPreset preset) {
             switch (preset) {
                 case MotionPreset.FadeIn: case MotionPreset.FadeOut: return 0.35f;
@@ -180,18 +148,15 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>True when the preset is about visibility (fades, flashes) and needs something with an alpha.</summary>
         public static bool NeedsAlpha(MotionPreset preset) {
             return preset == MotionPreset.FadeIn || preset == MotionPreset.FadeOut
                 || preset == MotionPreset.Flash || preset == MotionPreset.Blink;
         }
 
-        /// <summary>True when the preset changes the object's color and needs a Graphic, a Sprite Renderer or a renderer with a color.</summary>
         public static bool NeedsColor(MotionPreset preset) {
             return preset == MotionPreset.Tint;
         }
 
-        /// <summary>True when the preset moves the object, which a parent Layout Group would fight.</summary>
         public static bool MovesPosition(MotionPreset preset) {
             switch (preset) {
                 case MotionPreset.SlideInLeft: case MotionPreset.SlideInRight: case MotionPreset.SlideInUp: case MotionPreset.SlideInDown:
@@ -206,7 +171,6 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>True when the distance setting changes the preset.</summary>
         public static bool UsesDistance(MotionPreset preset) {
             switch (preset) {
                 case MotionPreset.SlideInLeft: case MotionPreset.SlideInRight: case MotionPreset.SlideInUp: case MotionPreset.SlideInDown:
@@ -219,7 +183,6 @@ namespace RavenTween {
             }
         }
 
-        /// <summary>Readable name with spaces ("Slide In Left").</summary>
         public static string DisplayName(MotionPreset preset) {
             string raw = preset.ToString();
             var builder = new System.Text.StringBuilder(raw.Length + 4);
@@ -230,7 +193,6 @@ namespace RavenTween {
             return builder.ToString();
         }
 
-        /// <summary>One sentence saying what the preset looks like.</summary>
         public static string Description(MotionPreset preset) {
             switch (preset) {
                 case MotionPreset.FadeIn: return "Fades in from fully transparent.";

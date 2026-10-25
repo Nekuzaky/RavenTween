@@ -3,10 +3,6 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace RavenTween {
-    /// <summary>
-    /// Reveals a TextMeshPro text letter by letter, with an optional typing sound: dialogue,
-    /// tutorials, intros. Call Skip() to show everything at once (a "skip" button).
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Typewriter")]
     [HelpURL("https://nekuzaky.com/docs/raventween/designer-workflow")]
     [RequireComponent(typeof(TMP_Text))]
@@ -53,13 +49,10 @@ namespace RavenTween {
             if (_text != null) { _text.maxVisibleCharacters = AllCharacters; }
         }
 
-        /// <summary>Types the current text from the first letter.</summary>
         public void Play() {
             if (!isActiveAndEnabled) { return; }
             if (_tween.IsAlive) { _tween.Stop(); }
             _text.ForceMeshUpdate();
-            // Before its first layout (no Canvas yet, just enabled) the text reports no letters:
-            // the timing then comes from the raw text, and the count is read again every frame.
             int letters = _text.textInfo.characterCount;
             if (letters == 0 && _text.text != null) { letters = _text.text.Length; }
             _visible = -1;
@@ -70,14 +63,12 @@ namespace RavenTween {
                 .OnComplete(this, writer => writer.Finish());
         }
 
-        /// <summary>Replaces the text, then types it.</summary>
         public void Play(string text) {
             if (_text == null) { _text = GetComponent<TMP_Text>(); }
             _text.text = text;
             Play();
         }
 
-        /// <summary>Shows the whole text at once and raises On Complete.</summary>
         public void Skip() {
             if (_tween.IsAlive) { _tween.Complete(); }
         }
@@ -94,8 +85,6 @@ namespace RavenTween {
             int previous = Mathf.Max(_visible, 0);
             _visible = count;
             _text.maxVisibleCharacters = count;
-            // Several letters can appear in one frame: tick whenever a multiple is crossed. No tick
-            // on the last call, which is a Skip or the end.
             bool crossed = count / soundEvery > previous / soundEvery;
             if (typingSound != null && crossed && progress < 1f) { PlayTick(); }
         }

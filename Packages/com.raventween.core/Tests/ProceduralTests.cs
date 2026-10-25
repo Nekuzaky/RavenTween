@@ -20,7 +20,6 @@ namespace RavenTween.Tests {
             Object.DestroyImmediate(_root);
         }
 
-        // One frame of the procedural layer (LateUpdate).
         static void Frame(RavenLookAt lookAt, float dt) {
             lookAt.Evaluate(dt);
         }
@@ -54,7 +53,7 @@ namespace RavenTween.Tests {
         public void LookAt_ClampsToMaxAngle() {
             RavenLookAt lookAt = CreateHead(out Transform target);
             lookAt.MaxAngle = 45f;
-            target.position = new Vector3(0f, 0f, -5f); // directly behind
+            target.position = new Vector3(0f, 0f, -5f);
             Frame(lookAt, 0.016f);
             float turned = Vector3.Angle(Vector3.forward, lookAt.transform.forward);
             Assert.That(turned, Is.EqualTo(45f).Within(0.5f));
@@ -137,7 +136,7 @@ namespace RavenTween.Tests {
             chain.Stiffness = 0.1f;
             chain.Damping = 0.2f;
             Transform tip = chain.transform.GetChild(0).GetChild(0).GetChild(0);
-            _root.transform.position = new Vector3(0f, 2f, 0f); // sudden move
+            _root.transform.position = new Vector3(0f, 2f, 0f);
             Frame(chain, 1f / 60f);
             float lag = Vector3.Distance(tip.position, new Vector3(1.5f, 2f, 0f));
             Assert.That(lag, Is.GreaterThan(0.05f), "The tip must lag behind a sudden move.");
@@ -156,15 +155,13 @@ namespace RavenTween.Tests {
             Assert.That(Vector3.Distance(tip.position, new Vector3(1f, 0f, 0f)), Is.LessThan(1e-4f));
         }
 
-        // Audit regressions.
-
         [Test]
         public void LookAt_KeepsRotationSetByOthers_AsNewBasePose() {
             RavenLookAt lookAt = CreateHead(out Transform target);
             lookAt.Weight = 0f;
             target.position = new Vector3(5f, 0f, 0f);
             Frame(lookAt, 0.016f);
-            lookAt.transform.localRotation = Quaternion.Euler(0f, 45f, 0f); // e.g. a finished tween
+            lookAt.transform.localRotation = Quaternion.Euler(0f, 45f, 0f);
             for (int i = 0; i < 5; i++) { Frame(lookAt, 0.016f); }
             Assert.That(Quaternion.Angle(lookAt.transform.localRotation, Quaternion.Euler(0f, 45f, 0f)), Is.LessThan(0.01f),
                 "A rotation written by someone else must stick, not snap back to the OnEnable pose.");

@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Raven Stagger inspector: the default fields plus a cascade preview in the scene.</summary>
     [CustomEditor(typeof(RavenStagger))]
     public sealed class RavenStaggerEditor : UnityEditor.Editor {
         readonly List<Transform> _children = new List<Transform>(16);

@@ -3,12 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTween {
-    /// <summary>
-    /// A whole tween in one serializable field: end value, optional start value and timing.
-    /// Expose it in a component so designers tune the values in the Inspector, then play it with
-    /// the matching overload, e.g. <c>Raven.LocalPosition(transform, settings)</c>.
-    /// </summary>
-    /// <remarks>A field declared without an initializer has a duration of 0: give it one with the constructor.</remarks>
     [Serializable]
     public struct TweenSettings<T> where T : struct {
         [Tooltip("Off: the tween starts from the object's current value.")]
@@ -17,7 +11,6 @@ namespace RavenTween {
         public T endValue;
         public TweenParams settings;
 
-        /// <summary>Starts from the current value.</summary>
         public TweenSettings(T endValue, float duration, Ease ease = Ease.OutQuad) {
             useStartValue = false;
             startValue = default;
@@ -27,7 +20,6 @@ namespace RavenTween {
             settings.ease = ease;
         }
 
-        /// <summary>Starts from <paramref name="startValue"/>.</summary>
         public TweenSettings(T startValue, T endValue, float duration, Ease ease = Ease.OutQuad) : this(endValue, duration, ease) {
             useStartValue = true;
             this.startValue = startValue;

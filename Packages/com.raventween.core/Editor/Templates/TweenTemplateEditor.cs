@@ -2,10 +2,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Tween Template inspector: presets, value fields that match the animated property, a live
-    /// easing curve, a timing summary, and a one-click preview on a scene object.
-    /// </summary>
     [CustomEditor(typeof(TweenTemplate))]
     public sealed class TweenTemplateEditor : UnityEditor.Editor {
         const float CurveHeight = 110f;
@@ -51,8 +47,6 @@ namespace RavenTween.Editor {
 
         PropertyKind Kind { get { return (PropertyKind)_property.intValue; } }
 
-        // ----- Header & presets -----
-
         void DrawHeaderRow() {
             EditorGUILayout.BeginHorizontal();
             GUILayout.Label("Animation", EditorStyles.boldLabel);
@@ -80,8 +74,6 @@ namespace RavenTween.Editor {
             serializedObject.Update();
         }
 
-        // ----- Property & values -----
-
         void DrawPropertySection() {
             EditorGUILayout.PropertyField(_property, new GUIContent("Property"));
             if (TweenTemplate.IsShaderProperty(Kind)) {
@@ -93,7 +85,6 @@ namespace RavenTween.Editor {
             if (_useFrom.boolValue) { DrawValueField(_fromValue, "From"); }
         }
 
-        // One serialized Vector4 shown as the field type the property actually uses.
         void DrawValueField(SerializedProperty raw, string label) {
             Vector4 v = raw.vector4Value;
             EditorGUI.BeginChangeCheck();
@@ -115,8 +106,6 @@ namespace RavenTween.Editor {
                         Kind == PropertyKind.SpriteAlpha || Kind == PropertyKind.AudioVolume;
             return unit ? EditorGUILayout.Slider(label, value, 0f, 1f) : EditorGUILayout.FloatField(label, value);
         }
-
-        // ----- Timing & easing -----
 
         void DrawTimingSection() {
             GUILayout.Label("Timing", EditorStyles.boldLabel);
@@ -160,8 +149,6 @@ namespace RavenTween.Editor {
                 ? string.Format("Total {0:0.##} s", total)
                 : string.Format("{0} × {1:0.##} s ({2}) — total {3:0.##} s", count, duration, mode, total);
         }
-
-        // ----- Preview -----
 
         void DrawPreviewSection() {
             GUILayout.Label("Preview", EditorStyles.boldLabel);
@@ -216,7 +203,7 @@ namespace RavenTween.Editor {
                 EditorTweenPreview.Begin(this, tween, PreviewLength(template), _loopPreview);
                 EditorTweenPreview.Play();
             } catch {
-                EditorTweenPreview.End(); // Never leave recorded values behind a failed start.
+                EditorTweenPreview.End();
                 throw;
             }
         }
@@ -243,7 +230,6 @@ namespace RavenTween.Editor {
             float duration = Mathf.Max(_duration.floatValue, 0.0001f);
             float local = EditorTweenPreview.Time - _delay.floatValue;
             if (local <= 0f) { return 0f; }
-            // At the very end, stay on the last cycle instead of wrapping into a cycle that never plays.
             int cycle = Mathf.Min((int)(local / duration), PreviewCycles((TweenTemplate)target) - 1);
             float progress = Mathf.Clamp01((local - cycle * duration) / duration);
             bool backwards = (CycleMode)_mode.intValue == CycleMode.Yoyo && (cycle & 1) == 1;

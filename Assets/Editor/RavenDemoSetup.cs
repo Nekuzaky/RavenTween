@@ -4,7 +4,6 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace RavenTweenDemo {
-    /// <summary>Builds a small demo scene and template assets used to showcase the inspectors.</summary>
     public static class RavenDemoSetup {
         [MenuItem("Tools/RavenTween/Dev/Rebuild Demo Scene")]
         static void RebuildFromMenu() {
@@ -38,7 +37,7 @@ namespace RavenTweenDemo {
             moveTemplate.settings = TweenParams.Default;
             moveTemplate.settings.duration = 1.2f;
             moveTemplate.settings.ease = Ease.InOutSine;
-            moveTemplate.settings.cycles = 2; // Finite: sequence steps must have a length.
+            moveTemplate.settings.cycles = 2;
             moveTemplate.settings.cycleMode = CycleMode.Yoyo;
             AssetDatabase.CreateAsset(moveTemplate, "Assets/Demo/FloatUp.asset");
 

@@ -4,18 +4,11 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace RavenTween {
-    /// <summary>
-    /// Builds and plays a sequence from serialized steps without writing code.
-    /// Each step chains, groups or inserts a template on a scene target.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Sequence Player")]
     public sealed class RavenSequencePlayer : MonoBehaviour {
         public enum StepMode : byte {
-            /// <summary>Plays after everything before it.</summary>
             Chain = 0,
-            /// <summary>Plays alongside the previous step.</summary>
             Group = 1,
-            /// <summary>Plays at an absolute time on the sequence timeline.</summary>
             Insert = 2
         }
 
@@ -38,13 +31,10 @@ namespace RavenTween {
 
         Sequence _sequence;
 
-        /// <summary>Steps played by this component. Edit at runtime before calling Play.</summary>
         public List<Step> Steps { get { return steps; } }
 
-        /// <summary>Raised when the built sequence completes.</summary>
         public UnityEvent OnComplete { get { return onComplete; } }
 
-        /// <summary>Handle to the sequence of the current run; dead when nothing plays.</summary>
         public Sequence Current { get { return _sequence; } }
 
         void OnEnable() {
@@ -55,7 +45,6 @@ namespace RavenTween {
             Stop();
         }
 
-        /// <summary>Stops any previous run, rebuilds the sequence from steps, and plays it.</summary>
         public void Play() {
             Stop();
             Sequence sequence = BuildSequence();
@@ -69,10 +58,6 @@ namespace RavenTween {
             _sequence = sequence;
         }
 
-        /// <summary>
-        /// Builds one cycle of the timeline from the steps, without cycles or callbacks.
-        /// Returns a dead handle when no step is usable. Shared with the editor timeline preview.
-        /// </summary>
         internal Sequence BuildSequence() {
             Sequence sequence = Raven.Sequence();
             int added = 0;
@@ -93,7 +78,6 @@ namespace RavenTween {
             }
             Tween tween = step.template.Play(step.target);
             if (!tween.IsAlive) { return false; }
-            // A sequence needs a finite length; the inspector warns about looping templates.
             if (step.template.LoopsForever) {
                 tween.Cycles(step.template.CyclesInsideSequence, step.template.settings.cycleMode);
             }
@@ -106,15 +90,12 @@ namespace RavenTween {
             return true;
         }
 
-        /// <summary>Stops the running sequence, if any.</summary>
         public void Stop() {
             Sequence running = _sequence;
             _sequence = default;
             if (running.IsAlive) { running.Stop(); }
         }
 
-        /// <summary>Jumps the running sequence to its end.</summary>
-        /// <remarks>The handle is cleared first: On Complete may start a new run (Play) safely.</remarks>
         public void CompleteNow() {
             Sequence running = _sequence;
             _sequence = default;

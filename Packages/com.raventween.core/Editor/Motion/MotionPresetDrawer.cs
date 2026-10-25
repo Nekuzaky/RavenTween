@@ -2,10 +2,8 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Shows every MotionPreset field as a menu grouped by family, with descriptions as tooltips.</summary>
     [CustomPropertyDrawer(typeof(MotionPreset))]
     public sealed class MotionPresetDrawer : PropertyDrawer {
-        /// <summary>What starts a motion, in plain words, in MotionTrigger order.</summary>
         internal static readonly GUIContent[] TriggerLabels = {
             new GUIContent("When enabled", "Every time the object is enabled, and when the scene starts."),
             new GUIContent("When the scene starts", "Once, in Start."),
@@ -25,7 +23,6 @@ namespace RavenTween.Editor {
             Rect field = EditorGUI.PrefixLabel(position, label);
             var current = (MotionPreset)property.intValue;
             if (EditorGUI.DropdownButton(field, ButtonContent(current, property.hasMultipleDifferentValues), FocusType.Keyboard)) {
-                // The menu answers after this OnGUI: keep the object and path, not the property.
                 SerializedObject owner = property.serializedObject;
                 string path = property.propertyPath;
                 ShowMenu(field, current, chosen => {
@@ -44,7 +41,6 @@ namespace RavenTween.Editor {
             return new GUIContent(text, MotionLibrary.Description(preset));
         }
 
-        /// <summary>The grouped preset menu, shared by the drawer, the Raven Motion inspector and the library.</summary>
         internal static void ShowMenu(Rect below, MotionPreset current, System.Action<MotionPreset> chosen) {
             var menu = new GenericMenu();
             for (int i = 0; i < MotionLibrary.All.Length; i++) {

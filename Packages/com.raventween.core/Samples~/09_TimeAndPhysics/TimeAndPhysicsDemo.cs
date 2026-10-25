@@ -2,12 +2,6 @@ using RavenTween;
 using UnityEngine;
 
 namespace RavenTweenSamples {
-    /// <summary>
-    /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// A kinematic platform carries a crate (Rigidbody tweens in FixedUpdate), a clock ticks with
-    /// Incremental cycles, a beacon flashes through timeline callbacks and a property block.
-    /// Press Space for a hit stop with a camera shake.
-    /// </summary>
     public sealed class TimeAndPhysicsDemo : MonoBehaviour {
         Camera _camera;
 
@@ -29,7 +23,6 @@ namespace RavenTweenSamples {
             return camera;
         }
 
-        // The platform moves through the physics engine, so the crate on top rides along.
         static void BuildPlatform() {
             GameObject platform = GameObject.CreatePrimitive(PrimitiveType.Cube);
             platform.name = "Platform";
@@ -49,7 +42,6 @@ namespace RavenTweenSamples {
             crate.AddComponent<Rigidbody>().interpolation = RigidbodyInterpolation.Interpolate;
         }
 
-        // Each one-second cycle snaps the hand 30 degrees further, with a small overshoot.
         static void BuildClock(Vector3 position) {
             GameObject face = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             face.name = "Clock";
@@ -69,8 +61,6 @@ namespace RavenTweenSamples {
                 .Cycles(-1, CycleMode.Incremental);
         }
 
-        // A looping timeline: grow, flash on a callback, shrink. The flash uses a property block,
-        // so the shared material stays untouched.
         static void BuildBeacon(Vector3 position) {
             GameObject beacon = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             beacon.name = "Beacon";
@@ -105,7 +95,6 @@ namespace RavenTweenSamples {
         Tween _slowDown;
         Tween _recover;
 
-        // Drop to 5% speed for a moment, then ease back, while the camera shakes in real time.
         void HitStop() {
             _slowDown.Stop();
             _recover.Stop();

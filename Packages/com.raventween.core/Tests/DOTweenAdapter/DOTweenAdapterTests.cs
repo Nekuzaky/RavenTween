@@ -3,7 +3,6 @@ using RavenTween.DOTweenAdapter;
 using UnityEngine;
 
 namespace RavenTween.Tests {
-    /// <summary>DOTween-style code running on RavenTween through the adapter.</summary>
     public sealed class DOTweenAdapterTests {
         GameObject _go;
 

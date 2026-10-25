@@ -2,7 +2,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Draws an easing curve, with an optional playhead, in any inspector rect.</summary>
     static class EaseCurveView {
         const int Samples = 96;
         static readonly Vector3[] Points = new Vector3[Samples + 1];
@@ -10,13 +9,11 @@ namespace RavenTween.Editor {
         static readonly Color Grid = new Color(1f, 1f, 1f, 0.08f);
         static readonly Color Curve = new Color(0.43f, 0.69f, 1f);
 
-        /// <summary>Evaluates the template's easing at t in [0, 1].</summary>
         public static float Evaluate(Ease ease, AnimationCurve custom, float t) {
             if (ease != Ease.Custom) { return EaseUtility.Evaluate(ease, t); }
             return custom != null ? custom.Evaluate(t) : t;
         }
 
-        /// <summary>Draws the curve; <paramref name="playhead"/> in [0, 1], or negative for none.</summary>
         public static void Draw(Rect rect, Ease ease, AnimationCurve custom, float playhead) {
             Debug.Assert(rect.width > 0f && rect.height > 0f, "Curve view needs a visible rect.");
             if (Event.current.type != EventType.Repaint) { return; }

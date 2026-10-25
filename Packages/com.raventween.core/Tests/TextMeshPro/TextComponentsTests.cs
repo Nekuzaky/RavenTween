@@ -3,7 +3,6 @@ using TMPro;
 using UnityEngine;
 
 namespace RavenTween.Tests {
-    /// <summary>Raven Typewriter and Raven Counter.</summary>
     public sealed class TextComponentsTests {
         GameObject _go;
         GameObject _canvas;
@@ -18,7 +17,7 @@ namespace RavenTween.Tests {
             _canvas = new GameObject("text-canvas", typeof(Canvas));
             _go = new GameObject("text", typeof(RectTransform));
             _go.transform.SetParent(_canvas.transform, false);
-            _go.SetActive(false); // Configure before OnEnable.
+            _go.SetActive(false);
             _go.AddComponent<TextMeshProUGUI>().text = "Hello world";
         }
 
@@ -39,7 +38,7 @@ namespace RavenTween.Tests {
             writer.LettersPerSecond = 10f;
             int done = 0;
             writer.OnComplete.AddListener(() => done++);
-            _go.SetActive(true); // Types when enabled.
+            _go.SetActive(true);
             var text = _go.GetComponent<TMP_Text>();
             Step(0.35f);
             Assert.That(text.maxVisibleCharacters, Is.InRange(2, 4));
@@ -119,7 +118,7 @@ namespace RavenTween.Tests {
 
         [Test]
         public void Counter_ValueSetBeforeFirstActivation_IsKept() {
-            var counter = _go.AddComponent<RavenCounter>(); // Inactive: Awake has not run yet.
+            var counter = _go.AddComponent<RavenCounter>();
             counter.SetValue(500f);
             _go.SetActive(true);
             Assert.That(counter.Value, Is.EqualTo(500f));

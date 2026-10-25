@@ -6,12 +6,6 @@ using UnityEngine;
 using UnityEngine.Networking;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Checks GitHub for a newer RavenTween release at most once a day, then offers the update
-    /// (or applies it, when automatic updates are enabled). Asset Store and Unity registry installs
-    /// are left to the Package Manager. One anonymous request to the public
-    /// GitHub API; nothing is sent about the project or the user.
-    /// </summary>
     [InitializeOnLoad]
     static class RavenUpdateChecker {
         const string PrefCheckEnabled = "RavenTween.Updates.CheckEnabled";
@@ -27,7 +21,6 @@ namespace RavenTween.Editor {
         static AddRequest _install;
 
         static RavenUpdateChecker() {
-            // Domain reloads also happen when entering or leaving Play Mode; stay out of those.
             if (Application.isBatchMode || EditorApplication.isPlayingOrWillChangePlaymode) { return; }
             EditorApplication.delayCall += OnEditorReady;
         }
@@ -50,8 +43,6 @@ namespace RavenTween.Editor {
             StartCheck(false);
         }
 
-        // ----- Menu -----
-
         [MenuItem("Tools/RavenTween/Updates/Check Now", priority = 100)]
         static void CheckNow() {
             InstalledPackage installed = InstalledPackage.Find();
@@ -64,7 +55,6 @@ namespace RavenTween.Editor {
             StartCheck(true);
         }
 
-        /// <summary>Asset Store and Unity registry installs are updated by the Package Manager, never from here.</summary>
         static bool UpdatesFromGitHub(InstalledPackage installed) {
             return installed != null && installed.Source != InstallSource.Managed;
         }
@@ -98,11 +88,9 @@ namespace RavenTween.Editor {
             return true;
         }
 
-        // ----- Check -----
-
         static void StartCheck(bool manual) {
             if (_request != null) {
-                _manual |= manual; // A click during a background check still gets its answer.
+                _manual |= manual;
                 return;
             }
             _manual = manual;
@@ -122,7 +110,6 @@ namespace RavenTween.Editor {
             string error = ok ? null : _request.error;
             _request.Dispose();
             _request = null;
-            // Never pop windows or reinstall packages over a running game; retry on a later load.
             if (!_manual && EditorApplication.isPlayingOrWillChangePlaymode) { return; }
             EditorPrefs.SetString(PrefLastCheck, DateTime.UtcNow.Ticks.ToString());
             if (!ok) {
@@ -139,7 +126,7 @@ namespace RavenTween.Editor {
                 return;
             }
             bool editableCopy = installed.Source == InstallSource.Embedded || installed.Source == InstallSource.Local;
-            if (!_manual && editableCopy) { return; } // A copy you edit is its own source of truth.
+            if (!_manual && editableCopy) { return; }
             if (!UpdateLogic.IsNewer(release.tag_name, installed.Version)) {
                 if (_manual) {
                     EditorUtility.DisplayDialog("RavenTween", "RavenTween " + installed.Version + " is up to date.", "OK");
@@ -154,8 +141,6 @@ namespace RavenTween.Editor {
             }
             RavenUpdateWindow.Open(release, installed, identifier);
         }
-
-        // ----- Install -----
 
         internal static void Install(string identifier, string tag) {
             Debug.Assert(!string.IsNullOrEmpty(identifier), "Update identifier is required.");
@@ -181,7 +166,6 @@ namespace RavenTween.Editor {
         }
     }
 
-    /// <summary>The installed RavenTween package as Package Manager sees it.</summary>
     sealed class InstalledPackage {
         public string Version;
         public string PackageId;
@@ -204,7 +188,7 @@ namespace RavenTween.Editor {
                 case PackageSource.Registry: return defaultRegistry ? InstallSource.Managed : InstallSource.Registry;
                 case PackageSource.Embedded: return InstallSource.Embedded;
                 case PackageSource.Local: return InstallSource.Local;
-                default: return InstallSource.Managed; // Asset Store downloads and tarballs.
+                default: return InstallSource.Managed;
             }
         }
     }

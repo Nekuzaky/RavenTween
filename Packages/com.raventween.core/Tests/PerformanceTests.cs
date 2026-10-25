@@ -5,10 +5,6 @@ using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace RavenTween.Tests {
-    /// <summary>
-    /// Allocation and throughput guarantees. These are the package's performance contract:
-    /// a failing test here is a release blocker.
-    /// </summary>
     public sealed class PerformanceTests {
         const int TweenCount = 5000;
 
@@ -46,7 +42,7 @@ namespace RavenTween.Tests {
         [Test]
         public void SteadyStateUpdate_AllocatesZeroBytes() {
             SpawnMixedTweens(TweenCount);
-            TweenEngine.Process(0.016f, 0.016f); // Warm-up: first-frame start value capture.
+            TweenEngine.Process(0.016f, 0.016f);
             Assert.That(() => {
                 for (int frame = 0; frame < 10; frame++) { TweenEngine.Process(0.016f, 0.016f); }
             }, Is.Not.AllocatingGCMemory());
@@ -62,16 +58,12 @@ namespace RavenTween.Tests {
                     .Chain(Raven.LocalPosition(t, Vector3.zero, 0.5f))
                     .Infinite();
             }
-            // Warm-up must cover one full cycle wrap: the runtime materializes string literals
-            // the first time each method runs, which is a one-time cost, not a steady-state one.
             for (int frame = 0; frame < 80; frame++) { TweenEngine.Process(0.016f, 0.016f); }
             Assert.That(() => {
                 for (int frame = 0; frame < 120; frame++) { TweenEngine.Process(0.016f, 0.016f); }
             }, Is.Not.AllocatingGCMemory(), "Sequence stepping, including cycle wraps, must not allocate.");
         }
 
-        // Every 1.6 addition on the hot path: axes, property blocks, cycle modes, parametric eases,
-        // per-tween time scale, target callbacks and sequence callbacks.
         void SpawnExtendedTweens(Renderer renderer, Box box) {
             int color = Shader.PropertyToID("_Color");
             for (int i = 0; i < 100; i++) {
@@ -112,7 +104,7 @@ namespace RavenTween.Tests {
         public void TweenCreation_FromWarmPool_AllocatesZeroBytes() {
             Transform t = _objects[0].transform;
             for (int i = 0; i < 1000; i++) { Raven.Position(t, Vector3.one, 1f); }
-            TweenEngine.KillAll(false); // Slots are now pooled.
+            TweenEngine.KillAll(false);
             Assert.That(() => {
                 for (int i = 0; i < 1000; i++) { Raven.Position(t, Vector3.one, 1f).Ease(Ease.OutQuad); }
             }, Is.Not.AllocatingGCMemory());
@@ -129,7 +121,6 @@ namespace RavenTween.Tests {
                 double small = BestShakeCreation(targets, Small);
                 double large = BestShakeCreation(targets, Large);
                 UnityEngine.Debug.Log("RavenTween: " + Small + " shakes " + small.ToString("F2") + " ms, " + Large + " shakes " + large.ToString("F2") + " ms");
-                // Linear growth gives a ratio near 4; scanning every live effect gave about 16.
                 Assert.That(large / System.Math.Max(small, 0.05), Is.LessThan(9.0), "Starting an effect must not cost more with many effects alive.");
             } finally {
                 TweenEngine.KillAll(false);

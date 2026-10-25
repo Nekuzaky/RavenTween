@@ -3,75 +3,54 @@ using UnityEngine;
 
 namespace RavenTween {
     public static partial class Raven {
-        /// <summary>
-        /// Tweens any float on any target through a setter. Pass a non-capturing lambda
-        /// (e.g. <c>(t, v) =&gt; t.fontSize = v</c>) and the tween allocates nothing.
-        /// If <paramref name="target"/> is a UnityEngine.Object, the tween dies with it.
-        /// </summary>
         public static Tween Custom<T>(T target, float from, float to, float duration, Action<T, float> setter) where T : class {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForFloat);
         }
 
-        /// <summary>Zero-allocation Vector2 custom tween. See the float overload.</summary>
         public static Tween Custom<T>(T target, Vector2 from, Vector2 to, float duration, Action<T, Vector2> setter) where T : class {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForVector2);
         }
 
-        /// <summary>Zero-allocation Vector3 custom tween. See the float overload.</summary>
         public static Tween Custom<T>(T target, Vector3 from, Vector3 to, float duration, Action<T, Vector3> setter) where T : class {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForVector3);
         }
 
-        /// <summary>Zero-allocation Color custom tween. See the float overload.</summary>
         public static Tween Custom<T>(T target, Color from, Color to, float duration, Action<T, Color> setter) where T : class {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForColor);
         }
 
-        /// <summary>Zero-allocation Vector4 custom tween. See the float overload.</summary>
         public static Tween Custom<T>(T target, Vector4 from, Vector4 to, float duration, Action<T, Vector4> setter) where T : class {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForVector4);
         }
 
-        /// <summary>Zero-allocation Quaternion custom tween (spherical interpolation). See the float overload.</summary>
         public static Tween Custom<T>(T target, Quaternion from, Quaternion to, float duration, Action<T, Quaternion> setter) where T : class {
             return CreateCustom(target, new TweenValue(from), new TweenValue(to), duration, setter, CustomInvokers<T>.ForQuaternion);
         }
 
-        /// <summary>Zero-allocation Rect custom tween (position and size). See the float overload.</summary>
         public static Tween Custom<T>(T target, Rect from, Rect to, float duration, Action<T, Rect> setter) where T : class {
             return CreateCustom(target, new TweenValue(RectToVector(from)), new TweenValue(RectToVector(to)), duration, setter, CustomInvokers<T>.ForRect);
         }
 
-        /// <summary>
-        /// Tweens a float from its value <b>when the tween starts</b> (read with
-        /// <paramref name="getter"/>) to <paramref name="to"/>. Unlike Custom, the start value is
-        /// not frozen at creation, so it stays correct after a Delay or inside a sequence. Use
-        /// non-capturing lambdas for zero allocations.
-        /// </summary>
         public static Tween CustomTo<T>(T target, Func<T, float> getter, float to, float duration, Action<T, float> setter) where T : class {
             Tween tween = CreateCustom(target, new TweenValue(to), new TweenValue(to), duration, setter, CustomInvokers<T>.ForFloat);
             return WithGetter(tween, getter, CustomInvokers<T>.GetFloat);
         }
 
-        /// <summary>Vector2 <see cref="CustomTo{T}(T, Func{T, float}, float, float, Action{T, float})"/>.</summary>
         public static Tween CustomTo<T>(T target, Func<T, Vector2> getter, Vector2 to, float duration, Action<T, Vector2> setter) where T : class {
             Tween tween = CreateCustom(target, new TweenValue(to), new TweenValue(to), duration, setter, CustomInvokers<T>.ForVector2);
             return WithGetter(tween, getter, CustomInvokers<T>.GetVector2);
         }
 
-        /// <summary>Vector3 <see cref="CustomTo{T}(T, Func{T, float}, float, float, Action{T, float})"/>.</summary>
         public static Tween CustomTo<T>(T target, Func<T, Vector3> getter, Vector3 to, float duration, Action<T, Vector3> setter) where T : class {
             Tween tween = CreateCustom(target, new TweenValue(to), new TweenValue(to), duration, setter, CustomInvokers<T>.ForVector3);
             return WithGetter(tween, getter, CustomInvokers<T>.GetVector3);
         }
 
-        /// <summary>Quaternion <see cref="CustomTo{T}(T, Func{T, float}, float, float, Action{T, float})"/>.</summary>
         public static Tween CustomTo<T>(T target, Func<T, Quaternion> getter, Quaternion to, float duration, Action<T, Quaternion> setter) where T : class {
             Tween tween = CreateCustom(target, new TweenValue(to), new TweenValue(to), duration, setter, CustomInvokers<T>.ForQuaternion);
             return WithGetter(tween, getter, CustomInvokers<T>.GetQuaternion);
         }
 
-        /// <summary>Color <see cref="CustomTo{T}(T, Func{T, float}, float, float, Action{T, float})"/>.</summary>
         public static Tween CustomTo<T>(T target, Func<T, Color> getter, Color to, float duration, Action<T, Color> setter) where T : class {
             Tween tween = CreateCustom(target, new TweenValue(to), new TweenValue(to), duration, setter, CustomInvokers<T>.ForColor);
             return WithGetter(tween, getter, CustomInvokers<T>.GetColor);
@@ -110,7 +89,6 @@ namespace RavenTween {
             return tween;
         }
 
-        // One cached invoker per (T, value type): created once per closed generic type, never per tween.
         static class CustomInvokers<T> where T : class {
             public static readonly Action<object, Delegate, TweenValue> ForFloat =
                 (target, setter, value) => ((Action<T, float>)setter)((T)target, value.Float);

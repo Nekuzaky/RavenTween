@@ -21,7 +21,7 @@ namespace RavenTween.Tests {
         [Test]
         public void Rumble_RunsAndStops_WithoutErrors() {
             RavenRumble.Play(0.8f, 0.4f, 0.2f);
-            RavenRumble.Play(0.2f, 0.9f, 0.1f); // Overlapping: keeps the longer end.
+            RavenRumble.Play(0.2f, 0.9f, 0.1f);
             Raven.Step(0.3f);
             RavenRumble.Stop();
             Assert.Pass();

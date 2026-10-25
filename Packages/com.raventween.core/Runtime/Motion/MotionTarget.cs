@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.UI;
 
 namespace RavenTween {
-    /// <summary>Which parts of an object a motion animates.</summary>
     [Flags]
     public enum MotionChannels : byte {
         None = 0,
@@ -15,11 +14,6 @@ namespace RavenTween {
         All = Position | Rotation | Scale | Alpha | Color
     }
 
-    /// <summary>
-    /// What a motion animates on one object: its transform (anchored position for UI), the first
-    /// thing with an alpha it finds (a CanvasGroup, then a UI Graphic, then a SpriteRenderer) and
-    /// the first thing with a color (a Graphic, a SpriteRenderer, or a renderer's material color).
-    /// </summary>
     public struct MotionTarget {
         static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
         static readonly int ColorPropertyId = Shader.PropertyToID("_Color");
@@ -30,20 +24,15 @@ namespace RavenTween {
         public CanvasGroup Group;
         public Graphic Graphic;
         public SpriteRenderer Sprite;
-        /// <summary>A mesh (or other) renderer whose material color can be tinted; null otherwise.</summary>
         public Renderer Renderer;
-        /// <summary>The material color property the renderer tints: _BaseColor (URP / HDRP) or _Color.</summary>
         public int ColorId;
 
         public bool IsValid { get { return Transform != null; } }
 
-        /// <summary>True when fades have something to fade.</summary>
         public bool HasAlpha { get { return Group != null || Graphic != null || Sprite != null; } }
 
-        /// <summary>UI and sprites turn around Z (in the screen plane); 3D objects spin around Y.</summary>
         public bool IsFlat { get { return Rect != null || Sprite != null; } }
 
-        /// <summary>True when the Tint motion has something to color.</summary>
         public bool HasColor { get { return Graphic != null || Sprite != null || Renderer != null; } }
 
         public static MotionTarget Resolve(Transform transform) {
@@ -69,7 +58,6 @@ namespace RavenTween {
             target.Renderer = renderer;
         }
 
-        /// <summary>The object's size, used for automatic slide distances: pixels for UI, units otherwise.</summary>
         public float AutoDistance(in MotionRest rest) {
             if (Rect != null) {
                 Rect r = Rect.rect;
@@ -97,7 +85,6 @@ namespace RavenTween {
             return Color.white;
         }
 
-        // The block's color when the renderer carries one (a previous tint), else the material's.
         Color ReadRendererColor() {
             if (Renderer.HasPropertyBlock()) {
                 if (_block == null) { _block = new MaterialPropertyBlock(); }
@@ -140,10 +127,6 @@ namespace RavenTween {
         }
     }
 
-    /// <summary>
-    /// The pose an object returns to: entrances end on it, exits start from it, attention and
-    /// loop motions move around it. Positions are anchored positions for UI, local otherwise.
-    /// </summary>
     public struct MotionRest {
         public Vector3 Position;
         public Quaternion Rotation;
@@ -162,7 +145,6 @@ namespace RavenTween {
             };
         }
 
-        /// <summary>Puts the chosen channels of <paramref name="target"/> back on this pose.</summary>
         public void Apply(in MotionTarget target, MotionChannels channels) {
             if (!target.IsValid) { return; }
             if ((channels & MotionChannels.Position) != 0) { target.WritePosition(Position); }

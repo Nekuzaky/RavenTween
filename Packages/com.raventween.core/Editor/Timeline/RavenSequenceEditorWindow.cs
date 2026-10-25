@@ -3,10 +3,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Visual timeline for a Raven Sequence Player: one track per step, drag blocks to retime
-    /// them, scrub or play the whole sequence on the scene outside Play Mode.
-    /// </summary>
     public sealed class RavenSequenceEditorWindow : EditorWindow {
         const float ListWidth = 420f;
         const float RowHeight = 26f;
@@ -81,7 +77,6 @@ namespace RavenTween.Editor {
             _player = player;
         }
 
-        // Drops any drag or scrub in progress, e.g. when the steps change under the mouse.
         void CancelInteraction() {
             _dragIndex = -1;
             _scrubbing = false;
@@ -89,7 +84,7 @@ namespace RavenTween.Editor {
         }
 
         void OnGUI() {
-            if (_player == null && Mine) { EditorTweenPreview.End(); } // The player was deleted mid-preview.
+            if (_player == null && Mine) { EditorTweenPreview.End(); }
             DrawToolbar();
             if (_player == null) {
                 CancelInteraction();
@@ -107,15 +102,11 @@ namespace RavenTween.Editor {
             DrawPlayhead(new Rect(ListWidth, 0f, width - ListWidth, RulerHeight + RowHeight * _player.Steps.Count));
             GUI.EndScrollView();
             if (ApplyPendingEdit()) { return; }
-            // Timeline coordinates start right after the step list; when scrolled sideways the list
-            // slides out of view, so the clickable part starts earlier than that origin.
             Vector2 origin = new Vector2(area.x + ListWidth, area.y);
             float visibleLeft = area.x + Mathf.Max(ListWidth - _scroll.x, 0f);
             Rect hit = new Rect(visibleLeft, area.y, area.xMax - 16f - visibleLeft, area.height - 16f);
             HandleTimelineInput(hit, origin);
         }
-
-        // ----- Toolbar -----
 
         void DrawToolbar() {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
@@ -159,12 +150,10 @@ namespace RavenTween.Editor {
                 EditorTweenPreview.Begin(this, sequence, sequence.Duration, _loop);
                 return true;
             } catch {
-                EditorTweenPreview.End(); // Never leave recorded values behind a failed start.
+                EditorTweenPreview.End();
                 throw;
             }
         }
-
-        // ----- Rows -----
 
         void DrawRow(int index, Rect row) {
             if ((index & 1) == 0) { EditorGUI.DrawRect(row, TrackColor); }
@@ -223,8 +212,6 @@ namespace RavenTween.Editor {
             }
         }
 
-        // ----- Ruler, playhead, input -----
-
         void DrawRuler(Rect rect, float total) {
             EditorGUI.DrawRect(rect, new Color(0f, 0f, 0f, 0.25f));
             float step = _pixelsPerSecond >= 300f ? 0.1f : _pixelsPerSecond >= 120f ? 0.25f : 0.5f;
@@ -245,8 +232,6 @@ namespace RavenTween.Editor {
             EditorGUI.DrawRect(new Rect(x - 1f, rect.y, 2f, rect.height), PlayheadColor);
         }
 
-        // The window keeps the mouse (hot control) during a drag, so releasing the button outside
-        // the window still ends the drag.
         void HandleTimelineInput(Rect hit, Vector2 origin) {
             _controlId = GUIUtility.GetControlID(FocusType.Passive);
             Event e = Event.current;
@@ -313,16 +298,12 @@ namespace RavenTween.Editor {
         float TimeToX(float time) { return time * _pixelsPerSecond + 8f; }
         float XToTime(float x) { return (x - 8f) / _pixelsPerSecond; }
 
-        // ----- Editing -----
-
         void SetStep(int index, RavenSequencePlayer.Step step, string undoName) {
             Undo.RecordObject(_player, undoName);
             _player.Steps[index] = step;
             MarkChanged();
         }
 
-        // Structural edits (count or order) are deferred until the rows are drawn: changing the
-        // list in the middle of the draw loop would shift indices under the rows still to draw.
         System.Action _pendingEdit;
 
         void Swap(int a, int b) {

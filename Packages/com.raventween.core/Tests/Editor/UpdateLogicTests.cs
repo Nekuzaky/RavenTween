@@ -82,11 +82,10 @@ namespace RavenTween.Tests {
             Assert.That(id, Is.EqualTo("com.raventween.core@1.3.0"));
         }
 
-        // InstallSource is internal, so the cases are passed as their underlying values.
-        [TestCase(3)] // Embedded
-        [TestCase(4)] // Local
-        [TestCase(0)] // Unknown
-        [TestCase(5)] // Managed (Asset Store, Unity registry)
+        [TestCase(3)]
+        [TestCase(4)]
+        [TestCase(0)]
+        [TestCase(5)]
         public void EditableUnknownOrManagedSources_AreNotUpdated(int source) {
             Assert.That(UpdateLogic.BuildUpdateIdentifier((InstallSource)source, GitId, "v1.3.0"), Is.Null);
         }

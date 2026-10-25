@@ -2,10 +2,6 @@ using NUnit.Framework;
 using UnityEngine;
 
 namespace RavenTween.Tests {
-    /// <summary>
-    /// Deterministic engine tests: the engine is stepped manually through
-    /// TweenEngine.Process so results do not depend on frame timing.
-    /// </summary>
     public sealed class TweenCoreTests {
         [SetUp]
         public void SetUp() {
@@ -68,7 +64,7 @@ namespace RavenTween.Tests {
                 .Cycles(3)
                 .OnUpdate(v => value = v)
                 .OnComplete(() => completions++);
-            Step(0.1f, 20); // 2.0 seconds total, enough for 3 cycles of 0.5s.
+            Step(0.1f, 20);
             Assert.That(completions, Is.EqualTo(1));
             Assert.That(value, Is.EqualTo(1f).Within(1e-3f));
         }
@@ -79,7 +75,7 @@ namespace RavenTween.Tests {
             Raven.Value(0f, 1f, 0.5f)
                 .Cycles(2, CycleMode.Yoyo)
                 .OnUpdate(v => value = v);
-            Step(0.1f, 15); // 1.5s > 1.0s total.
+            Step(0.1f, 15);
             Assert.That(value, Is.EqualTo(0f).Within(1e-3f), "Yoyo with 2 cycles must end where it started.");
         }
 
@@ -146,7 +142,7 @@ namespace RavenTween.Tests {
         public void GlobalTimeScale_SlowsTweens() {
             Raven.TimeScale = 0.5f;
             Tween tween = Raven.Value(0f, 1f, 1f);
-            Step(0.5f, 2); // 1.0s real time -> 0.5s tween time.
+            Step(0.5f, 2);
             Assert.That(tween.IsAlive, Is.True);
             Step(0.5f, 3);
             Assert.That(tween.IsAlive, Is.False);

@@ -5,11 +5,6 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Raven Motion inspector: a grouped preset picker with a plain-language description,
-    /// triggers named the way people think of them, settings that only show when they matter,
-    /// warnings with one-click fixes, and a preview in the scene outside Play Mode.
-    /// </summary>
     [CustomEditor(typeof(RavenMotion)), CanEditMultipleObjects]
     public sealed class RavenMotionEditor : UnityEditor.Editor {
         static GUIContent[] TriggerLabels { get { return MotionPresetDrawer.TriggerLabels; } }
@@ -72,8 +67,6 @@ namespace RavenTween.Editor {
             DrawPreviewBar();
         }
 
-        // ----- Sections -----
-
         static void DrawStyleSummary(MotionStyle style) {
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(MotionLibrary.DisplayName(style.Preset) + "  ·  " + MotionLibrary.Category(style.Preset), EditorStyles.boldLabel);
@@ -133,8 +126,6 @@ namespace RavenTween.Editor {
             EditorGUILayout.PropertyField(_unscaled, new GUIContent("Play While Paused", "Keep playing when Time.timeScale is 0 (pause menus)."));
         }
 
-        // A float where 0 means automatic, shown as a checkbox plus the value.
-        // Writes only what the user changes: selecting several motions never rewrites their values.
         static void AutoFloat(SerializedProperty property, string label, string autoLabel, float suggested) {
             EditorGUILayout.BeginHorizontal();
             bool mixed = property.hasMultipleDifferentValues;
@@ -159,8 +150,6 @@ namespace RavenTween.Editor {
             if (!exit && _whenFinished.intValue == (int)MotionFinish.Nothing) { return; }
             EditorGUILayout.PropertyField(_whenFinished, new GUIContent("When Finished", "Deactivate is typical after an exit, so the hidden object stops taking clicks."));
         }
-
-        // ----- Warnings with fixes -----
 
         void DrawWarnings(MotionPreset preset) {
             if (targets.Length != 1) { return; }
@@ -263,12 +252,9 @@ namespace RavenTween.Editor {
             EditorGUILayout.HelpBox("Unity reports triggers and collisions only when one of the two objects has a Rigidbody.", MessageType.None);
         }
 
-        // Unity's own menu item picks the input module that matches the project (Input System or legacy).
         static void CreateEventSystem() {
             EditorApplication.ExecuteMenuItem("GameObject/UI/Event System");
         }
-
-        // ----- Preview -----
 
         void DrawPreviewBar() {
             EditorGUILayout.Space(6f);

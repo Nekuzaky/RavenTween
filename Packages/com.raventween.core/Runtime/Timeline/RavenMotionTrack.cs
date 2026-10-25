@@ -6,12 +6,6 @@ using UnityEngine.Timeline;
 using UnityEngine.UI;
 
 namespace RavenTween {
-    /// <summary>
-    /// A Timeline track that plays ready-made motions on the bound object: drop "Pop In",
-    /// "Tada" or a Motion Style on a cutscene's timeline, stretch it, scrub it. Every frame is
-    /// exact (the motion is sampled at the playhead), and previewing in the editor never leaves
-    /// a change in the scene.
-    /// </summary>
     [TrackColor(0.36f, 0.62f, 0.98f)]
     [TrackClipType(typeof(RavenMotionClip))]
     [TrackBindingType(typeof(Transform))]
@@ -26,7 +20,6 @@ namespace RavenTween {
             return mixer;
         }
 
-        // Tells Timeline which properties the clips animate, so its editor preview puts them back.
         public override void GatherProperties(PlayableDirector director, IPropertyCollector driver) {
             var bound = director.GetGenericBinding(this) as Transform;
             if (bound == null) { return; }
@@ -61,7 +54,6 @@ namespace RavenTween {
         }
     }
 
-    /// <summary>One motion on a Raven Motion Track. Its length defaults to the motion's own timing.</summary>
     [DisplayName("Raven Motion")]
     public sealed class RavenMotionClip : PlayableAsset, ITimelineClipAsset {
         [Tooltip("A saved Motion Style. When set, it replaces the motion and settings below.")]
@@ -74,7 +66,6 @@ namespace RavenTween {
         public MotionPreset EffectivePreset { get { return style != null ? style.Preset : preset; } }
         public MotionSettings EffectiveSettings { get { return style != null ? style.Settings : settings; } }
 
-        /// <summary>One play (or one loop cycle); stretch the clip to repeat a loop or an attention motion.</summary>
         public override double duration {
             get {
                 MotionSettings s = EffectiveSettings;
@@ -83,17 +74,11 @@ namespace RavenTween {
             }
         }
 
-        // The track's mixer does the work; a clip only carries its settings.
         public override Playable CreatePlayable(PlayableGraph graph, GameObject owner) {
             return Playable.Create(graph);
         }
     }
 
-    /// <summary>
-    /// Drives a Raven Motion Track: at every frame it shows the clip under the playhead, the end of
-    /// the last clip already passed, or, before the first clip, the object as designed. The
-    /// designed pose is read once for the whole track, before any clip moves the object.
-    /// </summary>
     public sealed class RavenMotionMixer : PlayableBehaviour {
         struct Entry {
             public double Start;
@@ -125,7 +110,6 @@ namespace RavenTween {
             if (bound == null || _clips.Count == 0) { return; }
             if (!_hasRest || _target.Transform != bound) { Bind(bound); }
             double time = playable.GetTime();
-            // The clip under the playhead; otherwise the clip that ended last, held on its end.
             int active = -1;
             int passed = -1;
             for (int i = 0; i < _clips.Count; i++) {
@@ -148,8 +132,6 @@ namespace RavenTween {
                 entry.Motion = default;
                 _clips[i] = entry;
             }
-            // Outside Play Mode nothing of a preview may stay (a mesh tint lives in a property
-            // block Timeline does not track): everything the motions touched is put back.
             if (!Application.isPlaying && _hasRest && _target.IsValid) { _rest.Apply(_target, _used); }
             _hasRest = false;
         }
@@ -167,8 +149,6 @@ namespace RavenTween {
             _used = MotionChannels.None;
         }
 
-        // The motion of a clip is an ordinary sequence, built once, paused (the playhead drives
-        // it, never the engine) and sought. Loops and attention motions repeat over a longer clip.
         void Sample(int index, float time) {
             Entry entry = _clips[index];
             if (!entry.Motion.IsAlive) {
@@ -186,7 +166,6 @@ namespace RavenTween {
             MotionSettings settings = entry.Clip.EffectiveSettings;
             settings.delay = 0f;
             MotionPreset preset = entry.Clip.EffectivePreset;
-            // Built from the designed pose, so clips don't depend on the order they are reached.
             _rest.Apply(_target, _used);
             entry.Motion = MotionBuilder.Build(_target, preset, settings, _rest, out entry.Channels);
             if (!entry.Motion.IsAlive) { return entry; }

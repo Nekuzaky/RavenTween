@@ -4,11 +4,9 @@ using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 namespace RavenTween.DOTweenAdapter {
-    /// <summary>DOTween's shortcut extensions (DOMove, DOFade, …), running on RavenTween.</summary>
     public static class DOTweenShortcuts {
         static readonly int ColorId = Shader.PropertyToID("_Color");
 
-        /// <summary>The property Material.color reads: the one marked [MainColor], or _Color when no property is.</summary>
         static int MainColorId(Material material) {
             Shader shader = material != null ? material.shader : null;
             if (shader == null) return ColorId;
@@ -19,8 +17,6 @@ namespace RavenTween.DOTweenAdapter {
             return ColorId;
         }
 
-        // ----- Transform -----
-
         public static Tween DOMove(this Transform target, Vector3 endValue, float duration) { return Raven.Position(target, endValue, duration); }
         public static Tween DOMoveX(this Transform target, float endValue, float duration) { return Raven.PositionX(target, endValue, duration); }
         public static Tween DOMoveY(this Transform target, float endValue, float duration) { return Raven.PositionY(target, endValue, duration); }
@@ -30,7 +26,6 @@ namespace RavenTween.DOTweenAdapter {
         public static Tween DOLocalMoveY(this Transform target, float endValue, float duration) { return Raven.LocalPositionY(target, endValue, duration); }
         public static Tween DOLocalMoveZ(this Transform target, float endValue, float duration) { return Raven.LocalPositionZ(target, endValue, duration); }
 
-        /// <summary>Shortest-path rotation, like DOTween's default RotateMode.Fast.</summary>
         public static Tween DORotate(this Transform target, Vector3 endValue, float duration) { return Raven.Rotation(target, Quaternion.Euler(endValue), duration); }
         public static Tween DOLocalRotate(this Transform target, Vector3 endValue, float duration) { return Raven.LocalRotation(target, Quaternion.Euler(endValue), duration); }
         public static Tween DORotateQuaternion(this Transform target, Quaternion endValue, float duration) { return Raven.Rotation(target, endValue, duration); }
@@ -42,7 +37,6 @@ namespace RavenTween.DOTweenAdapter {
         public static Tween DOScaleY(this Transform target, float endValue, float duration) { return Raven.ScaleY(target, endValue, duration); }
         public static Tween DOScaleZ(this Transform target, float endValue, float duration) { return Raven.ScaleZ(target, endValue, duration); }
 
-        // DOTween's vibrato counts oscillations over the whole effect; RavenTween's frequency is per second.
         public static Tween DOPunchPosition(this Transform target, Vector3 punch, float duration, int vibrato = 10) {
             return Raven.PunchPosition(target, punch, duration, Frequency(vibrato, duration));
         }
@@ -75,7 +69,6 @@ namespace RavenTween.DOTweenAdapter {
             return Mathf.Max(vibrato, 1) / Mathf.Max(duration, 0.01f);
         }
 
-        /// <summary>Stops (or completes) every tween on this component. Returns how many.</summary>
         public static int DOKill(this Component target, bool complete = false) {
             return complete ? Raven.CompleteAll(target) : Raven.StopAll(target);
         }
@@ -83,8 +76,6 @@ namespace RavenTween.DOTweenAdapter {
         public static int DOComplete(this Component target) { return Raven.CompleteAll(target); }
         public static int DOPause(this Component target) { return Raven.PauseAll(target); }
         public static int DOPlay(this Component target) { return Raven.ResumeAll(target); }
-
-        // ----- UI -----
 
         public static Tween DOAnchorPos(this RectTransform target, Vector2 endValue, float duration) { return Raven.AnchoredPosition(target, endValue, duration); }
         public static Tween DOAnchorPosX(this RectTransform target, float endValue, float duration) { return Raven.AnchoredPositionX(target, endValue, duration); }
@@ -94,11 +85,8 @@ namespace RavenTween.DOTweenAdapter {
         public static Tween DOColor(this Graphic target, Color endValue, float duration) { return Raven.Color(target, endValue, duration); }
         public static Tween DOFade(this Graphic target, float endValue, float duration) { return Raven.Alpha(target, endValue, duration); }
 
-        // ----- Rendering, camera, audio, light -----
-
         public static Tween DOColor(this SpriteRenderer target, Color endValue, float duration) { return Raven.Color(target, endValue, duration); }
         public static Tween DOFade(this SpriteRenderer target, float endValue, float duration) { return Raven.Alpha(target, endValue, duration); }
-        /// <summary>Tweens the shader's main color, like Material.color: _BaseColor on URP and HDRP Lit, _Color on built-in shaders.</summary>
         public static Tween DOColor(this Material target, Color endValue, float duration) { return Raven.MaterialColor(target, MainColorId(target), endValue, duration); }
         public static Tween DOColor(this Material target, Color endValue, string property, float duration) { return Raven.MaterialColor(target, property, endValue, duration); }
         public static Tween DOFloat(this Material target, float endValue, string property, float duration) { return Raven.MaterialFloat(target, property, endValue, duration); }
@@ -125,12 +113,10 @@ namespace RavenTween.DOTweenAdapter {
         public static Tween DOColor(this Light target, Color endValue, float duration) { return Raven.Color(target, endValue, duration); }
     }
 
-    /// <summary>DOTween's tween settings and control methods (SetEase, SetLoops, Kill, …).</summary>
     public static class DOTweenSettings {
         public static Tween SetEase(this Tween tween, Ease ease) { return tween.Ease(ease); }
         public static Tween SetEase(this Tween tween, AnimationCurve curve) { return tween.Ease(curve); }
 
-        /// <summary>OutBack / InBack with DOTween's overshoot (1.70158 = default).</summary>
         public static Tween SetEase(this Tween tween, Ease ease, float overshoot) {
             return ease == Ease.OutBack ? tween.Ease(Easing.Overshoot(overshoot / 1.70158f)) : tween.Ease(ease);
         }
@@ -194,7 +180,6 @@ namespace RavenTween.DOTweenAdapter {
         }
         public static float ElapsedPercentage(this Tween tween, bool includeLoops = true) { return includeLoops ? tween.ProgressTotal : tween.Progress; }
 
-        /// <summary>Jumps to <paramref name="to"/> seconds; pauses the tween unless <paramref name="andPlay"/>.</summary>
         public static void Goto(this Tween tween, float to, bool andPlay = false) {
             tween.ElapsedTimeTotal = to;
             if (andPlay) { tween.Resume(); } else { tween.Pause(); }
@@ -214,8 +199,6 @@ namespace RavenTween.DOTweenAdapter {
             sequence.GetAwaiter().OnCompleted(() => source.TrySetResult(true));
             return source.Task;
         }
-
-        // ----- Sequences -----
 
         public static Sequence Append(this Sequence sequence, Tween tween) { return sequence.Chain(tween); }
         public static Sequence Append(this Sequence sequence, Sequence nested) { return sequence.Chain(nested); }

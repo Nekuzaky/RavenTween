@@ -1,16 +1,6 @@
 using UnityEngine;
 
 namespace RavenTween {
-    /// <summary>
-    /// Secondary motion for a chain of bones — ponytails, antennae, tails, cables, ears. Each
-    /// bone lags behind, swings and settles back toward its base pose (from an Animator, a tween
-    /// or a script). Runs after animation, allocates nothing per frame, blends by <see cref="Weight"/>.
-    /// </summary>
-    /// <remarks>
-    /// Like <see cref="RavenLookAt"/>, the base pose is tracked rather than reset: a bone whose
-    /// rotation is still the one written last frame keeps its previous base pose; any other
-    /// rotation was written by someone else and becomes the new base pose.
-    /// </remarks>
     [AddComponentMenu("RavenTween/Raven Spring Chain")]
     [DisallowMultipleComponent]
     public sealed class RavenSpringChain : MonoBehaviour {
@@ -45,7 +35,6 @@ namespace RavenTween {
         float _accumulator;
         bool _hasWritten;
 
-        /// <summary>Blend between the base pose (0) and full spring motion (1).</summary>
         public float Weight {
             get { return weight; }
             set { weight = Mathf.Clamp01(value); }
@@ -66,7 +55,6 @@ namespace RavenTween {
             set { gravity = value; }
         }
 
-        /// <summary>Number of bones driven by this chain, root included.</summary>
         public int BoneCount { get { return _boneCount; } }
 
         void OnEnable() {
@@ -82,12 +70,8 @@ namespace RavenTween {
             Evaluate(useUnscaledTime ? Time.unscaledDeltaTime : Time.deltaTime);
         }
 
-        /// <summary>
-        /// Re-reads the chain from the root and snaps the simulation to the current base pose.
-        /// Call it after changing the bone hierarchy. After a teleport, <see cref="ResetPhysics"/> is enough.
-        /// </summary>
         public void Build() {
-            RestoreBasePose(); // Never capture a swung pose as the new base pose.
+            RestoreBasePose();
             Transform start = root != null ? root : transform;
             _boneCount = CountChain(start);
             _particleCount = _boneCount + (tipLength > 0f ? 1 : 0);
@@ -103,7 +87,6 @@ namespace RavenTween {
             ResetPhysics();
         }
 
-        /// <summary>Puts every simulated point back on the base pose, with no velocity (e.g. after a teleport).</summary>
         public void ResetPhysics() {
             if (_bones == null || HasMissingBone()) { return; }
             ReadAnimatedPose();
@@ -139,7 +122,6 @@ namespace RavenTween {
             }
         }
 
-        // Tip continues the last segment's direction, expressed in the last bone's local space.
         Vector3 ComputeTipDirection() {
             Transform last = _bones[_boneCount - 1];
             Vector3 worldDirection = _boneCount > 1
@@ -156,7 +138,6 @@ namespace RavenTween {
             return false;
         }
 
-        // Puts back the base pose on bones that still hold what this component wrote.
         void RestoreBasePose() {
             if (_bones == null || !_hasWritten) { return; }
             for (int i = 0; i < _boneCount; i++) {
@@ -165,7 +146,6 @@ namespace RavenTween {
             }
         }
 
-        // Adopts rotations written by others as the new base pose, restores ours otherwise.
         void TrackBasePose() {
             for (int i = 0; i < _boneCount; i++) {
                 Transform bone = _bones[i];
@@ -175,19 +155,15 @@ namespace RavenTween {
             }
         }
 
-        // Exact on purpose: the value compared is read back from the transform, so an untouched
-        // bone matches bit for bit, while a dot-product threshold can reject a slightly
-        // denormalized quaternion and wrongly adopt the swung pose as the base pose.
         static bool SameRotation(Quaternion a, Quaternion b) {
             return a.x == b.x && a.y == b.y && a.z == b.z && a.w == b.w;
         }
 
-        /// <summary>One frame: track the base pose, simulate in fixed steps, write rotations.</summary>
         internal void Evaluate(float deltaTime) {
             Debug.Assert(deltaTime >= 0f, "Delta time cannot be negative.");
             if (_bones == null || _particleCount < 2) { return; }
             if (HasMissingBone()) {
-                Build(); // A bone was destroyed: re-read whatever chain is left.
+                Build();
                 return;
             }
             TrackBasePose();
@@ -210,7 +186,6 @@ namespace RavenTween {
             }
         }
 
-        // Verlet integration, a pull toward the base pose, then a length constraint per segment.
         void SimulateStep() {
             Debug.Assert(_particleCount <= MaxBones + 1, "Particle count exceeds the chain bound.");
             Vector3 gravityStep = gravity * (StepTime * StepTime);
@@ -232,8 +207,6 @@ namespace RavenTween {
             }
         }
 
-        // Each bone rotates so its child lands on the simulated point; parents first. Points are
-        // interpolated between the last two fixed steps, so motion stays smooth above 60 FPS.
         void ApplyRotations(float alpha) {
             int segments = _particleCount - 1;
             for (int i = 0; i < segments; i++) {

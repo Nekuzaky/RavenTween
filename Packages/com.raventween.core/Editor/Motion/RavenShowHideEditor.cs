@@ -3,7 +3,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Raven Show Hide inspector: the default fields, how to wire it, and previews.</summary>
     [CustomEditor(typeof(RavenShowHide))]
     public sealed class RavenShowHideEditor : UnityEditor.Editor {
         readonly List<Transform> _one = new List<Transform>(1);

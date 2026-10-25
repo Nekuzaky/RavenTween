@@ -34,7 +34,7 @@ namespace RavenTween.Tests {
             feedback.Actions.Add(new FeedbackAction { kind = FeedbackAction.Kind.VolumeFlash, effect = _volume, strength = 0.9f, duration = 0.4f });
             feedback.Play();
             Raven.Step(0.1f);
-            feedback.Play(); // A second hit mid-flash.
+            feedback.Play();
             Raven.Step(0.2f);
             Assert.That(_volume.weight, Is.EqualTo(0.9f).Within(0.02f), "Peak.");
             Raven.Step(0.3f);

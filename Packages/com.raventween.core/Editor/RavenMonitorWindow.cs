@@ -4,10 +4,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>
-    /// Live view of every running tween and sequence: search, filters, sorting, an activity graph,
-    /// a GC readout, expandable sequence timelines, and per-row pause / complete / kill.
-    /// </summary>
     public sealed class RavenMonitorWindow : EditorWindow {
         enum KindFilter { All, Tweens, Sequences }
         enum SortMode { Creation, Progress, Target, Property }
@@ -92,8 +88,6 @@ namespace RavenTween.Editor {
             EditorGUILayout.EndScrollView();
         }
 
-        // ----- Toolbar & stats -----
-
         void DrawToolbar() {
             EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
             _search = EditorGUILayout.TextField(_search, EditorStyles.toolbarSearchField, GUILayout.MinWidth(120f), GUILayout.MaxWidth(220f));
@@ -110,8 +104,6 @@ namespace RavenTween.Editor {
             EditorGUILayout.EndHorizontal();
         }
 
-        // Time.timeScale = 0 (a pause menu, a tutorial popup) freezes every scaled tween, which
-        // otherwise looks like the engine stopped working.
         void DrawFrozenTimeWarning() {
             bool globalFrozen = Raven.TimeScale <= 0f;
             if (Time.timeScale > 0f && !globalFrozen) { return; }
@@ -119,7 +111,6 @@ namespace RavenTween.Editor {
             for (int i = 0; i < _snapshot.Count; i++) {
                 TweenEngine.DebugInfo info = _snapshot[i];
                 if (info.IsCallback || info.OwnedBySequence || info.Paused) { continue; }
-                // Manual tweens advance with whatever delta Raven.Step is given.
                 if (!globalFrozen && info.Phase == UpdatePhase.Manual) { continue; }
                 if (globalFrozen || !info.UnscaledTime) { frozen++; }
             }
@@ -181,8 +172,6 @@ namespace RavenTween.Editor {
             return (bytes / 1024f).ToString("0.0") + " KB";
         }
 
-        // ----- Filtering & sorting -----
-
         void BuildVisibleList() {
             _visible.Clear();
             for (int i = 0; i < _snapshot.Count; i++) {
@@ -214,18 +203,15 @@ namespace RavenTween.Editor {
             }
         }
 
-        // Progress through the current cycle, start delay excluded. Sequence children have no
-        // clock of their own (their sequence drives them), so they report no progress.
         static float Progress(in TweenEngine.DebugInfo info) {
             if (info.OwnedBySequence || info.IsCallback) { return 0f; }
             float length = Mathf.Max(info.CycleLength - info.StartDelay, 0.0001f);
             return Mathf.Clamp01((info.Elapsed - info.StartDelay) / length);
         }
 
-        // Where the playhead sits on a sequence's own timeline (yoyo cycles play it backwards).
         static float TimelinePosition(in TweenEngine.DebugInfo info) {
             float p = Progress(info);
-            return info.Mode == CycleMode.Yoyo && (info.CyclesDone & 1) == 1 ? 1f - p : p; // Sequences only use Restart and Yoyo.
+            return info.Mode == CycleMode.Yoyo && (info.CyclesDone & 1) == 1 ? 1f - p : p;
         }
 
         static string ProgressLabel(in TweenEngine.DebugInfo info) {
@@ -237,7 +223,6 @@ namespace RavenTween.Editor {
             return (Progress(info) * 100f).ToString("0") + "%" + extra;
         }
 
-        // Only shown when they differ from the defaults, so ordinary rows stay short.
         static string Annotations(in TweenEngine.DebugInfo info) {
             string text = "";
             if (!Mathf.Approximately(info.TimeScale, 1f)) { text += "  ×" + info.TimeScale.ToString("0.##"); }
@@ -257,8 +242,6 @@ namespace RavenTween.Editor {
         static long KeyOf(in TweenEngine.DebugInfo info) {
             return ((long)info.Index << 32) | info.Version;
         }
-
-        // ----- Rows -----
 
         static void DrawHeader() {
             EditorGUILayout.BeginHorizontal();
@@ -307,7 +290,6 @@ namespace RavenTween.Editor {
 
         void DrawSequenceTimeline(in TweenEngine.DebugInfo info) {
             if (!TweenEngine.CollectSequenceItems(info.Index, info.Version, _items) || _items.Count == 0) { return; }
-            // Children are placed on the sequence's own timeline, which starts after the delay.
             float length = Mathf.Max(info.CycleLength - info.StartDelay, 0.0001f);
             for (int i = 0; i < _items.Count; i++) {
                 TweenEngine.DebugSequenceItem item = _items[i];

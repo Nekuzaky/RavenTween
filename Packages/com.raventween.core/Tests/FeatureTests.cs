@@ -9,7 +9,6 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 using Object = UnityEngine.Object;
 
 namespace RavenTween.Tests {
-    /// <summary>Update phases, cycle modes, time control, callbacks, target control and the wider API.</summary>
     public sealed class FeatureTests {
         GameObject _go;
 
@@ -42,8 +41,6 @@ namespace RavenTween.Tests {
         static void Step(float delta, int frames = 1) {
             for (int i = 0; i < frames; i++) { TweenEngine.Process(delta, delta); }
         }
-
-        // ----- Update phases -----
 
         [Test]
         public void FixedUpdatePhase_IsSteppedOnlyByFixedUpdate() {
@@ -80,8 +77,6 @@ namespace RavenTween.Tests {
             Assert.That(v, Is.EqualTo(1f).Within(1e-4f));
         }
 
-        // ----- Cycle modes -----
-
         [Test]
         public void Incremental_ContinuesFromTheLastEnd() {
             float v = 0f;
@@ -116,8 +111,6 @@ namespace RavenTween.Tests {
             LogAssert.Expect(LogType.Warning, new Regex("Incremental"));
             Raven.Sequence().Chain(Raven.Value(0f, 1f, 1f)).Cycles(2, CycleMode.Incremental);
         }
-
-        // ----- Time control -----
 
         [Test]
         public void TimeScale_SlowsOnlyThatTween() {
@@ -254,8 +247,6 @@ namespace RavenTween.Tests {
             Assert.That(driver.IsAlive, Is.False);
         }
 
-        // ----- Sequence callbacks -----
-
         [Test]
         public void ChainAndInsertCallbacks_FireAtTheirTime() {
             var log = new List<string>();
@@ -336,7 +327,6 @@ namespace RavenTween.Tests {
             Assert.That(calls, Is.EqualTo(0));
         }
 
-        // The same lambdas must run before the measurement: the compiler caches each one on first use.
         static void SpawnTargetCallbackTweens(Holder holder) {
             for (int i = 0; i < 200; i++) {
                 Raven.Value(0f, 1f, 0.1f).OnComplete(holder, h => h.Count++).OnUpdate(holder, (h, t) => h.Last = t.Progress);
@@ -352,8 +342,6 @@ namespace RavenTween.Tests {
             Assert.That(() => SpawnTargetCallbackTweens(holder), Is.Not.AllocatingGCMemory());
             Assert.That(holder.Count, Is.GreaterThanOrEqualTo(400), "Every target callback ran.");
         }
-
-        // ----- Target control, cancellation, capacity -----
 
         [Test]
         public void StopAll_OnAGameObject_StopsOnlyItsTweens() {
@@ -376,7 +364,6 @@ namespace RavenTween.Tests {
                 Raven.StopAll(other);
                 Raven.Value(0f, 10f, 1f).OnUpdate(v => value = v);
             });
-            // The new tween must reuse a slot the pass has not reached yet: stop one placed after the trigger.
             Tween stopped = default;
             for (int i = 0; i < 10000 && stopped.Index <= trigger.Index; i++) {
                 stopped = Raven.LocalPosition(other.transform, Vector3.one, 5f);
@@ -437,8 +424,6 @@ namespace RavenTween.Tests {
                 for (int i = 0; i < 2500; i++) { Raven.Value(0f, 1f, 1f); }
             }, Is.Not.AllocatingGCMemory());
         }
-
-        // ----- Wider API -----
 
         [Test]
         public void AxisTweens_TouchOneAxisOnly() {
@@ -506,7 +491,7 @@ namespace RavenTween.Tests {
             renderer.sharedMaterial = material;
             var template = ScriptableObject.CreateInstance<TweenTemplate>();
             template.property = PropertyKind.PropertyBlockColor;
-            template.materialProperty = "_BaseColor"; // Alias of _Color.
+            template.materialProperty = "_BaseColor";
             template.endValue = new Vector4(0f, 0f, 1f, 1f);
             template.settings = TweenParams.Default;
             template.settings.duration = 0.1f;
@@ -594,8 +579,6 @@ namespace RavenTween.Tests {
             Step(0.5f, 3);
             Assert.That(tr.localPosition.x, Is.EqualTo(1.4f).Within(1e-3f));
         }
-
-        // ----- Second-review regressions -----
 
         [Test]
         public void JumpingInASequence_IsSilent_PlayingFiresAgain() {
@@ -714,8 +697,6 @@ namespace RavenTween.Tests {
             Assert.That(n, Is.EqualTo(1));
             Assert.That(s.IsAlive, Is.False);
         }
-
-        // ----- Third-review regressions -----
 
         [Test]
         public void SetRemainingCyclesEveryFrame_StillCompletes() {

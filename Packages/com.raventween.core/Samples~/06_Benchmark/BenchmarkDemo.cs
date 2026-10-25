@@ -3,11 +3,6 @@ using Unity.Profiling;
 using UnityEngine;
 
 namespace RavenTweenSamples {
-    /// <summary>
-    /// Drop this component on an empty GameObject in a blank scene and press Play.
-    /// Spawns thousands of animated cubes and shows frame time and GC allocations per frame.
-    /// Use the +/- keys to add or remove batches. Build a Development player for real numbers.
-    /// </summary>
     public sealed class BenchmarkDemo : MonoBehaviour {
         [SerializeField, Min(100)] int batchSize = 1000;
         [SerializeField, Min(0)] int initialBatches = 5;
@@ -48,7 +43,6 @@ namespace RavenTweenSamples {
                 Transform t = cube.transform;
                 t.localScale = Vector3.one * 0.3f;
                 t.position = Random.insideUnitSphere * 25f;
-                // Each cube runs two independent infinite tweens: position and rotation.
                 Raven.Position(t, Random.insideUnitSphere * 25f, Random.Range(1f, 3f)).Ease(Ease.InOutSine).Infinite();
                 Raven.LocalRotation(t, Random.rotation, Random.Range(1f, 3f)).Infinite();
                 _cubeCount++;

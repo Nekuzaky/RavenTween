@@ -4,10 +4,6 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace RavenTween {
-    /// <summary>
-    /// Plays one or more tween templates on scene targets without writing code.
-    /// Hook <see cref="Play"/> to a UnityEvent, enable Play On Enable, or call it from code.
-    /// </summary>
     [AddComponentMenu("RavenTween/Raven Animator")]
     public sealed class RavenAnimator : MonoBehaviour {
         [Serializable]
@@ -24,10 +20,8 @@ namespace RavenTween {
         readonly List<Tween> _live = new List<Tween>();
         int _pending;
 
-        /// <summary>Entries played by this animator. Edit at runtime before calling Play.</summary>
         public List<Entry> Entries { get { return entries; } }
 
-        /// <summary>Raised once every entry of the current Play call has completed.</summary>
         public UnityEvent OnAllComplete { get { return onAllComplete; } }
 
         void OnEnable() {
@@ -38,7 +32,6 @@ namespace RavenTween {
             Stop();
         }
 
-        /// <summary>Stops any previous run, then plays every entry.</summary>
         public void Play() {
             Stop();
             _pending = 0;
@@ -51,14 +44,12 @@ namespace RavenTween {
                 Tween tween = entry.template.Play(entry.target);
                 if (!tween.IsAlive) { continue; }
                 _pending++;
-                // An entry is done when it completes, is stopped from elsewhere, or loses its target.
                 tween.OnComplete(HandleEntryEnd).OnKill(HandleEntryEnd).OnTargetDestroyed(HandleEntryEnd);
                 _live.Add(tween);
             }
             if (_pending == 0) { onAllComplete.Invoke(); }
         }
 
-        /// <summary>Stops every tween started by this animator. Does not raise On All Complete.</summary>
         public void Stop() {
             _stopping = true;
             try {
@@ -70,10 +61,8 @@ namespace RavenTween {
             _pending = 0;
         }
 
-        /// <summary>Jumps every running tween to its end value, then raises On All Complete.</summary>
         public void CompleteNow() {
             if (_live.Count == 0) { return; }
-            // Completing an entry can end the run and clear the list, so iterate over a copy.
             Tween[] snapshot = _live.ToArray();
             for (int i = 0; i < snapshot.Length; i++) { snapshot[i].Complete(); }
         }

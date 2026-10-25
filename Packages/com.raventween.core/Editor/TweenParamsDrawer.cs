@@ -2,7 +2,6 @@ using UnityEditor;
 using UnityEngine;
 
 namespace RavenTween.Editor {
-    /// <summary>Compact inspector for TweenParams: the curve field only shows for custom easing.</summary>
     [CustomPropertyDrawer(typeof(TweenParams))]
     public sealed class TweenParamsDrawer : PropertyDrawer {
         const float Spacing = 2f;
