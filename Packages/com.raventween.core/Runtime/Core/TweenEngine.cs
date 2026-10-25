@@ -1443,6 +1443,7 @@ namespace RavenTween {
             if (!TryGetSlotInternal(index, version, out TweenSlot slot)) { return; }
             Debug.Assert(!slot.OwnedBySequence, "Seek the root, not a sequence child.");
             Debug.Assert(!float.IsNaN(time), "Seek time must be a number.");
+            if (float.IsNaN(time)) { time = 0f; }
             ResetForReplay(slot, true);
             float local = time - slot.StartDelay;
             if (local < 0f) { return; }

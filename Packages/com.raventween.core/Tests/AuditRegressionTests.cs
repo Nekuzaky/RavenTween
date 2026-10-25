@@ -397,6 +397,28 @@ namespace RavenTween.Tests {
             }
         }
 
+        [Test]
+        public void Eases_TreatANaNTimeAsTheStart() {
+            LogAssert.ignoreFailingMessages = true;
+            foreach (Ease ease in Enum.GetValues(typeof(Ease))) {
+                if (ease == Ease.Custom) { continue; }
+                Assert.That(EaseUtility.Evaluate(ease, float.NaN), Is.EqualTo(EaseUtility.Evaluate(ease, 0f)), ease.ToString());
+            }
+            Assert.That(Easing.Overshoot().Evaluate(float.NaN), Is.EqualTo(0f));
+            Assert.That(Easing.Bounce().Evaluate(float.NaN), Is.EqualTo(0f));
+            Assert.That(Easing.Elastic().Evaluate(float.NaN), Is.EqualTo(0f));
+            Assert.That(Easing.FromCurve(AnimationCurve.Linear(0f, 0f, 1f, 1f)).Evaluate(float.NaN), Is.EqualTo(0f));
+        }
+
+        [Test]
+        public void Seek_ToANaNTime_ShowsTheStart() {
+            LogAssert.ignoreFailingMessages = true;
+            float shown = -1f;
+            Tween tween = Raven.Value(0f, 1f, 1f).OnUpdate(v => shown = v);
+            TweenEngine.Seek(tween.Index, tween.Version, float.NaN);
+            Assert.That(shown, Is.EqualTo(0f));
+        }
+
         static TweenTemplate MakeTemplate(float duration) {
             var t = ScriptableObject.CreateInstance<TweenTemplate>();
             t.property = PropertyKind.LocalPosition;

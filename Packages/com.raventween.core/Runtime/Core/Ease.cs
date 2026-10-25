@@ -85,7 +85,7 @@ namespace RavenTween {
         public float Evaluate(float t) {
             switch (Kind) {
                 case EasingKind.Standard: return EaseUtility.Evaluate(Standard, t);
-                case EasingKind.Curve: return Curve != null ? Curve.Evaluate(Mathf.Clamp01(t)) : t;
+                case EasingKind.Curve: return Curve != null ? Curve.Evaluate(EaseUtility.Clamp01(t)) : EaseUtility.Clamp01(t);
                 default: return EaseUtility.EvaluateParametric(Kind, t, A, B, 1f);
             }
         }
@@ -102,7 +102,7 @@ namespace RavenTween {
         /// </summary>
         public static float EvaluateParametric(EasingKind kind, float t, float a, float b, float distance) {
             Debug.Assert(!float.IsNaN(t), "Ease time must be a number.");
-            t = Mathf.Clamp01(t);
+            t = Clamp01(t);
             switch (kind) {
                 case EasingKind.Overshoot: return OutBackWith(t, BackOvershoot * a);
                 case EasingKind.Bounce: return OutBounceScaled(t, a);
@@ -134,7 +134,7 @@ namespace RavenTween {
         /// <summary>Evaluates <paramref name="ease"/> at normalized time <paramref name="t"/> in [0, 1].</summary>
         public static float Evaluate(Ease ease, float t) {
             Debug.Assert(!float.IsNaN(t), "Ease time must be a number.");
-            t = Mathf.Clamp01(t);
+            t = Clamp01(t);
             switch (ease) {
                 case Ease.Linear: return t;
                 case Ease.InSine: return 1f - Mathf.Cos(t * Mathf.PI * 0.5f);
@@ -171,6 +171,10 @@ namespace RavenTween {
                     Debug.Assert(ease != Ease.Custom, "Ease.Custom must be evaluated through its curve or delegate.");
                     return t;
             }
+        }
+
+        internal static float Clamp01(float t) {
+            return t > 0f ? (t < 1f ? t : 1f) : 0f;
         }
 
         static float Pow2(float v) { return v * v; }
