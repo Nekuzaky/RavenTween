@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- Source of docs/images/banner.png (1280x400). Render with Tools/Render-Brand.ps1. -->
+<html><head><meta charset="utf-8"><title>RavenTween banner</title><style>
+:root { --bg:#14161b; --border:#30343e; --text:#eceef3; --dim:#9ba1ae; --accent:#5b8fd6; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body { width:100%; height:100%; }
+body { font-family:'Inter','Segoe UI Variable Display','Segoe UI',system-ui,sans-serif; color:var(--text); overflow:hidden;
+  background: radial-gradient(562px 343px at 74% 42%, rgba(91,143,214,.22), transparent 65%),
+              radial-gradient(468px 281px at 0% 100%, rgba(91,143,214,.08), transparent 60%), var(--bg); }
+.left { position:absolute; left:72px; top:50px; width:640px; }
+.logo { display:flex; align-items:center; gap:14px; }
+.mark { width:50px; height:50px; border-radius:12px; background:#1f222b; border:1px solid #363a46;
+  box-shadow:0 10px 32px rgba(91,143,214,.30), inset 0 1px 0 rgba(255,255,255,.08); padding:3px; }
+.mark svg { width:100%; height:100%; display:block; }
+.name { font-size:26px; font-weight:700; letter-spacing:-.02em; color:#d6dae3; }
+h1 { margin-top:22px; font-size:48px; font-weight:800; letter-spacing:-.035em; line-height:1.04; }
+h1 em { font-style:normal; background:linear-gradient(90deg, #a9c8f2, #5b8fd6 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.code { margin-top:22px; display:inline-block; padding:8px 12px; border-radius:8px; background:#0e1014;
+  border:1px solid var(--border); font-family:'Cascadia Code',Consolas,monospace; font-size:16px; color:#c8d3e6; white-space:nowrap; }
+.code .k { color:#9fc0ee; } .code .n { color:#e6b956; }
+.chips { margin-top:0px; display:flex; gap:8px; }
+.chip { padding:5px 11px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid var(--border);
+  color:#d3d7e0; font-weight:600; font-size:14px; }
+.card { position:absolute; border-radius:12px; background:linear-gradient(180deg, #1d2028, #171920); border:1px solid var(--border);
+  box-shadow:0 30px 70px rgba(0,0,0,.55); overflow:hidden; }
+.card svg { display:block; }
+.sep { height:1px; background:var(--border); }
+</style></head>
+<body>
+<div class="left">
+  <div class="logo"><div class="mark"><svg viewBox="0 0 100 100"><path d="M24 72 C 46 72, 46 28, 76 28" fill="none" stroke="#5b8fd6" stroke-width="11" stroke-linecap="round"/><circle cx="24" cy="72" r="10" fill="#fff"/><circle cx="76" cy="28" r="10" fill="#fff"/></svg></div><div class="name">RavenTween</div></div>
+  <h1>Motion that feels right.<br><em>Zero garbage.</em></h1>
+  <div class="code"><span class="k">Raven</span>.Position(t, pos, <span class="n">0.5f</span>).Ease(Ease.OutBack);</div>
+  
+</div>
+<div class="card" style="left:820px; top:26px; width:388px">
+  <svg width="388" height="252" viewBox="0 0 388 252"><defs><filter id="glow" x="-.2" y="-.2" width="1.4" height="1.4"><feGaussianBlur stdDeviation="3.9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><line x1="119.2" y1="26.5" x2="119.2" y2="228.6" stroke="rgba(255,255,255,.05)"/><line x1="202.6" y1="26.5" x2="202.6" y2="228.6" stroke="rgba(255,255,255,.05)"/><line x1="285.9" y1="26.5" x2="285.9" y2="228.6" stroke="rgba(255,255,255,.05)"/><line x1="369.3" y1="26.5" x2="369.3" y2="228.6" stroke="rgba(255,255,255,.05)"/><line x1="35.9" y1="220.4" x2="369.3" y2="220.4" stroke="rgba(255,255,255,.18)"/><line x1="35.9" y1="56.1" x2="369.3" y2="56.1" stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/><text x="28.1" y="59.2" text-anchor="end" font-size="9" fill="#7d8494">1</text><text x="28.1" y="223.5" text-anchor="end" font-size="9" fill="#7d8494">0</text><polyline points="35.9,220.4 40.0,210.9 44.2,201.7 48.4,192.9 52.5,184.3 56.7,176.1 60.9,168.2 65.1,160.6 69.2,153.2 73.4,146.2 77.6,139.4 81.7,132.9 85.9,126.7 90.1,120.7 94.2,115.0 98.4,109.6 102.6,104.4 106.7,99.5 110.9,94.8 115.1,90.3 119.2,86.1 123.4,82.1 127.6,78.3 131.7,74.7 135.9,71.4 140.1,68.2 144.2,65.2 148.4,62.5 152.6,59.9 156.7,57.5 160.9,55.3 165.1,53.2 169.2,51.3 173.4,49.6 177.6,48.0 181.7,46.6 185.9,45.4 190.1,44.3 194.2,43.3 198.4,42.4 202.6,41.7 206.7,41.1 210.9,40.6 215.1,40.2 219.2,39.9 223.4,39.8 227.6,39.7 231.8,39.7 235.9,39.8 240.1,39.9 244.3,40.2 248.4,40.5 252.6,40.9 256.8,41.3 260.9,41.8 265.1,42.3 269.3,42.9 273.4,43.5 277.6,44.2 281.8,44.9 285.9,45.6 290.1,46.3 294.3,47.0 298.4,47.7 302.6,48.5 306.8,49.2 310.9,49.9 315.1,50.6 319.3,51.3 323.4,52.0 327.6,52.6 331.8,53.2 335.9,53.7 340.1,54.2 344.3,54.7 348.4,55.1 352.6,55.4 356.8,55.7 360.9,55.9 365.1,56.0 369.3,56.1" fill="none" stroke="#5b8fd6" stroke-width="3.1" stroke-linecap="round" filter="url(#glow)"/><circle cx="35.9" cy="220.4" r="3.5" fill="#fff" opacity="0.35"/><circle cx="69.2" cy="153.2" r="3.5" fill="#fff" opacity="0.41"/><circle cx="102.6" cy="104.4" r="3.5" fill="#fff" opacity="0.48"/><circle cx="135.9" cy="71.4" r="3.5" fill="#fff" opacity="0.54"/><circle cx="169.2" cy="51.3" r="3.5" fill="#fff" opacity="0.61"/><circle cx="202.6" cy="41.7" r="3.5" fill="#fff" opacity="0.68"/><circle cx="235.9" cy="39.8" r="3.5" fill="#fff" opacity="0.74"/><circle cx="269.3" cy="42.9" r="3.5" fill="#fff" opacity="0.80"/><circle cx="302.6" cy="48.5" r="3.5" fill="#fff" opacity="0.87"/><circle cx="335.9" cy="53.7" r="3.5" fill="#fff" opacity="0.94"/><circle cx="369.3" cy="56.1" r="3.5" fill="#fff" opacity="1.00"/><text x="235.9" y="28.8" text-anchor="middle" font-size="9" fill="#9fc0ee" font-weight="600">overshoot</text><text x="35.9" y="15.6" font-size="11" fill="#d8dce6" font-weight="700" font-family="Cascadia Code, Consolas, monospace">Ease.OutBack</text><text x="369.3" y="245.8" text-anchor="end" font-size="9" fill="#7d8494">time</text></svg>
+  <div class="sep"></div>
+  <svg width="388" height="92" viewBox="0 0 388 92"><line x1="320.1" y1="4.7" x2="320.1" y2="87.3" stroke="rgba(255,255,255,.28)" stroke-dasharray="4 4"/><rect x="18.7" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.22"/><rect x="134.6" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.26"/><rect x="218.8" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.30"/><rect x="275.9" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.33"/><rect x="310.4" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.37"/><rect x="327.1" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.41"/><rect x="330.4" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.45"/><rect x="324.9" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.49"/><rect x="315.4" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.52"/><rect x="306.3" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="0.56"/><rect x="302.2" y="28.1" width="35.9" height="35.9" rx="7.8" fill="#5b8fd6" opacity="1.00" stroke="#fff" stroke-opacity=".85" stroke-width="2"/></svg>
+</div>
+</body></html>

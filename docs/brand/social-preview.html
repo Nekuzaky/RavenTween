@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- Source of docs/images/social-preview.png (1280x640). Render with Tools/Render-Brand.ps1. -->
+<html><head><meta charset="utf-8"><title>RavenTween social preview</title><style>
+:root { --bg:#14161b; --border:#30343e; --text:#eceef3; --dim:#9ba1ae; --accent:#5b8fd6; }
+* { box-sizing:border-box; margin:0; padding:0; }
+html, body { width:100%; height:100%; }
+body { font-family:'Inter','Segoe UI Variable Display','Segoe UI',system-ui,sans-serif; color:var(--text); overflow:hidden;
+  background: radial-gradient(720px 440px at 74% 42%, rgba(91,143,214,.22), transparent 65%),
+              radial-gradient(600px 360px at 0% 100%, rgba(91,143,214,.08), transparent 60%), var(--bg); }
+.left { position:absolute; left:80px; top:112px; width:640px; }
+.logo { display:flex; align-items:center; gap:18px; }
+.mark { width:64px; height:64px; border-radius:15px; background:#1f222b; border:1px solid #363a46;
+  box-shadow:0 10px 32px rgba(91,143,214,.30), inset 0 1px 0 rgba(255,255,255,.08); padding:4px; }
+.mark svg { width:100%; height:100%; display:block; }
+.name { font-size:32px; font-weight:700; letter-spacing:-.02em; color:#d6dae3; }
+h1 { margin-top:36px; font-size:58px; font-weight:800; letter-spacing:-.035em; line-height:1.04; }
+h1 em { font-style:normal; background:linear-gradient(90deg, #a9c8f2, #5b8fd6 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+.code { margin-top:30px; display:inline-block; padding:10px 16px; border-radius:10px; background:#0e1014;
+  border:1px solid var(--border); font-family:'Cascadia Code',Consolas,monospace; font-size:19px; color:#c8d3e6; white-space:nowrap; }
+.code .k { color:#9fc0ee; } .code .n { color:#e6b956; }
+.chips { margin-top:22px; display:flex; gap:10px; }
+.chip { padding:7px 14px; border-radius:999px; background:rgba(255,255,255,.05); border:1px solid var(--border);
+  color:#d3d7e0; font-weight:600; font-size:17px; }
+.card { position:absolute; border-radius:16px; background:linear-gradient(180deg, #1d2028, #171920); border:1px solid var(--border);
+  box-shadow:0 30px 70px rgba(0,0,0,.55); overflow:hidden; }
+.card svg { display:block; }
+.sep { height:1px; background:var(--border); }
+</style></head>
+<body>
+<div class="left">
+  <div class="logo"><div class="mark"><svg viewBox="0 0 100 100"><path d="M24 72 C 46 72, 46 28, 76 28" fill="none" stroke="#5b8fd6" stroke-width="11" stroke-linecap="round"/><circle cx="24" cy="72" r="10" fill="#fff"/><circle cx="76" cy="28" r="10" fill="#fff"/></svg></div><div class="name">RavenTween</div></div>
+  <h1>Motion that feels right.<br><em>Zero garbage.</em></h1>
+  <div class="code"><span class="k">Raven</span>.Position(t, pos, <span class="n">0.5f</span>).Ease(Ease.OutBack);</div>
+  <div class="chips"><span class="chip">0 B / frame</span><span class="chip">44 no-code motions</span><span class="chip">Unity 2022.3+</span></div>
+</div>
+<div class="card" style="left:760px; top:92px; width:440px">
+  <svg width="440" height="330" viewBox="0 0 440 330"><defs><filter id="glow" x="-.2" y="-.2" width="1.4" height="1.4"><feGaussianBlur stdDeviation="5.0" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><line x1="138.5" y1="34.0" x2="138.5" y2="300.0" stroke="rgba(255,255,255,.05)"/><line x1="231.0" y1="34.0" x2="231.0" y2="300.0" stroke="rgba(255,255,255,.05)"/><line x1="323.5" y1="34.0" x2="323.5" y2="300.0" stroke="rgba(255,255,255,.05)"/><line x1="416.0" y1="34.0" x2="416.0" y2="300.0" stroke="rgba(255,255,255,.05)"/><line x1="46.0" y1="289.2" x2="416.0" y2="289.2" stroke="rgba(255,255,255,.18)"/><line x1="46.0" y1="72.9" x2="416.0" y2="72.9" stroke="rgba(255,255,255,.28)" stroke-dasharray="5 5"/><text x="36.0" y="76.9" text-anchor="end" font-size="12" fill="#7d8494">1</text><text x="36.0" y="293.2" text-anchor="end" font-size="12" fill="#7d8494">0</text><polyline points="46.0,289.2 50.6,276.7 55.2,264.6 59.9,253.0 64.5,241.7 69.1,230.9 73.8,220.5 78.4,210.4 83.0,200.8 87.6,191.5 92.2,182.6 96.9,174.0 101.5,165.9 106.1,158.0 110.8,150.5 115.4,143.4 120.0,136.6 124.6,130.0 129.2,123.9 133.9,118.0 138.5,112.4 143.1,107.1 147.8,102.1 152.4,97.4 157.0,93.0 161.6,88.8 166.2,84.9 170.9,81.3 175.5,77.9 180.1,74.7 184.8,71.8 189.4,69.1 194.0,66.6 198.6,64.4 203.2,62.3 207.9,60.5 212.5,58.8 217.1,57.3 221.8,56.0 226.4,54.9 231.0,54.0 235.6,53.2 240.2,52.5 244.9,52.0 249.5,51.6 254.1,51.4 258.8,51.3 263.4,51.3 268.0,51.4 272.6,51.7 277.2,52.0 281.9,52.4 286.5,52.9 291.1,53.5 295.8,54.1 300.4,54.8 305.0,55.6 309.6,56.4 314.2,57.2 318.9,58.1 323.5,59.1 328.1,60.0 332.8,61.0 337.4,61.9 342.0,62.9 346.6,63.8 351.2,64.8 355.9,65.7 360.5,66.6 365.1,67.5 369.8,68.3 374.4,69.1 379.0,69.8 383.6,70.5 388.2,71.1 392.9,71.6 397.5,72.1 402.1,72.4 406.8,72.7 411.4,72.9 416.0,72.9" fill="none" stroke="#5b8fd6" stroke-width="4.0" stroke-linecap="round" filter="url(#glow)"/><circle cx="46.0" cy="289.2" r="4.5" fill="#fff" opacity="0.35"/><circle cx="83.0" cy="200.8" r="4.5" fill="#fff" opacity="0.41"/><circle cx="120.0" cy="136.6" r="4.5" fill="#fff" opacity="0.48"/><circle cx="157.0" cy="93.0" r="4.5" fill="#fff" opacity="0.54"/><circle cx="194.0" cy="66.6" r="4.5" fill="#fff" opacity="0.61"/><circle cx="231.0" cy="54.0" r="4.5" fill="#fff" opacity="0.68"/><circle cx="268.0" cy="51.4" r="4.5" fill="#fff" opacity="0.74"/><circle cx="305.0" cy="55.6" r="4.5" fill="#fff" opacity="0.80"/><circle cx="342.0" cy="62.9" r="4.5" fill="#fff" opacity="0.87"/><circle cx="379.0" cy="69.8" r="4.5" fill="#fff" opacity="0.94"/><circle cx="416.0" cy="72.9" r="4.5" fill="#fff" opacity="1.00"/><text x="268.0" y="37.4" text-anchor="middle" font-size="12" fill="#9fc0ee" font-weight="600">overshoot</text><text x="46.0" y="20.0" font-size="14" fill="#d8dce6" font-weight="700" font-family="Cascadia Code, Consolas, monospace">Ease.OutBack</text><text x="416.0" y="322.0" text-anchor="end" font-size="12" fill="#7d8494">time</text></svg>
+  <div class="sep"></div>
+  <svg width="440" height="110" viewBox="0 0 440 110"><line x1="353.0" y1="6.0" x2="353.0" y2="104.0" stroke="rgba(255,255,255,.28)" stroke-dasharray="5 5"/><rect x="24.0" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.22"/><rect x="149.1" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.26"/><rect x="240.0" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.30"/><rect x="301.6" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.33"/><rect x="338.9" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.37"/><rect x="356.8" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.41"/><rect x="360.4" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.45"/><rect x="354.5" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.49"/><rect x="344.2" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.52"/><rect x="334.4" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="0.56"/><rect x="330.0" y="32.0" width="46.0" height="46.0" rx="10.0" fill="#5b8fd6" opacity="1.00" stroke="#fff" stroke-opacity=".85" stroke-width="2"/></svg>
+</div>
+</body></html>
