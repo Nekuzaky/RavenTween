@@ -1,0 +1,25 @@
+{
+    "name": "RavenBench.PrimeTween",
+    "rootNamespace": "RavenBench.Adapters",
+    "references": [
+        "RavenBench.Runtime",
+        "PrimeTween.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "RAVENBENCH_PRIMETWEEN"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.kyrylokuzyk.primetween",
+            "expression": "1.0.0",
+            "define": "RAVENBENCH_PRIMETWEEN"
+        }
+    ],
+    "noEngineReferences": false
+}

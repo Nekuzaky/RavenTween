@@ -1,0 +1,26 @@
+{
+    "name": "RavenBench.LitMotion",
+    "rootNamespace": "RavenBench.Adapters",
+    "references": [
+        "RavenBench.Runtime",
+        "LitMotion",
+        "LitMotion.Extensions"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "RAVENBENCH_LITMOTION"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.annulusgames.lit-motion",
+            "expression": "2.0.0",
+            "define": "RAVENBENCH_LITMOTION"
+        }
+    ],
+    "noEngineReferences": false
+}

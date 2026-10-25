@@ -1,0 +1,34 @@
+{
+  "dependencies": {
+    "com.annulusgames.lit-motion": "2.0.2",
+    "com.kyrylokuzyk.primetween": "1.5.1",
+    "com.raventween.core": "file:../../../Packages/com.raventween.core",
+    "com.unity.ugui": "2.0.0",
+    "com.unity.modules.animation": "1.0.0",
+    "com.unity.modules.audio": "1.0.0",
+    "com.unity.modules.imgui": "1.0.0",
+    "com.unity.modules.jsonserialize": "1.0.0",
+    "com.unity.modules.particlesystem": "1.0.0",
+    "com.unity.modules.physics": "1.0.0",
+    "com.unity.modules.physics2d": "1.0.0",
+    "com.unity.modules.ui": "1.0.0",
+    "com.unity.modules.uielements": "1.0.0",
+    "com.unity.modules.unitywebrequest": "1.0.0"
+  },
+  "scopedRegistries": [
+    {
+      "name": "npm (PrimeTween)",
+      "url": "https://registry.npmjs.org",
+      "scopes": [
+        "com.kyrylokuzyk"
+      ]
+    },
+    {
+      "name": "OpenUPM (LitMotion)",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.annulusgames"
+      ]
+    }
+  ]
+}

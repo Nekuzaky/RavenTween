@@ -1,0 +1,25 @@
+{
+    "name": "RavenBench.RavenTween",
+    "rootNamespace": "RavenBench.Adapters",
+    "references": [
+        "RavenBench.Runtime",
+        "RavenTween.Runtime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "RAVENBENCH_RAVENTWEEN"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.raventween.core",
+            "expression": "1.0.0",
+            "define": "RAVENBENCH_RAVENTWEEN"
+        }
+    ],
+    "noEngineReferences": false
+}
