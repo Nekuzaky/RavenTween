@@ -227,8 +227,7 @@ namespace RavenTween {
                     try {
                         next = StepRange(next, count, phase, pass, scaledDelta, unscaledDelta);
                     } catch (Exception exception) {
-                        StopFailedTween(exception);
-                        next = _stepping + 1;
+                        next = StopFailedTween(exception, next);
                     }
                 }
             } finally {
@@ -244,6 +243,8 @@ namespace RavenTween {
             TweenSlot[] slots = _slots;
             float scaled = Sanitize(scaledDelta * TimeScale);
             float unscaled = Sanitize(unscaledDelta * TimeScale);
+            _stepping = first - 1;
+            _steppingVersion = 0;
             for (int i = first; i < count; i++) {
                 TweenSlot slot = slots[i];
                 if (slot.State == SlotState.Free || slot.OwnedBySequence || slot.BornPass >= pass) { continue; }
@@ -262,9 +263,15 @@ namespace RavenTween {
             return count;
         }
 
-        static void StopFailedTween(Exception exception) {
+        static int StopFailedTween(Exception exception, int first) {
             _sequenceDepth = 0;
-            StopAfterException(_slots[_stepping], _stepping, _steppingVersion, exception);
+            int failed = _stepping;
+            if (failed < first || failed >= _slotCount) {
+                Debug.LogException(exception);
+                return first + 1;
+            }
+            StopAfterException(_slots[failed], failed, _steppingVersion, exception);
+            return failed + 1;
         }
 
         static void LogTargetDestroyed(TweenSlot slot) {
@@ -391,7 +398,7 @@ namespace RavenTween {
             if (slot.Effect != EffectKind.None || slot.Mode == CycleMode.Incremental || slot.LinkIndex >= 0) { return false; }
             if (slot.CustomInvoker != null || slot.OnUpdateFloat != null || slot.OnUpdateValue != null || slot.UpdateInvoker != null || slot.OnUpdate != null) { return false; }
             Transform transform = slot.UnityTarget as Transform;
-            if (transform == null) { return false; }
+            if (ReferenceEquals(transform, null)) { return false; }
             bool odd = (cycleIndex & 1) == 1;
             float eased = EvaluateEase(slot, slot.Mode == CycleMode.Yoyo && odd ? 1f - cycleProgress : cycleProgress);
             bool reverse = slot.Mode == CycleMode.PingPong && odd;

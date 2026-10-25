@@ -19,8 +19,9 @@ How the engine is put together, and the rules its code relies on. You don't need
 - Each pass increments a pass counter. A slot created during a pass (by a callback) is skipped by that pass, even when the callback started another pass: results never depend on creation order.
 - Negative, NaN or infinite deltas (a recorder, `Time.captureFramerate`) are clamped to 0. `Raven.TimeScale` is applied once per pass, the per-tween time scale only when it is not 1.
 - Cancellation tokens are polled, never registered: no allocation, and a token cancelled on another thread is only acted on during a pass, on the main thread. A paused tween is still stopped when its token is cancelled.
-- The whole pass is one protected region. A tween whose setter or ease throws is logged and stopped, and the pass resumes with the next one; user callbacks are contained one by one and never stop their tween.
+- The whole pass is one protected region. A tween whose setter or ease throws is logged and stopped, and the pass resumes with the next one; user callbacks are contained one by one and never stop their tween. The index of the tween being stepped is reset at the start of every range, so an exception can never be blamed on, or resume from, a slot of an earlier pass.
 - A property tween's target is checked before it is stepped, and again after `OnStart` (the only user code that runs before the first write). Writes then go straight to the target.
+- `Position`, `LocalPosition` and `LocalScale` tweens with no update callback, effect, link or incremental cycles interpolate and write their `Vector3` directly instead of going through the generic value path. The target was validated before, so this path only checks the cast by reference, without Unity's `== null` lookup; `FastPathEquivalenceTests` checks it writes bit for bit what the generic path writes.
 - Whole cycles are skipped in closed form, so a huge delta costs the same as a small one. Infinite loops keep counting cycles but wrap before overflow, keeping Yoyo parity.
 
 ## Reentrancy
