@@ -23,56 +23,56 @@ Timings were measured with `Throughput_5000Tweens_ReportsFrameCost` and `EffectC
 
 ## Compared with DOTween, PrimeTween and LitMotion
 
-Measured in a **built player**, not the Editor, with the benchmark in [`Benchmarks/`](https://github.com/Nekuzaky/RavenTween/tree/main/Benchmarks) (`Tools/Benchmark-Competitors.ps1`). Every library runs the same scenario, in its own process, with its pool reserved beforehand: N world-position tweens (`InOutQuad`), and N sequences of 3 chained position tweens on the same object. **Update** is the CPU time a whole player-loop frame takes minus the same process's frame with the same objects and no tweens, so it includes the library's update and its transform writes. Median of 5 runs.
+Measured in a **built player**, not the Editor, with the benchmark in [`Benchmarks/`](https://github.com/Nekuzaky/RavenTween/tree/main/Benchmarks) (`Tools/Benchmark-Competitors.ps1`). Every library runs the same scenario, in its own process, with its pool reserved beforehand (LitMotion's `Vector3` motion storage included): N world-position tweens (`InOutQuad`), and N sequences of 3 chained position tweens on the same object. **Update** is the CPU time a whole player-loop frame takes minus the same process's baseline frame, measured with the same objects before the library is touched (no pool reserved, no tween created), so it includes the library's update, any idle walk over its reserved pool, and its transform writes. Median of 5 runs.
 
 | Setting | Value |
 | :--- | :--- |
 | CPU | Intel Core i7-14700KF (28 logical cores), Windows 11 |
 | Unity | 6000.3.13f1, Windows release player, `-batchmode -nographics`, vSync off |
 | Scripting backend | **Mono** (the IL2CPP Windows module was not installed on the benchmark machine) |
-| Versions | RavenTween 1.7.1 + the Vector3 fast path of the next release, DOTween 1.3.045 (free, `DOTween.Init()` defaults), PrimeTween 1.5.1, LitMotion 2.0.2 (Burst 1.8.29) |
+| Versions | RavenTween 1.7.1 + the unreleased changes on `main` (Vector3 fast path, live-range update loop), DOTween 1.3.045 (free, `DOTween.Init()` defaults), PrimeTween 1.5.1, LitMotion 2.0.2 (Burst 1.8.29) |
 
 **N position tweens**
 
 | N | Library | Start (ms) | Update avg (ms/frame) | Update p95 (ms/frame) | GC per frame | GC at start |
 | ---: | :--- | ---: | ---: | ---: | ---: | ---: |
-| 1,000 | DOTween | 0.38 | **0.050** | 0.060 | 0 B | 676 KB |
-| 1,000 | LitMotion | 0.31 | 0.054 | 0.077 | 0 B | 416 KB |
-| 1,000 | RavenTween | **0.13** | 0.071 | 0.080 | 0 B | **0 B** |
-| 1,000 | PrimeTween | 0.29 | 0.121 | 0.138 | 0 B | **0 B** |
-| 10,000 | LitMotion | 2.95 | **0.242** | 0.266 | 0 B | 5.7 MB |
-| 10,000 | DOTween | 3.73 | 0.526 | 0.581 | 0 B | 6.6 MB |
-| 10,000 | RavenTween | **1.76** | 0.734 | 0.807 | 0 B | **0 B** |
-| 10,000 | PrimeTween | 2.64 | 1.205 | 1.303 | 0 B | **0 B** |
-| 50,000 | LitMotion | 14.94 | **1.395** | 1.688 | 0 B | 22.6 MB |
-| 50,000 | DOTween | 19.63 | 3.671 | 4.181 | 0 B | 33.3 MB |
-| 50,000 | RavenTween | **6.53** | 4.289 | 5.092 | 0 B | **0 B** |
-| 50,000 | PrimeTween | 13.59 | 6.081 | 6.445 | 0 B | **0 B** |
+| 1,000 | DOTween | 0.39 | **0.052** | 0.059 | 0 B | 680 KB |
+| 1,000 | LitMotion | 0.22 | 0.056 | 0.086 | 0 B | **0 B** |
+| 1,000 | RavenTween | **0.08** | 0.062 | 0.068 | 0 B | **0 B** |
+| 1,000 | PrimeTween | 0.28 | 0.121 | 0.138 | 0 B | **0 B** |
+| 10,000 | LitMotion | 2.19 | **0.243** | 0.265 | 0 B | **0 B** |
+| 10,000 | DOTween | 3.80 | 0.521 | 0.581 | 0 B | 6.7 MB |
+| 10,000 | RavenTween | **0.81** | 0.664 | 0.765 | 0 B | **0 B** |
+| 10,000 | PrimeTween | 2.74 | 1.201 | 1.310 | 0 B | **0 B** |
+| 50,000 | LitMotion | 10.78 | **1.569** | 2.065 | 0 B | **0 B** |
+| 50,000 | DOTween | 19.68 | 4.018 | 4.622 | 0 B | 33.3 MB |
+| 50,000 | RavenTween | **4.24** | 4.061 | 4.756 | 0 B | **0 B** |
+| 50,000 | PrimeTween | 13.76 | 6.136 | 6.525 | 0 B | **0 B** |
 
 **N sequences of 3 chained position tweens**
 
 | N | Library | Start (ms) | Update avg (ms/frame) | Update p95 (ms/frame) | GC per frame | GC at start |
 | ---: | :--- | ---: | ---: | ---: | ---: | ---: |
-| 1,000 | DOTween | 1.53 | **0.105** | 0.119 | 0 B | 2.5 MB |
-| 1,000 | RavenTween | **0.78** | 0.301 | 0.392 | 0 B | 156 KB |
-| 1,000 | PrimeTween | 2.40 | 0.370 | 0.465 | 0 B | **0 B** |
-| 1,000 | LitMotion | 2.28 | 0.387 | 0.424 | 0 B | 3.4 MB |
-| 10,000 | DOTween | 16.17 | **1.159** | 1.348 | 0 B | 25.1 MB |
-| 10,000 | LitMotion | 24.57 | 3.098 | 3.382 | 0 B | 34.1 MB |
-| 10,000 | RavenTween | **7.41** | 3.219 | 4.021 | 0 B | 1.5 MB |
-| 10,000 | PrimeTween | 23.67 | 3.636 | 3.839 | 0 B | **0 B** |
-| 50,000 | DOTween | 82.37 | **8.580** | 9.467 | 0 B | 125.5 MB |
-| 50,000 | LitMotion | 129.90 | 15.948 | 17.303 | 0 B | 198.8 MB |
-| 50,000 | PrimeTween | 117.05 | 19.011 | 19.790 | 0 B | **0 B** |
-| 50,000 | RavenTween | **33.59** | 19.274 | 23.465 | 0 B | 7.7 MB |
+| 1,000 | DOTween | 1.51 | **0.104** | 0.118 | 0 B | 2.5 MB |
+| 1,000 | RavenTween | **0.57** | 0.276 | 0.332 | 0 B | 148 KB |
+| 1,000 | PrimeTween | 2.42 | 0.363 | 0.406 | 0 B | **0 B** |
+| 1,000 | LitMotion | 2.27 | 0.391 | 0.451 | 0 B | 2.0 MB |
+| 10,000 | DOTween | 16.53 | **1.207** | 1.476 | 0 B | 25.1 MB |
+| 10,000 | LitMotion | 22.78 | 3.344 | 3.817 | 0 B | 22.8 MB |
+| 10,000 | RavenTween | **5.87** | 3.414 | 4.166 | 0 B | 1.5 MB |
+| 10,000 | PrimeTween | 23.86 | 3.923 | 4.452 | 0 B | **0 B** |
+| 50,000 | DOTween | 82.19 | **8.625** | 9.684 | 0 B | 125.5 MB |
+| 50,000 | LitMotion | 113.24 | 16.252 | 18.369 | 0 B | 108.7 MB |
+| 50,000 | PrimeTween | 119.82 | 19.207 | 20.763 | 0 B | **0 B** |
+| 50,000 | RavenTween | **29.10** | 20.329 | 22.416 | 0 B | 7.7 MB |
 
 What this says, honestly:
 
-- **Starting tweens** is where RavenTween leads: 1.5 to 4 times faster than the others, with no allocation for single tweens.
-- **Per-frame update** of plain tweens: RavenTween is ahead of PrimeTween, but **DOTween is about 1.2–1.4× faster, and LitMotion (Burst) is 1.3× faster at 1,000 tweens and about 3× faster from 10,000 on**. In 1.7.1 as released the gap was larger (1.18 ms for 10,000 tweens, about PrimeTween's level); the next release writes `Position`, `LocalPosition` and `LocalScale` tweens through a direct `Vector3` path, which removed about a third of the cost. The rest is the general engine loop (one large pooled slot object per tween, several checks per tween every frame).
-- **Sequences update slower than DOTween** (about 3× at 1,000, 2.2–2.8× at 10,000 and 50,000), close to PrimeTween and LitMotion. RavenTween re-evaluates every child that has already started on each frame, so a sequence of 3 chained tweens writes its transform up to three times per frame once the first child is done. Skipping settled children is planned; it needs care because jumps and rewinds rely on that re-evaluation.
-- **Garbage**: every library allocates 0 B per frame in this scenario. At start, RavenTween and PrimeTween allocate nothing for tweens (pools); DOTween and LitMotion allocate. RavenTween sequences allocate a little the first time their pooled slots store children (156 B per sequence, once).
-- The machine was shared with other Unity editors during the run; the p95 column shows the noise. Run `Tools/Benchmark-Competitors.ps1` on your hardware; IL2CPP will change the absolute numbers.
+- **Starting tweens** is where RavenTween leads: 2.5 to 4.9 times faster than the others at every N, for tweens and sequences, with no allocation for single tweens.
+- **Per-frame update** of plain tweens: RavenTween is ahead of PrimeTween at every N (1.5 to 2 times faster), but behind DOTween (1.2 times at 1,000, 1.3 times at 10,000, almost level at 50,000: 4.06 against 4.02 ms) and LitMotion (Burst: 1.1 times faster at 1,000, about 2.6 to 2.7 times from 10,000 on). In 1.7.1 as released, 10,000 tweens took 1.18 ms; the next release writes `Position`, `LocalPosition` and `LocalScale` tweens through a direct `Vector3` path and walks only the live slot range, which brings it to 0.66 ms. The rest is the general engine loop (one large pooled slot object per tween, several checks per tween every frame).
+- **Sequences update slower than DOTween** at every N (2.4 to 2.8 times). At 1,000 RavenTween is ahead of PrimeTween and LitMotion; at 10,000 it is ahead of PrimeTween and just behind LitMotion (3.41 against 3.34 ms); at 50,000 it is the slowest of the four (20.3 ms, against 19.2 ms for PrimeTween and 16.3 ms for LitMotion). RavenTween re-evaluates every child that has already started on each frame, so a sequence of 3 chained tweens writes its transform up to three times per frame once the first child is done. Skipping settled children is planned; it needs care because jumps and rewinds rely on that re-evaluation.
+- **Garbage**: every library allocates 0 B per frame in this scenario. At start, RavenTween, PrimeTween and LitMotion (with its storage reserved) allocate nothing for tweens; DOTween allocates. For sequences, PrimeTween allocates nothing, RavenTween a little the first time its pooled slots store children (about 150 B per sequence, once), DOTween and LitMotion more.
+- The p95 column shows the run-to-run noise. Run `Tools/Benchmark-Competitors.ps1` on your hardware; IL2CPP will change the absolute numbers.
 
 Raw data: `Benchmarks/Results/latest` (this table) and `Benchmarks/Results/1.7.1-release` (the same benchmark on 1.7.1 as released).
 

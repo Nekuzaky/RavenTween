@@ -48,7 +48,7 @@ await Raven.Delay(1.2f);
 </p>
 
 - **0 B per frame** for property, effect, sequence and custom tweens — enforced by the test suite.
-- **Benchmarked against DOTween, PrimeTween and LitMotion** in a Windows release player (Mono, i7-14700KF): the fastest to start tweens (10,000 in 1.8 ms), with 0 B allocated per frame and none at start for single tweens; 10,000 tweens update in 0.73 ms/frame (with the next release's fast path; 1.18 ms in 1.7.1), ahead of PrimeTween (1.2 ms) but behind DOTween (0.53 ms) and LitMotion (0.24 ms), and sequences update slower than DOTween. [Full results and method](docs/wiki/Performance.md).
+- **Benchmarked against DOTween, PrimeTween and LitMotion** in a Windows release player (Mono, i7-14700KF): the fastest to start tweens and sequences (10,000 tweens in 0.81 ms), with 0 B allocated per frame and none at start for single tweens; 10,000 tweens update in 0.66 ms/frame (1.18 ms in 1.7.1), ahead of PrimeTween (1.20 ms) but behind DOTween (0.52 ms) and LitMotion (0.24 ms); sequences update 2.4 to 2.8 times slower than DOTween, and at 50,000 slower than all three. [Full results and method](docs/wiki/Performance.md).
 - Sequences with timeline callbacks, shake & punch, TextMeshPro, async/await, coroutines, cancellation tokens.
 - Full time control: elapsed time and progress you can read and set, per-tween time scale, `FixedUpdate` and Rigidbody tweens.
 - Single-axis, speed-based and per-renderer property-block tweens; Incremental and PingPong cycles; tunable Overshoot / Bounce / Elastic eases.
