@@ -3,6 +3,11 @@
 All notable changes to this package are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Faster update for `Position`, `LocalPosition` and `LocalScale` tweens that have no update callback: they interpolate and write the `Vector3` directly instead of going through the generic value path. In a Mono release player, 10,000 position tweens step in about 0.73 ms per frame instead of 1.1 ms (see `Benchmarks/README.md`).
+
 ## [1.7.1] - 2026-10-16
 
 ### Changed
