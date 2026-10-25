@@ -343,6 +343,18 @@ namespace RavenTween.Tests {
             Assert.That(done, Is.True);
         }
 
+        [Test]
+        public void HandleFromBeforeAnEngineReset_NeverReachesANewTween() {
+            TweenEngine.DomainReset();
+            Tween old = Raven.Value(0f, 1f, 1f);
+            TweenEngine.DomainReset();
+            Tween fresh = Raven.Value(0f, 1f, 1f);
+            Assert.That(old.IsAlive, Is.False);
+            Assert.That(old.Equals(fresh), Is.False);
+            old.Stop();
+            Assert.That(fresh.IsAlive, Is.True);
+        }
+
         static TweenTemplate MakeTemplate(float duration) {
             var t = ScriptableObject.CreateInstance<TweenTemplate>();
             t.property = PropertyKind.LocalPosition;

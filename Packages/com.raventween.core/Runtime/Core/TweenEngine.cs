@@ -64,10 +64,10 @@ namespace RavenTween {
         public static int PoolSize { get { return Slots.Count; } }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        static void DomainReset() {
-            Slots.Clear();
-            FreeIndices.Clear();
-            Effects.Clear();
+        internal static void DomainReset() {
+            ReleaseEverySlot();
+            Application.quitting -= ReleaseEverySlot;
+            Application.quitting += ReleaseEverySlot;
             TimeScale = 1f;
             Phase = UpdatePhase.Update;
             Diagnostics = false;
@@ -82,6 +82,21 @@ namespace RavenTween {
             _hitStopRemaining = 0f;
             _hitStopRestore = 1f;
             Install();
+        }
+
+        static void ReleaseEverySlot() {
+            FreeIndices.Clear();
+            Effects.Clear();
+            for (int i = Slots.Count - 1; i >= 0; i--) {
+                TweenSlot slot = Slots[i];
+                if (slot.State != SlotState.Free) {
+                    slot.ClearReferences();
+                    if (slot.Items != null) { slot.Items.Clear(); }
+                    slot.State = SlotState.Free;
+                    slot.Version++;
+                }
+                FreeIndices.Push(i);
+            }
         }
 
         // Runs after every BeforeSceneLoad initializer: a package or SDK that replaced the
